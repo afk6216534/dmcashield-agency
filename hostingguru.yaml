@@ -1,5 +1,5 @@
 root: backend/
-startCommand: uvicorn main_simple:app --host 0.0.0.0 --port $PORT
-buildCommand: pip install -r requirements.txt
+startCommand: python server.py
+buildCommand: pip install fastapi uvicorn
 ignore:
   - frontend/
