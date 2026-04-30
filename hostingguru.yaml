@@ -1,2 +1,2 @@
-buildCommand: |
-  pip install fastapi uvicorn
+root: .
+dockerfile: Dockerfile
