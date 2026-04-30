@@ -1,0 +1,8 @@
+{
+  "skill_id": "webhook_handler",
+  "name": "Webhook Handler",
+  "description": "Handle incoming webhooks, trigger actions, and manage callbacks",
+  "trigger": "/webhook",
+  "actions": ["receive:webhook", "process:payload", "trigger:action", "callback:respond"],
+  "icon": "🪝"
+}

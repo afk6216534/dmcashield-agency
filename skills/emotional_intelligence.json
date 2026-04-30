@@ -1,0 +1,8 @@
+{
+  "skill_id": "emotional_intelligence",
+  "name": "Emotional Intelligence",
+  "description": "Understand and respond to human emotions like a empathetic human",
+  "trigger": "/emotion",
+  "actions": ["detect:mood", "empathize:response", "adjust:tone", "build:connection"],
+  "icon": "💜"
+}

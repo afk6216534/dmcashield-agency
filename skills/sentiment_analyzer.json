@@ -1,0 +1,24 @@
+{
+  "name": "sentiment_analyzer",
+  "version": "1.0.0",
+  "description": "Analyze sentiment in emails and reviews to understand customer emotions",
+  "capabilities": [
+    "DetectPositive emotion in replies",
+    "DetectNegative sentiment",
+    "Detect frustration",
+    "Detect excitement",
+    "Detect hesitation"
+  ],
+  "triggers": [
+    "analyze sentiment",
+    "how do they feel",
+    "customer emotion",
+    "tone analysis"
+  ],
+  "sentiment_scores": {
+    "positive": ["love", "great", "awesome", "thank", "excellent", "happy"],
+    "negative": ["angry", "frustrated", "disappointed", "terrible", "hate"],
+    "neutral": ["ok", "fine", "maybe", "consider"]
+  },
+  "autonomous": true
+}

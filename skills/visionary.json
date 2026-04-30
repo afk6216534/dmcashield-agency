@@ -1,0 +1,8 @@
+{
+  "skill_id": "visionary",
+  "name": "Visionary",
+  "description": "See what others cannot like a far-sighted visionary",
+  "trigger": "/vision",
+  "actions": ["see:future", "imagine:possibilities", "envision:success", "paint:picture"],
+  "icon": "🔭"
+}

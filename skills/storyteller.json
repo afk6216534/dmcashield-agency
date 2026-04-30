@@ -1,0 +1,8 @@
+{
+  "skill_id": "storyteller",
+  "name": "Storyteller",
+  "description": "Tell compelling stories to engage prospects like a master storyteller",
+  "trigger": "/story",
+  "actions": ["hook:attention", "build: tension", "reveal:solution", "inspire:action"],
+  "icon": "📖"
+}

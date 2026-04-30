@@ -1,0 +1,13 @@
+{
+  "experiences": [
+    {
+      "id": "6c27b01e-9600-4f7e-8336-b304f721fafe",
+      "experience": "Task created: task-a4102fb8 - dentist in Miami, FL",
+      "outcome": "task_created",
+      "context": {},
+      "timestamp": "2026-04-27T16:42:37.908955"
+    }
+  ],
+  "learnings": [],
+  "preferences": {}
+}

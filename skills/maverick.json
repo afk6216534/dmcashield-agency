@@ -1,0 +1,8 @@
+{
+  "skill_id": "maverick",
+  "name": "Maverick",
+  "description": "Defy conventions like a rebellious maverick",
+  "trigger": "/rebel",
+  "actions": ["defy:norms", "challenge:status", "break:rules", "dance:different"],
+  "icon": "🏍️"
+}

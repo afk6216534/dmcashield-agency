@@ -1,0 +1,8 @@
+{
+  "skill_id": "survivor",
+  "name": "Survivor",
+  "description": "Thrive through any challenge like a resilient survivor",
+  "trigger": "/survive",
+  "actions": ["adapt:quickly", "endure: hardship", "bounce:back", "persist:always"],
+  "icon": "🌊"
+}

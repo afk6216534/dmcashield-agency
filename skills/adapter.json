@@ -1,0 +1,8 @@
+{
+  "skill_id": "adapter",
+  "name": "Adapter",
+  "description": "Adapt quickly to any situation like a survival expert",
+  "trigger": "/adapt",
+  "actions": ["read:environment", "adjust:approach", "pivot:strategy", "thrive:always"],
+  "icon": "🦎"
+}

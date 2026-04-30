@@ -1,0 +1,8 @@
+{
+  "skill_id": "smart_optimizer",
+  "name": "Smart Optimizer",
+  "description": "Auto-optimize everything based on real-time results",
+  "trigger": "/optimize_auto",
+  "actions": ["analyze:results", "auto:tune", "improve:continuously", "adapt:realtime"],
+  "icon": "⚙️"
+}

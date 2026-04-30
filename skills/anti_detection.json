@@ -1,0 +1,8 @@
+{
+  "skill_id": "anti_detection",
+  "name": "Anti-Detection",
+  "description": "Bypass all bot detection systems professionally",
+  "trigger": "/stealth",
+  "actions": ["rotate:profiles", "randomize:behavior", "human:mimic", "evade:algorithms"],
+  "icon": "🥷"
+}

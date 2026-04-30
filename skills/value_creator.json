@@ -1,0 +1,8 @@
+{
+  "skill_id": "value_creator",
+  "name": "Value Creator",
+  "description": "Create genuine value for clients like a trusted advisor",
+  "trigger": "/value",
+  "actions": ["understand:needs", "create:solution", "deliver:extras", "build:loyalty"],
+  "icon": "💎"
+}

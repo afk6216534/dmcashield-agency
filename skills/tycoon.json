@@ -1,0 +1,8 @@
+{
+  "skill_id": "tycoon",
+  "name": "Tycoon",
+  "description": "Build empires like a business tycoon",
+  "trigger": "/tycoon",
+  "actions": ["scale:rapidly", "invest:wisely", "dominate:market", "build:empire"],
+  "icon": "💰"
+}

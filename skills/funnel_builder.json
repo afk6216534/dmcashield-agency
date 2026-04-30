@@ -1,0 +1,8 @@
+{
+  "skill_id": "funnel_builder",
+  "name": "Funnel Builder",
+  "description": "Build custom sales funnels",
+  "trigger": "/funnel",
+  "actions": ["create:funnel", "add:steps", "automate:flow", "track:conversion"],
+  "icon": "📈"
+}

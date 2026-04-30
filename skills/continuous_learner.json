@@ -1,0 +1,21 @@
+{
+  "name": "continuous_learner",
+  "version": "1.0.0",
+  "description": "Self-learning system that improves from every campaign",
+  "capabilities": [
+    "Learn from campaign results",
+    "Improve subject lines",
+    "Optimize send times",
+    "Adapt to rejections",
+    "Pattern recognition"
+  ],
+  "learning_rate": 0.05,
+  "feedback_sources": ["opens", "clicks", "replies", "unsubscribes"],
+  "triggers": [
+    "learn",
+    "improve",
+    "adapt",
+    "optimize from results"
+  ],
+  "autonomous": true
+}

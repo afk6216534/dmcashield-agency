@@ -1,0 +1,25 @@
+{
+  "name": "autonomous_decider",
+  "version": "1.0.0",
+  "description": "Make autonomous decisions without human intervention",
+  "capabilities": [
+    "Decideoptimal campaign settings",
+    "Choose best send time",
+    "Select target audience",
+    "Allocate budget",
+    "Pause underperforming campaigns"
+  ],
+  "decision_logic": {
+    "open_rate_threshold": 0.3,
+    "reply_rate_threshold": 0.05,
+    "hot_lead_score": 70,
+    "max_daily_emails": 500
+  },
+  "triggers": [
+    "decide",
+    "auto decide",
+    "make decision",
+    "what should we do"
+  ],
+  "autonomous": true
+}

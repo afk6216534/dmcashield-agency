@@ -1,0 +1,8 @@
+{
+  "skill_id": "webhook_manager",
+  "name": "Webhook Manager",
+  "description": "Manage webhooks for automation",
+  "trigger": "/webhooks",
+  "actions": ["create:webhook", "listen:events", "trigger:actions", "log:activity"],
+  "icon": "🪝"
+}

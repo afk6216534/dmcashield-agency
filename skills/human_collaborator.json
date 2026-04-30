@@ -1,0 +1,25 @@
+{
+  "name": "human_collaborator",
+  "version": "1.0.0",
+  "description": "Seamless human-AI collaboration with smart escalation",
+  "capabilities": [
+    "Ask human for input when needed",
+    "Escalate complex decisions",
+    "Request approval for costly actions",
+    "Share progress updates",
+    "Smart task delegation"
+  ],
+  "escalation_triggers": [
+    {"action": "send_budget_over_500", "require_approval": true},
+    {"action": "pause_campaign", "require_approval": false},
+    {"action": "delete_data", "require_approval": true},
+    {"action": "change_pricing", "require_approval": true}
+  ],
+  "triggers": [
+    "need help",
+    "ask human",
+    "escalate",
+    "require approval"
+  ],
+  "auto_escalate": false
+}

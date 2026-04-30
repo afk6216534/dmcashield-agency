@@ -1,0 +1,8 @@
+{
+  "skill_id": "predictive_lead_score",
+  "name": "Predictive Lead Score",
+  "description": "AI-powered lead scoring based on behavior patterns",
+  "trigger": "/score",
+  "actions": ["analyze:behavior", "predict:conversion", "rank:leads", "prioritize:outreach"],
+  "icon": "🎯"
+}

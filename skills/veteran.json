@@ -1,0 +1,8 @@
+{
+  "skill_id": "veteran",
+  "name": "Veteran",
+  "description": "Apply years of experience like a battle-tested veteran",
+  "trigger": "/veteran",
+  "actions": ["draw:experience", "mentor:others", "read:situations", "act:wisely"],
+  "icon": "🎖️"
+}

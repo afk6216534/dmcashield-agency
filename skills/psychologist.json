@@ -1,0 +1,8 @@
+{
+  "skill_id": "psychologist",
+  "name": "Psychologist",
+  "description": "Understand human psychology like a mind reader",
+  "trigger": "/psych",
+  "actions": ["read:minds", "understand:motives", "predict:behavior", "connect:deeply"],
+  "icon": "🔮"
+}

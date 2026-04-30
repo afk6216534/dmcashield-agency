@@ -1,0 +1,8 @@
+{
+  "skill_id": "brand_protector",
+  "name": "Brand Protector",
+  "description": "Protect brand reputation online",
+  "trigger": "/protect_brand",
+  "actions": ["monitor:brand", "remove:negative", "boost:positive", "protect:identity"],
+  "icon": "🛡️"
+}

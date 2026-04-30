@@ -1,0 +1,8 @@
+{
+  "skill_id": "competitor_intel",
+  "name": "Competitor Intelligence",
+  "description": "Research competitors and market landscape",
+  "trigger": "/competitor",
+  "actions": ["analyze:market", "find:competitors", "study:strategies", "identify:gaps"],
+  "icon": "🎯"
+}

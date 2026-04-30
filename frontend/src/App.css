@@ -1,0 +1,71 @@
+/* Modern Dark Theme */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0a0a12; color: #e8e8e8; min-height: 100vh; }
+
+.header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem; background: linear-gradient(90deg, #1a1a2e, #16213e); border-bottom: 2px solid #0f3460; }
+.logo { color: #00d4ff; font-size: 1.5rem; font-weight: bold; }
+
+.nav-bar a { color: #888; text-decoration: none; margin: 0 0.75rem; padding: 0.5rem 1rem; border-radius: 6px; transition: all 0.3s; }
+.nav-bar a:hover { background: #0f3460; color: #00d4ff; }
+
+.app-container { padding: 2rem; max-width: 1400px; margin: 0 auto; }
+
+/* Dashboard Stats */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem; margin-top: 1.5rem; }
+.stat-card { background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 1.5rem; transition: transform 0.2s; }
+.stat-card:hover { transform: translateY(-2px); border-color: #0f3460; }
+.stat-card h3 { color: #aaa; font-size: 0.875rem; }
+.stat-card .number { color: #00d4ff; font-size: 2rem; font-weight: bold; margin: 0.5rem 0; }
+.stat-card .number.hot { color: #ef4444; }
+
+/* Lead DB */
+.filters { margin-bottom: 1rem; }
+.filters select { background: #1f2937; color: #e8e8e8; border: 1px solid #374151; padding: 0.5rem; border-radius: 6px; }
+
+.lead-db table { width: 100%; border-collapse: collapse; }
+.lead-db th, .lead-db td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #1f2937; }
+.badge { padding: 0.25rem 0.6rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+.badge.cold { background: #374151; color: #9ca3af; }
+.badge.warm { background: #f59e0b; color: #000; }
+.badge.hot { background: #ef4444; color: #fff; }
+
+/* Accounts */
+.add-form { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+.add-form input { flex: 1; background: #1f2937; color: #e8e8e8; border: 1px solid #374151; border-radius: 6px; padding: 0.5rem; }
+.add-form button { background: #0f3460; color: #00d4ff; border: none; padding: 0.5rem 1.25rem; border-radius: 6px; cursor: pointer; }
+.add-form button:hover { background: #1f2937; }
+
+/* Analytics */
+.metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem; }
+.metric-card { background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 1.5rem; }
+.metric-card h3 { color: #aaa; font-size: 0.875rem; }
+.metric-card .number { color: #00d4ff; font-size: 2.5rem; font-weight: bold; }
+
+/* Funnel */
+.funnel-viz { display: flex; flex-direction: column; gap: 0.5rem; }
+.funnel-stage { height: 2.5rem; background: #111827; border: 1px solid #1f2937; border-radius: 6px; display: flex; align-items: center; padding: 0 1rem; color: #aaa; }
+
+/* Task Manager */
+.status { padding: 0.25rem 0.6rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+.status.active { background: #0f3460; color: #00d4ff; }
+.status.paused { background: #6b7280; color: #9ca3af; }
+.status.complete { background: #052a1c; color: #22c55e; }
+.status.cancelled { background: #3b0a0a; color: #ef4444; }
+
+/* Hot Leads */
+.lead-card { background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem; }
+.lead-card h3 { color: #00d4ff; margin-bottom: 0.5rem; }
+
+/* Settings */
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; }
+.card { background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 1.5rem; }
+.card h2 { color: #aaa; font-size: 1.125rem; margin-bottom: 1rem; }
+.card input { background: #1f2937; color: #e8e8e8; border: 1px solid #374151; padding: 0.5rem; border-radius: 6px; width: 100%; margin: 0.5rem 0; }
+.card button { background: #0f3460; color: #00d4ff; border: none; padding: 0.5rem 1.5rem; border-radius: 6px; cursor: pointer; }
+.card .hint { color: #666; font-size: 0.875rem; }
+.jarvis { position: relative; }
+.jarvis-chat { position: absolute; right: 0; top: 0; width: 300px; height: 400px; background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 1rem; }
+
+/* Footer */
+.footer { text-align: center; padding: 2rem; color: #4b5563; border-top: 1px solid #1f2937; margin-top: 2rem; }

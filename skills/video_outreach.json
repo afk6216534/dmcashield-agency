@@ -1,0 +1,8 @@
+{
+  "skill_id": "video_outreach",
+  "name": "Video Outreach",
+  "description": "Send personalized video messages",
+  "trigger": "/video",
+  "actions": ["record:video", "personalize", "send:video", "track:views"],
+  "icon": "🎬"
+}

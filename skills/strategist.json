@@ -1,0 +1,8 @@
+{
+  "skill_id": "strategist",
+  "name": "Strategist",
+  "description": "Plan long-term strategy like a chess master",
+  "trigger": "/strategy",
+  "actions": ["analyze:position", "plan:moves", "anticipate:obstacles", "execute:win"],
+  "icon": "♟️"
+}

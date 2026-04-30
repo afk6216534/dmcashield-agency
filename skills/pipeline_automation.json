@@ -1,0 +1,8 @@
+{
+  "skill_id": "pipeline_automation",
+  "name": "Pipeline Automation",
+  "description": "Automate full lead-to-cash pipeline",
+  "trigger": "/pipeline",
+  "actions": ["scrape:leads", "validate:emails", "send:outreach", "track:response", "convert:deals"],
+  "icon": "🔁"
+}

@@ -1,0 +1,8 @@
+{
+  "skill_id": "rapport_builder",
+  "name": "Rapport Builder",
+  "description": "Build genuine connections like a natural relationship builder",
+  "trigger": "/connect",
+  "actions": ["find:common", "show:interest", "build:trust", "create:bond"],
+  "icon": "🤗"
+}

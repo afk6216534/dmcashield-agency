@@ -1,0 +1,8 @@
+{
+  "skill_id": "conversion_master",
+  "name": "Conversion Master",
+  "description": "Master of converting leads to paying clients",
+  "trigger": "/close",
+  "actions": ["identify:pain", "present:solution", "handle:objection", "close:deal"],
+  "icon": "💵"
+}

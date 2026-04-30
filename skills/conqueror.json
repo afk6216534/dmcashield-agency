@@ -1,0 +1,8 @@
+{
+  "skill_id": "conqueror",
+  "name": "Conqueror",
+  "description": "Conquer any challenge like a fearless conqueror",
+  "trigger": "/conquer",
+  "actions": ["dominate:battles", "crush:obstacles", "own:territory", "win:war"],
+  "icon": "⚔️"
+}

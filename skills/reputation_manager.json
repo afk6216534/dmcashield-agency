@@ -1,0 +1,8 @@
+{
+  "skill_id": "reputation_manager",
+  "name": "Reputation Manager",
+  "description": "Manage online reputation and brand image for clients",
+  "trigger": "/reputation",
+  "actions": ["assess:online", "protect:brand", "build:image", "monitor: constantly"],
+  "icon": "🛡️"
+}

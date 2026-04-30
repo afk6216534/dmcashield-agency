@@ -1,0 +1,8 @@
+{
+  "skill_id": "instagram_dm",
+  "name": "Instagram DM",
+  "description": "Send Instagram direct messages",
+  "trigger": "/instagram",
+  "actions": ["find:profile", "send:dm", "track:response", "follow_up"],
+  "icon": "📸"
+}

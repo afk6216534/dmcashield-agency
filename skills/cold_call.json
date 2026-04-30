@@ -1,0 +1,8 @@
+{
+  "skill_id": "cold_call",
+  "name": "Cold Call Automation",
+  "description": "Automated voice calls to leads for follow-up",
+  "trigger": "/call",
+  "actions": ["validate:phone", "script:call_script", "initiate:call", "log:result"],
+  "icon": "📞"
+}

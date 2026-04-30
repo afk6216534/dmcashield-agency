@@ -1,0 +1,8 @@
+{
+  "skill_id": "problem_solver",
+  "name": "Problem Solver",
+  "description": "Solve problems creatively like a innovative thinker",
+  "trigger": "/solve",
+  "actions": ["analyze:problem", "ideate:solutions", "prototype:fix", "deliver:result"],
+  "icon": "🧩
+}

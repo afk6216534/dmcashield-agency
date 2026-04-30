@@ -1,0 +1,8 @@
+{
+  "skill_id": "voice_ai",
+  "name": "Voice AI",
+  "description": "Convert text to speech, voice calls, and audio notifications",
+  "trigger": "/voice",
+  "actions": ["tts:generate_speech", "audio:notify", "call:initiate"],
+  "icon": "🎤"
+}

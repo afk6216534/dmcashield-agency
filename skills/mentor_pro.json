@@ -1,0 +1,8 @@
+{
+  "skill_id": "mentor_pro",
+  "name": "Master Mentor",
+  "description": "Transform lives like a master mentor",
+  "trigger": "/transform",
+  "actions": ["unlock:potential", "guide:journey", "inspire:growth", "champion:others"],
+  "icon": "🌟"
+}

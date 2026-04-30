@@ -1,0 +1,8 @@
+{
+  "skill_id": "icon",
+  "name": "Industry Icon",
+  "description": "Become a legend like an enduring icon",
+  "trigger": "/legend",
+  "actions": ["build:legacy", "inspire:generations", "define:industry", "live:forever"],
+  "icon": "🏛️"
+}

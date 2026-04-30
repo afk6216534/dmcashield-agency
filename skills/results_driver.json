@@ -1,0 +1,8 @@
+{
+  "skill_id": "results_driver",
+  "name": "Results Driver",
+  "description": "Drive measurable results and ROI",
+  "trigger": "/results",
+  "actions": ["track:metrics", "optimize:performance", "deliver:results", "measure:roi"],
+  "icon": "📊"
+}

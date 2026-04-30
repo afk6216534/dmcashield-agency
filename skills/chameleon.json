@@ -1,0 +1,8 @@
+{
+  "skill_id": "chameleon",
+  "name": "Chameleon",
+  "description": "Adapt your personality like a social chameleon",
+  "trigger": "/morph",
+  "actions": ["read:room", "adjust:style", "connect:anyone", "fit:anywhere"],
+  "icon": "🦎"
+}

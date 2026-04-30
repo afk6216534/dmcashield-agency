@@ -1,0 +1,8 @@
+{
+  "skill_id": "innovator",
+  "name": "Innovator",
+  "description": "Invent new solutions like a visionary",
+  "trigger": "/innovate",
+  "actions": ["identify:needs", "design:solutions", "build:new", "disrupt:markets"],
+  "icon": "🚀"
+}

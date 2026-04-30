@@ -1,0 +1,8 @@
+{
+  "skill_id": "whatsapp_business",
+  "name": "WhatsApp Business",
+  "description": "Send WhatsApp messages via Business API",
+  "trigger": "/whatsapp_api",
+  "actions": ["validate:phone", "template:message", "send:whatsapp", "track:delivery"],
+  "icon": "📱"
+}

@@ -1,0 +1,8 @@
+{
+  "skill_id": "professional",
+  "name": "Professional",
+  "description": "Execute with excellence like a true professional",
+  "trigger": "/pro",
+  "actions": ["deliver:excellence", "maintain:standards", "honor:commitments", "execute:flawlessly"],
+  "icon": "💼"
+}

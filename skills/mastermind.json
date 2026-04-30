@@ -1,0 +1,8 @@
+{
+  "skill_id": "mastermind",
+  "name": "Mastermind",
+  "description": "Outsmart everyone like a brilliant mastermind",
+  "trigger": "/outsmart",
+  "actions": ["think:brilliant", "outmaneuver: opponents", "solve:impossible", "outwit:all"],
+  "icon": "🧠"
+}

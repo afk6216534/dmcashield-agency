@@ -1,0 +1,8 @@
+{
+  "skill_id": "natural_writer",
+  "name": "Natural Writer",
+  "description": "Write natural human-like content that passes all detection",
+  "trigger": "/natural",
+  "actions": ["vary:writing_style", "add:imperfections", "humanize:text", "pass:detectors"],
+  "icon": "✍️"
+}

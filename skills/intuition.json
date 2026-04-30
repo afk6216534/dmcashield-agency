@@ -1,0 +1,8 @@
+{
+  "skill_id": "intuition",
+  "name": "Intuition",
+  "description": "Trust gut feelings and make instinctual decisions like a seasoned pro",
+  "trigger": "/intuit",
+  "actions": ["read:signals", "feel:energy", "trust:gut", "act:instinct"],
+  "icon": "🧠"
+}

@@ -1,0 +1,8 @@
+{
+  "skill_id": "multi_platform_scraper",
+  "name": "Multi Platform Scraper",
+  "description": "Scrape leads from all major platforms",
+  "trigger": "/scrape_all",
+  "actions": ["scrape:google_maps", "scrape:yellowpages", "scrape:yelp", "scrape:bing", "scrape:facebook", "scrape:linkedin", "scrape:twitter"],
+  "icon": "🌐"
+}

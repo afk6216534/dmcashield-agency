@@ -1,0 +1,8 @@
+{
+  "skill_id": "unicorn",
+  "name": "Unicorn",
+  "description": "Be rare and valuable like a mythical unicorn",
+  "trigger": "/rare",
+  "actions": ["stand:unique", "deliver:rare", "be:exceptional", "shine:brightly"],
+  "icon": "🦄"
+}

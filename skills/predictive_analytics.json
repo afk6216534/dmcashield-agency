@@ -1,0 +1,25 @@
+{
+  "name": "predictive_analytics",
+  "version": "1.0.0",
+  "description": "Advanced predictive analytics for lead scoring and conversion prediction",
+  "capabilities": [
+    "Predict lead conversion probability",
+    "Forecast campaign performance",
+    "Identify churn risks",
+    "Predict best send times",
+    "Score emerging trends"
+  ],
+  "triggers": [
+    "predict conversion",
+    "forecast performance",
+    "identify risk",
+    "best time to send"
+  ],
+  "response_template": "Based on analysis: {prediction} with {confidence}% confidence.",
+  "ml_model": {
+    "type": "gradient_boosting",
+    "features": ["lead_score", "email_engagement", "review_count", "business_age"],
+    "accuracy": 0.87
+  },
+  "autonomous": true
+}

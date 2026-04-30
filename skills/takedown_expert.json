@@ -1,0 +1,8 @@
+{
+  "skill_id": "takedown_expert",
+  "name": "Takedown Expert",
+  "description": "Execute successful DMCA takedowns on all platforms",
+  "trigger": "/takedown",
+  "actions": ["identify:content", "file:dmca", "track:status", "ensure:removal"],
+  "icon": "🎯"
+}

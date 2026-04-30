@@ -1,0 +1,8 @@
+{
+  "skill_id": "professional_writer",
+  "name": "Professional Writer",
+  "description": "Write professional business content that looks authentic",
+  "trigger": "/pro_write",
+  "actions": ["write:professional", "business:tone", "proper:format", "industry:standard"],
+  "icon": "📝"
+}

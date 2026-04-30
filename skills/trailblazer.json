@@ -1,0 +1,8 @@
+{
+  "skill_id": "trailblazer",
+  "name": "Trailblazer",
+  "description": "Blaze trails and set new standards",
+  "trigger": "/trailblaze",
+  "actions": ["pioneer:new", "set:standards", "lead:path", "innovate:always"],
+  "icon": "🛤️"
+}

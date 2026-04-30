@@ -1,0 +1,8 @@
+{
+  "skill_id": "active_listener",
+  "name": "Active Listener",
+  "description": "Listen and understand deeply like an empathetic human listener",
+  "trigger": "/listen",
+  "actions": ["hear:words", "sense:feeling", "reflect:back", "validate:emotion"],
+  "icon": "👂"
+}

@@ -1,0 +1,8 @@
+{
+  "skill_id": "evangelist",
+  "name": "Evangelist",
+  "description": "Spread your message like a passionate evangelist",
+  "trigger": "/evangelize",
+  "actions": ["spread:message", "convert:believers", "inspire:movement", "lead:cause"],
+  "icon": "📢"
+}

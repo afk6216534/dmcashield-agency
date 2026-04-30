@@ -1,0 +1,8 @@
+{
+  "skill_id": "scaler",
+  "name": "Scalability Expert",
+  "description": "Scale operations like a growth architect",
+  "trigger": "/scale",
+  "actions": ["plan:growth", "build:infrastructure", "expand:operations", "handle:volume"],
+  "icon": "📈"
+}

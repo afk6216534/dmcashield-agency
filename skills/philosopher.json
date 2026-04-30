@@ -1,0 +1,8 @@
+{
+  "skill_id": "philosopher",
+  "name": "Philosopher",
+  "description": "Think deep thoughts about life and existence",
+  "trigger": "/think",
+  "actions": ["ponder:existence", "question:everything", "seek:truth", "explore:ideas"],
+  "icon": "🎭"
+}

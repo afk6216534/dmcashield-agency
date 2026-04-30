@@ -1,0 +1,8 @@
+{
+  "skill_id": "scheduling",
+  "name": "Smart Scheduling",
+  "description": "Schedule campaigns and automate timing",
+  "trigger": "/schedule",
+  "actions": ["plan:campaigns", "set:timing", "automate:send", "optimize:delivery"],
+  "icon": "📅"
+}

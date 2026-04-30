@@ -1,0 +1,8 @@
+{
+  "skill_id": "zapier_integration",
+  "name": "Zapier Integration",
+  "description": "Connect with 5000+ apps via Zapier",
+  "trigger": "/zapier",
+  "actions": ["connect:trigger", "action:task", "sync:apps", "automate:workflows"],
+  "icon": "⚡"
+}

@@ -1,0 +1,8 @@
+{
+  "skill_id": "case_builder",
+  "name": "Case Builder",
+  "description": "Build strong cases for DMCA takedowns",
+  "trigger": "/case",
+  "actions": ["gather:evidence", "document:violation", "build:case", "file:takedown"],
+  "icon": "📁"
+}

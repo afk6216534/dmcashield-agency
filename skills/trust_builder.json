@@ -1,0 +1,8 @@
+{
+  "skill_id": "trust_builder",
+  "name": "Trust Builder",
+  "description": "Build instant trust and credibility with prospects",
+  "trigger": "/trust_build",
+  "actions": ["show:credibility", "share:proof", "demonstrate:value", "build:rapport"],
+  "icon": "🤝"
+}

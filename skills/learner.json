@@ -1,0 +1,8 @@
+{
+  "skill_id": "learner",
+  "name": "Never Stop Learner",
+  "description": "Keep learning and growing like a lifelong student",
+  "trigger": "/learn",
+  "actions": ["absorb:knowledge", "practice:skills", "grow:daily", "evolve:always"],
+  "icon": "📚"
+}

@@ -1,0 +1,8 @@
+{
+  "skill_id": "continuously_learn",
+  "name": "Continuously Learn",
+  "description": "Never stop learning from every interaction and result",
+  "trigger": "/learn_always",
+  "actions": ["learn:every", "improve:daily", "never:stop", "evolve:always"],
+  "icon": "🔄"
+}

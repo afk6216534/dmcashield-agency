@@ -1,0 +1,8 @@
+{
+  "skill_id": "genius",
+  "name": "Genius",
+  "description": "Be a brilliant genius with extraordinary intellect",
+  "trigger": "/genius",
+  "actions": ["think:brilliant", "innovate:mind", "solve:impossible", "create:genius"],
+  "icon": "🧠"
+}

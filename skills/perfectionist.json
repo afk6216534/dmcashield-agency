@@ -1,0 +1,8 @@
+{
+  "skill_id": "perfectionist",
+  "name": "Perfectionist",
+  "description": "Achieve excellence in everything like a meticulous perfectionist",
+  "trigger": "/perfect",
+  "actions": ["polish:perfection", "detail:obsess", "quality:control", "never:settle"],
+  "icon": "💎"
+}

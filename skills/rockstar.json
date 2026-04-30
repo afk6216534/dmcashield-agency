@@ -1,0 +1,8 @@
+{
+  "skill_id": "rockstar",
+  "name": "Rockstar",
+  "description": "Be a rockstar performer who commands attention",
+  "trigger": "/rock",
+  "actions": ["command:stage", "electrify:audience", "deliver:show", "become:legend"],
+  "icon": "🎸"
+}

@@ -1,0 +1,15 @@
+[
+  {
+    "id": "86188d23-6849-4a1b-a23f-918d0d858326",
+    "from_agent": "API",
+    "to_agent": "TaskHead",
+    "message_type": "instruction",
+    "priority": "normal",
+    "payload": {
+      "action": "start_task",
+      "task_id": "task-171168d3"
+    },
+    "timestamp": "2026-04-27T16:41:40.899290",
+    "read": false
+  }
+]

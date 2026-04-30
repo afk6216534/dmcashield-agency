@@ -1,0 +1,8 @@
+{
+  "skill_id": "guru",
+  "name": "Industry Guru",
+  "description": "Influence the industry like a recognized guru",
+  "trigger": "/guru",
+  "actions": ["shape:industry", "thought:leadership", "innovate:norms", "set:trends"],
+  "icon": "🕉️"
+}

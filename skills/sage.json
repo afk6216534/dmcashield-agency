@@ -1,0 +1,8 @@
+{
+  "skill_id": "sage",
+  "name": "Sage",
+  "description": "Speak ancient wisdom like an old master",
+  "trigger": "/wise",
+  "actions": ["share:wisdom", "teach:truths", "guide:path", "enlighten:minds"],
+  "icon": "🎋"
+}

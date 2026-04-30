@@ -1,0 +1,8 @@
+{
+  "skill_id": "legend_builder",
+  "name": "Legend Builder",
+  "description": "Build an enduring legacy like a legend maker",
+  "trigger": "/legacy",
+  "actions": ["build:legend", "create:history", "inspire:generations", "live:forever"],
+  "icon": "📯"
+}

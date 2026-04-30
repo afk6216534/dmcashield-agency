@@ -1,0 +1,8 @@
+{
+  "skill_id": "therapist",
+  "name": "Therapist",
+  "description": "Provide emotional support like a caring therapist",
+  "trigger": "/heal",
+  "actions": ["listen:deeply", "validate:feelings", "support:emotionally", "guide:healing"],
+  "icon": "💕"
+}

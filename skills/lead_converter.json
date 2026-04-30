@@ -1,0 +1,8 @@
+{
+  "skill_id": "lead_converter",
+  "name": "Lead Converter",
+  "description": "Convert leads to paying clients efficiently",
+  "trigger": "/convert",
+  "actions": ["nurture:leads", "close:deals", "upsell:services", "retain:clients"],
+  "icon": "💰"
+}

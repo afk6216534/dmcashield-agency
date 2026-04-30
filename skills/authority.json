@@ -1,0 +1,8 @@
+{
+  "skill_id": "authority",
+  "name": "Authority Figure",
+  "description": "Command respect and authority like a natural leader",
+  "trigger": "/command",
+  "actions": ["command:respect", "lead:confidently", "inspire:action", "demand:excellence"],
+  "icon": "👑"
+}

@@ -1,0 +1,8 @@
+{
+  "skill_id": "review_analyzer",
+  "name": "Review Analyzer",
+  "description": "Analyze reviews for authenticity and removal eligibility",
+  "trigger": "/analyze_review",
+  "actions": ["detect:fake", "assess:violation", "identify:owner", "extract:evidence"],
+  "icon": "🔍"
+}

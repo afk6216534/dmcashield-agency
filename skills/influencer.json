@@ -1,0 +1,8 @@
+{
+  "skill_id": "influencer",
+  "name": "Influencer",
+  "description": "Influence decisions like a networking pro",
+  "trigger": "/influence",
+  "actions": ["build:authority", "network:widely", "persuade:effectively", "lead:others"],
+  "icon": "🎤"
+}

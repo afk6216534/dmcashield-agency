@@ -1,0 +1,8 @@
+{
+  "skill_id": "sms_campaign",
+  "name": "SMS Campaign",
+  "description": "Send SMS campaigns to leads via Twilio",
+  "trigger": "/sms",
+  "actions": ["validate:phone", "compose:message", "send:sms", "track:delivery"],
+  "icon": "💬"
+}

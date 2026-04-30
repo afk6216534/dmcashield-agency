@@ -1,0 +1,8 @@
+{
+  "skill_id": "organic_outreach",
+  "name": "Organic Outreach",
+  "description": "Natural human-like outreach that bypasses bot detection",
+  "trigger": "/organic",
+  "actions": ["write:naturally", "vary:timestamps", "humanize:language", "evade:detection"],
+  "icon": "🌿"
+}

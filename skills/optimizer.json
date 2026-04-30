@@ -1,0 +1,8 @@
+{
+  "skill_id": "optimizer",
+  "name": "Optimizer",
+  "description": "Maximize efficiency like a performance engineer",
+  "trigger": "/optimize",
+  "actions": ["analyze:performance", "identify:bottlenecks", "improve:流程", "maximize:output"],
+  "icon": "⚡"
+}

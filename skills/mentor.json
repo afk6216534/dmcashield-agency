@@ -1,0 +1,8 @@
+{
+  "skill_id": "mentor",
+  "name": "Mentor",
+  "description": "Guide and mentor like a wise advisor",
+  "trigger": "/mentor",
+  "actions": ["teach:wisdom", "share:experience", "guide:path", "support:growth"],
+  "icon": "👨‍🏫"
+}

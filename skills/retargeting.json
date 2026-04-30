@@ -1,0 +1,8 @@
+{
+  "skill_id": "retargeting",
+  "name": "Retargeting Ads",
+  "description": "Run retargeting ad campaigns",
+  "trigger": "/retarget",
+  "actions": ["build:audience", "create:ads", "run:campaign", "optimize"],
+  "icon": "🎯"
+}

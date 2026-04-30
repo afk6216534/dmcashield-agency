@@ -1,0 +1,8 @@
+{
+  "skill_id": "expert",
+  "name": "Subject Matter Expert",
+  "description": "Be the authority in your field like a recognized expert",
+  "trigger": "/expert",
+  "actions": ["teach:knowledge", "consult:authority", "validate:claims", "innovate:solutions"],
+  "icon": "🎓"
+}

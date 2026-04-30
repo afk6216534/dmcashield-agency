@@ -1,0 +1,8 @@
+{
+  "skill_id": "crm_sync",
+  "name": "CRM Sync",
+  "description": "Sync with CRM systems",
+  "trigger": "/crm",
+  "actions": ["connect:crm", "sync:contacts", "track:deals", "update:notes"],
+  "icon": "🔄"
+}

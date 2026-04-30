@@ -1,0 +1,8 @@
+{
+  "skill_id": "alchemist",
+  "name": "Alchemist",
+  "description": "Transform ordinary into extraordinary like a magical transformer",
+  "trigger": "/alchemy",
+  "actions": ["transform:lead", "turn:into:client", "magical:change", "transmute:value"],
+  "icon": "🔮"
+}

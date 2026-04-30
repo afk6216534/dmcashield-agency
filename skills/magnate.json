@@ -1,0 +1,8 @@
+{
+  "skill_id": "magnate",
+  "name": "Magnate",
+  "description": " Dominate your domain like a business magnate",
+  "trigger": "/dominate",
+  "actions": ["own:market", "command:industry", "build:empire", "rule:domain"],
+  "icon": "👑"
+}

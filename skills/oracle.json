@@ -1,0 +1,8 @@
+{
+  "skill_id": "oracle",
+  "name": "Oracle",
+  "description": "See the future like a prophetic visionary",
+  "trigger": "/see",
+  "actions": ["predict:future", "foresee:outcomes", "read:signs", "prophesy:truths"],
+  "icon": "🔮"
+}

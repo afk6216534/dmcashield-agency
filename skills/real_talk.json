@@ -1,0 +1,8 @@
+{
+  "skill_id": "real_talk",
+  "name": "Real Talk",
+  "description": "Authentic conversational style that sounds like real human business owner",
+  "trigger": "/real",
+  "actions": ["talk:like_human", "casual:professional", "genuine:conversation", "natural:flow"],
+  "icon": "🗣️"
+}

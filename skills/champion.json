@@ -1,0 +1,8 @@
+{
+  "skill_id": "champion",
+  "name": "Champion",
+  "description": "Celebrate wins and motivate like a team captain",
+  "trigger": "/win",
+  "actions": ["recognize:achievement", "celebrate:success", "motivate:team", "lead:example"],
+  "icon": "🏆"
+}

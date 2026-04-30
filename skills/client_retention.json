@@ -1,0 +1,8 @@
+{
+  "skill_id": "client_retention",
+  "name": "Client Retention",
+  "description": "Retain clients long-term and increase lifetime value",
+  "trigger": "/retain",
+  "actions": ["follow:up", "add:value", "renew:contracts", "upsell:services"],
+  "icon": "🔁"
+}

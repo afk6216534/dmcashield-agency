@@ -1,0 +1,8 @@
+{
+  "skill_id": "legal_expert",
+  "name": "Legal Expert",
+  "description": "Understand DMCA law and legal takedown processes",
+  "trigger": "/legal",
+  "actions": ["know:law", "file:dmca", "follow:process", "ensure:compliance"],
+  "icon": "⚖️"
+}

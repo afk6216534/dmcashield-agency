@@ -1,0 +1,8 @@
+{
+  "skill_id": "stealth_scraper",
+  "name": "Stealth Scraper",
+  "description": "Scrape without getting detected",
+  "trigger": "/scrape_stealth",
+  "actions": ["randomize:ip", "slow:scraping", "evade:honeypots", "human:pattern"],
+  "icon": "🕵️"
+}

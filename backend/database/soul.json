@@ -1,0 +1,18 @@
+{
+  "company_name": "DMCAShield Agency",
+  "mission": "Remove negative reviews for businesses through legal DMCA process",
+  "active_since": "2026-04-27",
+  "total_leads_processed": 0,
+  "total_emails_sent": 0,
+  "total_clients_acquired": 0,
+  "learning_cycle": 1,
+  "last_active": null,
+  "departments_active": 12,
+  "status": "initializing",
+  "version": "1.0.0",
+  "build_team": {
+    "antigravity": "CEO / Architect",
+    "claude_code": "Backend Lead",
+    "opencode": "Frontend Lead"
+  }
+}

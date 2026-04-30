@@ -1,0 +1,8 @@
+{
+  "skill_id": "ai_assistant",
+  "name": "AI Assistant",
+  "description": "Chat with AI for help and insights",
+  "trigger": "/ai",
+  "actions": ["chat:with_ai", "get:advice", "ask:questions", "learn:skills"],
+  "icon": "🤖"
+}

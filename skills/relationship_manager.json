@@ -1,0 +1,8 @@
+{
+  "skill_id": "relationship_manager",
+  "name": "Relationship Manager",
+  "description": "Build and maintain long-term client relationships",
+  "trigger": "/relationship",
+  "actions": ["stay:connected", "follow:up_regularly", "add:value", "retain:longterm"],
+  "icon": "❤️"
+}

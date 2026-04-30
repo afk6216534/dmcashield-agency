@@ -1,0 +1,8 @@
+{
+  "skill_id": "ninja",
+  "name": "Ninja",
+  "description": "Move silently and strike precisely like a shadow ninja",
+  "trigger": "/ninja",
+  "actions": ["move:shadow", "strike:silently", "act:precisely", "disappear:mystery"],
+  "icon": "🥷"
+}

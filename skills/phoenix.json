@@ -1,0 +1,8 @@
+{
+  "skill_id": "phoenix",
+  "name": "Phoenix",
+  "description": "Rise from ashes stronger like a reborn phoenix",
+  "trigger": "/rise",
+  "actions": ["rise:stronger", "reborn:flames", "transform:crisis", "emerge:victorious"],
+  "icon": "🔥"
+}

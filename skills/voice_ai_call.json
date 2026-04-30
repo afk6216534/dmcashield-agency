@@ -1,0 +1,8 @@
+{
+  "skill_id": " voic_ecall",
+  "name": "Voice Call AI",
+  "description": "AI-powered voice calls to leads",
+  "trigger": "/voiceai",
+  "actions": ["dial:call", "ai:converse", "qualify:lead", "schedule:callback"],
+  "icon": "📞"
+}

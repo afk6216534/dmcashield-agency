@@ -1,0 +1,8 @@
+{
+  "skill_id": "browser_automation",
+  "name": "Browser Automation",
+  "description": "Automate browser tasks",
+  "trigger": "/browser",
+  "actions": ["open:browser", "fill:forms", "click:buttons", "capture:screenshots"],
+  "icon": "🌐"
+}

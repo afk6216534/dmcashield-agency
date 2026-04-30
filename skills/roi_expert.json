@@ -1,0 +1,8 @@
+{
+  "skill_id": "roi_expert",
+  "name": "ROI Expert",
+  "description": "Show prospects the return on investment",
+  "trigger": "/roi",
+  "actions": ["calculate:roi", "show:numbers", "prove:value", "close:with_proof"],
+  "icon": "📊"
+}

@@ -1,0 +1,8 @@
+{
+  "skill_id": "creative_thinker",
+  "name": "Creative Thinker",
+  "description": "Think outside the box like a creative innovator",
+  "trigger": "/create",
+  "actions": ["brainstorm:ideas", "combine:concepts", "innovate:solutions", "inspire:others"],
+  "icon": "💡"
+}

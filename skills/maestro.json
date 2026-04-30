@@ -1,0 +1,8 @@
+{
+  "skill_id": "maestro",
+  "name": "Maestro",
+  "description": "Conduct complex operations like a master conductor",
+  "trigger": "/conduct",
+  "actions": ["orchestrate:teams", "harmonize:efforts", "lead:ensemble", "create:symphony"],
+  "icon": "🎼"
+}

@@ -1,0 +1,8 @@
+{
+  "skill_id": "review_specialist",
+  "name": "Review Specialist",
+  "description": "Find and remove negative Google reviews for clients",
+  "trigger": "/reviews",
+  "actions": ["locate:reviews", "assess:authenticity", "remove:false", "improve:rating"],
+  "icon": "⭐"
+}

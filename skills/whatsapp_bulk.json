@@ -1,0 +1,8 @@
+{
+  "skill_id": "whatsapp_bulk",
+  "name": "WhatsApp Bulk",
+  "description": "Send WhatsApp messages in bulk to leads",
+  "trigger": "/whatsapp",
+  "actions": ["validate:phone", "compose:message", "send:whatsapp", "track:delivery"],
+  "icon": "💬"
+}
