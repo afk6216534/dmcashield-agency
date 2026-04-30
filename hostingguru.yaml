@@ -1,5 +1,7 @@
-root: backend/
-startCommand: python server.py
+root: .
+startCommand: python app.py
 buildCommand: pip install fastapi uvicorn
 ignore:
   - frontend/
+  - backend/
+  - dmcashield/
