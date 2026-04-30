@@ -1,19 +1,17 @@
-from dataclasses import dataclass, field
 import json
 import os
-from typing import Dict, List, Any, Optional
 from datetime import datetime
-import uuid
+from typing import Dict, List, Optional, Any
 
 @dataclass
 class AgentMessage:
-    id: str = field(default_factory=lambda str(uuid.uuid4()))
+    id: str = field(default_factory=lambda: str(uuid.uuid4()))
     from_agent: str = ''
     to_agent: str = ''
     message_type: str = 'update'
     priority: str = 'normal'
-    payload: Dict[str, Any] = field(field(default_factory=dict))
-    timestamp: str = field(field(default_factory=lambda datetime.utcnow()))
+    payload: Dict[str, Any] = field(default_factory=dict)
+    timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
     read: bool = False
 
     def to_dict(self) -> dict:
@@ -42,13 +40,12 @@ class AgentMessage:
         )
 
 class MessageBus:
-    def __init__(self, db_path: str = None):
-        self.db_path = db_path or "data/message_bus.json"
+    def __init__(self, db_path: str = "data/message_bus.json"):
+        self.db_path = db_path
         os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
         self.messages: List[AgentMessage] = []
         self.subscribers: Dict[str, callable] = {}
         self._load_messages()
-        self._save_messages()
 
     def _load_messages(self):
         if os.path.exists(self.db_path):
@@ -63,8 +60,8 @@ class MessageBus:
         with open(self.db_path, 'w') as f:
             json.dump([m.to_dict() for m in self.messages], f, indent=2)
 
-    def send_message(self, from_agent: str, to_agent: str, message_type: str = 'update',
-                     priority: str = 'normal', payload: Any = None) -> AgentMessage:
+    def send_message(self, from_agent: str, to_agent: str, message_type: str = "update",
+                     priority: str = "normal", payload: Dict[str, Any] = None) -> AgentMessage:
         msg = AgentMessage(
             from_agent=from_agent,
             to_agent=to_agent,
@@ -84,18 +81,17 @@ class MessageBus:
             messages = [m for m in messages if not m.read]
         return messages
 
-    def mark_read(self, message_id: str) -> bool:
+    def mark_read(self, message_id: str):
         for msg in self.messages:
             if msg.id == message_id:
                 msg.read = True
-                self._save_messages()
-                return True
-        return False
+                break
+        self._save_messages()
 
     def subscribe(self, agent_name: str, callback):
         self.subscribers[agent_name] = callback
 
-    def broadcast(self, from_agent: str, message_type: str, payload: Any) -> AgentMessage:
+    def broadcast(self, from_agent: str, message_type: str, payload: Dict[str, Any]):
         msg = AgentMessage(
             from_agent=from_agent,
             to_agent="*",

@@ -325,6 +325,20 @@ async def test_gmail_connection(email_address: str, app_password: str):
         }
 
 # =============================
+# JARVIS Natural Language Interface
+# =============================
+
+@app.post("/api/jarvis", response_model=dict)
+async def jarvis_query(prompt: str):
+    """JARVIS natural language interface"""
+    try:
+        from agents.jarvis.jarvis_agent import jarvis_agent
+        result = jarvis_agent.process_command(prompt, {})
+        return result
+    except Exception as e:
+        return {"error": f"JARVIS error: {str(e)}"}
+
+# =============================
 # Health Check
 # =============================
 
