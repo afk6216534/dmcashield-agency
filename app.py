@@ -1,20 +1,9 @@
 #!/usr/bin/env python3
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-import uvicorn
-
-app = FastAPI(title="DMCAShield API")
-
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
-
-@app.get("/")
-def root(): return {"status": "ok", "service": "DMCAShield"}
-
-@app.get("/health")
-def health(): return {"status": "healthy"}
-
-@app.get("/api/status")
-def status(): return {"status": "operational", "leads": 0}
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'backend'))
+from main_simple import app
 
 if __name__ == "__main__":
+    import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
