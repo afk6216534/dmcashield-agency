@@ -1,3 +1,2 @@
 root: .
-startCommand: python3 main.py
 buildCommand: pip install fastapi uvicorn
