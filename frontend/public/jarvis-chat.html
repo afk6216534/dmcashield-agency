@@ -35,7 +35,7 @@
             document.getElementById('response').innerText = '🤖 JARVIS is thinking...';
 
             try {
-                const response = await fetch('https://dmcashield-agency-8666.apps.hostingguru.io/api/jarvis', {
+                const response = await fetch('/api/jarvis', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ prompt: prompt })

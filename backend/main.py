@@ -203,6 +203,14 @@ async def get_stats():
     }
 
 if __name__ == "__main__":
+    import sys
     import uvicorn
+    # Allow overriding host/port via command line or environment
+    host = "0.0.0.0"
     port = int(os.environ.get("PORT", 8000))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    # Override with command line args if present (uvicorn module invocation)
+    if "--host" in sys.argv:
+        host = sys.argv[sys.argv.index("--host") + 1]
+    if "--port" in sys.argv:
+        port = int(sys.argv[sys.argv.index("--port") + 1])
+    uvicorn.run(app, host=host, port=port)
