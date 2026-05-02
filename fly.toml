@@ -1,0 +1,14 @@
+app = "dmcashield-api"
+experimental = {}
+
+[build]
+builder = "paketobuildpack/python"
+
+[[services]]
+http_service = true
+internal_port = 8000
+
+[[services.ports]]
+port = 80
+handlers = ["http"]
+handlers = ["proxy"]

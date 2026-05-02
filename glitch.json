@@ -1,0 +1,10 @@
+{
+  "name": "dmcashield-agency",
+  "version": "1.0.0",
+  "description": "DMCAShield Agency API",
+  "keywords": ["fastapi", "api"],
+  "根目录": ".",
+  "构建": "pip install -r requirements.txt",
+  "启动": "python main.py",
+  "形式": "web"
+}
