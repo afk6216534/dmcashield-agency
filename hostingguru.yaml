@@ -1,2 +1,0 @@
-root: .
-buildCommand: pip install fastapi uvicorn
