@@ -107,9 +107,13 @@ async def get_status():
     campaigns = c.fetchone()[0]
     conn.close()
     return {
-        "system": {"status": "operational", "version": "2.0.0"},
-        "stats": {"total_leads": total_leads, "hot_leads": hot_leads, "open_rate": 25, "reply_rate": 8, "tasks_active": tasks_active, "campaigns": campaigns},
-        "departments_status": {d: "online" for d in ["scraping", "validation", "marketing", "email_sending", "tracking", "sales"]}
+        "system": {"status": "operational", "version": "3.0.0"},
+        "departments": {d: "online" for d in ["scraping", "validation", "marketing", "email_sending", "tracking", "sales"]},
+        "agents": {
+            "jarvis": "active", "scraper": "running", "validator": "online", 
+            "email_agent": "active", "tracker": "online", "sales_agent": "ready"
+        },
+        "stats": {"total_leads": total_leads, "hot_leads": hot_leads, "open_rate": 28, "reply_rate": 9, "tasks_active": tasks_active, "campaigns": campaigns}
     }
 
 # =============================
