@@ -1,0 +1,3 @@
+root: .
+startCommand: python main.py
+buildCommand: pip install -r requirements.txt
