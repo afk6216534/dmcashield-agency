@@ -12,15 +12,15 @@ app.add_middleware(
 )
 
 @app.get("/")
-def root():
+async def root():
     return {"status": "ok", "service": "DMCAShield Agency", "version": "3.0.0"}
 
 @app.get("/health")
-def health():
+async def health():
     return {"status": "healthy", "departments": 6}
 
 @app.get("/api/status")
-def status():
+async def status():
     return {
         "system": {"status": "operational", "version": "3.0.0"},
         "departments": {
@@ -35,21 +35,21 @@ def status():
     }
 
 @app.get("/api/leads")
-def leads():
+async def leads():
     return [
         {"id": "1", "business_name": "Joe's Diner", "lead_score": 78, "temperature": "hot"},
         {"id": "2", "business_name": "Smith Dental", "lead_score": 85, "temperature": "hot"},
     ]
 
 @app.get("/api/tasks")
-def tasks():
+async def tasks():
     return [
         {"id": "1", "title": "DMCA Scraper", "status": "active", "progress": 73},
         {"id": "2", "title": "Email Outreach", "status": "active", "progress": 45},
     ]
 
 @app.get("/api/campaigns")
-def campaigns():
+async def campaigns():
     return [
         {"id": "1", "name": "DMCA Removal", "status": "active", "sent": 1247},
     ]
