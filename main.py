@@ -1,55 +1,36 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import uvicorn
 
-app = FastAPI(title="DMCAShield Agency API")
+api = FastAPI(title="DMCAShield API")
+api.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-@app.get("/")
+@api.get("/")
 async def root():
-    return {"status": "ok", "service": "DMCAShield Agency", "version": "3.0.0"}
+    return {"status": "ok", "service": "DMCAShield"}
 
-@app.get("/health")
+@api.get("/health") 
 async def health():
-    return {"status": "healthy", "departments": 6}
+    return {"status": "healthy"}
 
-@app.get("/api/status")
+@api.get("/api/status")
 async def status():
     return {
         "system": {"status": "operational", "version": "3.0.0"},
-        "departments": {
-            "scraping": "online", "validation": "online", "marketing": "online",
-            "email_sending": "online", "tracking": "online", "sales": "online"
-        },
-        "agents": {
-            "jarvis": "active", "scraper": "running", "validator": "online",
-            "email_agent": "active", "tracker": "online", "sales_agent": "ready"
-        },
-        "stats": {"total_leads": 247, "hot_leads": 38, "open_rate": 28, "reply_rate": 9, "tasks_active": 7, "campaigns": 4}
+        "departments": {"scraping": "online", "validation": "online", "marketing": "online", "email_sending": "online", "tracking": "online", "sales": "online"},
+        "agents": {"jarvis": "active", "scraper": "running"},
+        "stats": {"total_leads": 247, "hot_leads": 38}
     }
 
-@app.get("/api/leads")
+@api.get("/api/leads")
 async def leads():
-    return [
-        {"id": "1", "business_name": "Joe's Diner", "lead_score": 78, "temperature": "hot"},
-        {"id": "2", "business_name": "Smith Dental", "lead_score": 85, "temperature": "hot"},
-    ]
+    return [{"id": "1", "business_name": "Test", "lead_score": 78}]
 
-@app.get("/api/tasks")
+@api.get("/api/tasks")
 async def tasks():
-    return [
-        {"id": "1", "title": "DMCA Scraper", "status": "active", "progress": 73},
-        {"id": "2", "title": "Email Outreach", "status": "active", "progress": 45},
-    ]
+    return [{"id": "1", "title": "Test Task", "status": "active"}]
 
-@app.get("/api/campaigns")
-async def campaigns():
-    return [
-        {"id": "1", "name": "DMCA Removal", "status": "active", "sent": 1247},
-    ]
+app = api
+
+if __name__ == "__main__":
+    uvicorn.run(api, host="0.0.0.0", port=8000)
