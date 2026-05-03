@@ -45,3 +45,29 @@ def campaigns():
     return jsonify([
         {"id": "1", "name": "DMCA Removal", "status": "active", "sent": 1247},
     ])
+
+@app.route('/api/jarvis', methods=['POST'])
+def jarvis():
+    from flask import request
+    data = request.get_json()
+    message = data.get('message', '').lower()
+    
+    responses = {
+        'hot leads': f'🎯 Current hot leads: 38',
+        'total leads': f'📊 Total leads: 247',
+        'open rate': f'📈 Open rate: 28%',
+        'tasks': f'✅ Active tasks: 7',
+        'status': '🟢 All systems operational',
+    }
+    
+    for key, value in responses.items():
+        if key in message:
+            return jsonify({"response": value})
+    
+    return jsonify({
+        "response": f"📡 Received: '{message}'. JARVIS active and ready! System operational. Backend version 3.0.0"
+    })
+
+@app.route('/api/hot-leads')
+def hot_leads():
+    return jsonify([38])
