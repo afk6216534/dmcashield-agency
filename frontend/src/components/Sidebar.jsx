@@ -44,6 +44,7 @@ const navItems = [
   { to: '/settings', icon: '⚙️', label: 'Settings', section: 'system' },
   { to: '/settings-detailed', icon: '🔧', label: 'System Settings', section: 'system' },
   { to: '/notifications', icon: '🔔', label: 'Notifications', section: 'system' },
+  { to: '/audit-log', icon: '📋', label: 'Audit Log', section: 'system' },
 ];
 
 const sections = {
