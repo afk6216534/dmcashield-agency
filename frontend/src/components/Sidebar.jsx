@@ -21,6 +21,7 @@ const navItems = [
   { to: '/tasks', icon: '📋', label: 'Task Manager', section: 'intelligence' },
   { to: '/tasks-detailed', icon: '✅', label: 'Task Details', section: 'intelligence' },
   { to: '/hot-leads', icon: '🔥', label: 'Hot Leads', section: 'intelligence' },
+  { to: '/reports', icon: '📑', label: 'Reports', section: 'intelligence' },
   { to: '/sms', icon: '💬', label: 'SMS Campaign', section: 'channels' },
   { to: '/sms-detailed', icon: '📱', label: 'SMS Manager', section: 'channels' },
   { to: '/whatsapp', icon: '📱', label: 'WhatsApp', section: 'channels' },
