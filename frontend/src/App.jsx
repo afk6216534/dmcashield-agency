@@ -24,6 +24,8 @@ import SystemDashboard from './pages/SystemDashboard';
 import DMCATracker from './pages/DMCATracker';
 import Clients from './pages/Clients';
 import Team from './pages/Team';
+import Revenue from './pages/Revenue';
+import Webhooks from './pages/Webhooks';
 import './styles/design-system.css';
 
 const API = import.meta.env.VITE_API_URL || 'https://dmcashield-agency.vercel.app';
@@ -104,6 +106,8 @@ export default function App() {
           <Route path="/dmca" element={<DMCATracker />} />
           <Route path="/clients" element={<Clients />} />
           <Route path="/team" element={<Team />} />
+          <Route path="/revenue" element={<Revenue />} />
+          <Route path="/webhooks" element={<Webhooks />} />
         </Routes>
         <JARVIS />
       </div>

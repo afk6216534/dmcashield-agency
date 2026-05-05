@@ -22,6 +22,8 @@ const navItems = [
   { to: '/dmca', icon: '⚖️', label: 'DMCA Tracker', section: 'automation' },
   { to: '/clients', icon: '👤', label: 'Clients', section: 'automation' },
   { to: '/team', icon: '🤖', label: 'Team', section: 'automation' },
+  { to: '/revenue', icon: '💰', label: 'Revenue', section: 'automation' },
+  { to: '/webhooks', icon: '🔌', label: 'Webhooks', section: 'automation' },
   { to: '/settings', icon: '⚙️', label: 'Settings', section: 'system' },
 ];
 
