@@ -20,6 +20,8 @@ const navItems = [
   { to: '/integrations', icon: '🔗', label: 'Integrations', section: 'automation' },
   { to: '/learning', icon: '🧠', label: 'Self-Learning', section: 'automation' },
   { to: '/dmca', icon: '⚖️', label: 'DMCA Tracker', section: 'automation' },
+  { to: '/clients', icon: '👤', label: 'Clients', section: 'automation' },
+  { to: '/team', icon: '🤖', label: 'Team', section: 'automation' },
   { to: '/settings', icon: '⚙️', label: 'Settings', section: 'system' },
 ];
 

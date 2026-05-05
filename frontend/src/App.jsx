@@ -22,6 +22,8 @@ import LinkedInOutreach from './pages/LinkedInOutreach';
 import ColdCalling from './pages/ColdCalling';
 import SystemDashboard from './pages/SystemDashboard';
 import DMCATracker from './pages/DMCATracker';
+import Clients from './pages/Clients';
+import Team from './pages/Team';
 import './styles/design-system.css';
 
 const API = import.meta.env.VITE_API_URL || 'https://dmcashield-agency.vercel.app';
@@ -100,6 +102,8 @@ export default function App() {
           <Route path="/hot-leads" element={<HotLeads />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/dmca" element={<DMCATracker />} />
+          <Route path="/clients" element={<Clients />} />
+          <Route path="/team" element={<Team />} />
         </Routes>
         <JARVIS />
       </div>
