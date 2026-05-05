@@ -37,6 +37,9 @@ import CommandCenter from './pages/CommandCenter';
 import EmailDetailed from './pages/EmailDetailed';
 import LeadDetailed from './pages/LeadDetailed';
 import TaskDetailed from './pages/TaskDetailed';
+import AIResponseDetailed from './pages/AIResponseDetailed';
+import WarmupDetailed from './pages/WarmupDetailed';
+import QuickLaunch from './pages/QuickLaunch';
 import './styles/design-system.css';
 
 const API = import.meta.env.VITE_API_URL || 'https://dmcashield-agency.vercel.app';
@@ -130,6 +133,9 @@ export default function App() {
           <Route path="/email-detailed" element={<EmailDetailed />} />
           <Route path="/leads-detailed" element={<LeadDetailed />} />
           <Route path="/tasks-detailed" element={<TaskDetailed />} />
+          <Route path="/ai-detailed" element={<AIResponseDetailed />} />
+          <Route path="/warmup-detailed" element={<WarmupDetailed />} />
+          <Route path="/quick-launch" element={<QuickLaunch />} />
         </Routes>
         <JARVIS />
       </div>
