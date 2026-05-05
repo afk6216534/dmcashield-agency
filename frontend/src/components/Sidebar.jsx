@@ -7,6 +7,7 @@ const navItems = [
   { to: '/launch', icon: '🚀', label: 'Launch Task', section: 'command' },
   { to: '/leads', icon: '👥', label: 'Lead Database', section: 'operations' },
   { to: '/accounts', icon: '📧', label: 'Email Accounts', section: 'operations' },
+  { to: '/email-detailed', icon: '📬', label: 'Email Manager', section: 'operations' },
   { to: '/campaigns', icon: '📣', label: 'Campaigns', section: 'operations' },
   { to: '/campaign-performance', icon: '📊', label: 'Campaign Performance', section: 'operations' },
   { to: '/templates', icon: '📝', label: 'Templates', section: 'operations' },

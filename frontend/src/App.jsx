@@ -34,6 +34,7 @@ import TemplateEditor from './pages/TemplateEditor';
 import SettingsDetailed from './pages/SettingsDetailed';
 import CampaignPerformance from './pages/CampaignPerformance';
 import CommandCenter from './pages/CommandCenter';
+import EmailDetailed from './pages/EmailDetailed';
 import './styles/design-system.css';
 
 const API = import.meta.env.VITE_API_URL || 'https://dmcashield-agency.vercel.app';
@@ -124,6 +125,7 @@ export default function App() {
           <Route path="/settings-detailed" element={<SettingsDetailed />} />
           <Route path="/campaign-performance" element={<CampaignPerformance />} />
           <Route path="/command-center" element={<CommandCenter />} />
+          <Route path="/email-detailed" element={<EmailDetailed />} />
         </Routes>
         <JARVIS />
       </div>
