@@ -7,6 +7,7 @@ const navItems = [
   { to: '/leads', icon: '👥', label: 'Lead Database', section: 'operations' },
   { to: '/accounts', icon: '📧', label: 'Email Accounts', section: 'operations' },
   { to: '/campaigns', icon: '📣', label: 'Campaigns', section: 'operations' },
+  { to: '/campaign-performance', icon: '📊', label: 'Campaign Performance', section: 'operations' },
   { to: '/templates', icon: '📝', label: 'Templates', section: 'operations' },
   { to: '/warmup', icon: '🔥', label: 'Email Warmup', section: 'operations' },
   { to: '/analytics', icon: '📈', label: 'Analytics', section: 'intelligence' },
@@ -30,6 +31,7 @@ const navItems = [
   { to: '/campaign-scheduler', icon: '⏰', label: 'Scheduler', section: 'automation' },
   { to: '/integrations-hub', icon: '🔗', label: 'Integrations Hub', section: 'automation' },
   { to: '/settings', icon: '⚙️', label: 'Settings', section: 'system' },
+  { to: '/settings-detailed', icon: '🔧', label: 'System Settings', section: 'system' },
 ];
 
 const sections = {
