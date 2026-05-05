@@ -33,9 +33,10 @@ set "timestamp=%dt:~0,4%-%dt:~4,2%-%dt:~6,2% %dt:~8,2%:%dt:~10,2%"
 git commit -m "auto-deploy: %timestamp% - synced latest changes"
 echo    Done!
 
-REM Step 4: Push to GitHub
+REM Step 4: Push to GitHub (both branches for Vercel + Netlify)
 echo [4/5] Pushing to GitHub...
 git push origin master
+git push origin master:main
 echo    Done!
 
 REM Step 5: Verify
