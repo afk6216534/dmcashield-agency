@@ -22,7 +22,9 @@ const navItems = [
   { to: '/tasks-detailed', icon: '✅', label: 'Task Details', section: 'intelligence' },
   { to: '/hot-leads', icon: '🔥', label: 'Hot Leads', section: 'intelligence' },
   { to: '/sms', icon: '💬', label: 'SMS Campaign', section: 'channels' },
+  { to: '/sms-detailed', icon: '📱', label: 'SMS Manager', section: 'channels' },
   { to: '/whatsapp', icon: '📱', label: 'WhatsApp', section: 'channels' },
+  { to: '/whatsapp-detailed', icon: '💬', label: 'WhatsApp Manager', section: 'channels' },
   { to: '/linkedin', icon: '💼', label: 'LinkedIn', section: 'channels' },
   { to: '/cold-call', icon: '📞', label: 'Cold Call', section: 'channels' },
   { to: '/schedule', icon: '📅', label: 'Scheduler', section: 'automation' },
@@ -38,6 +40,7 @@ const navItems = [
   { to: '/integrations-hub', icon: '🔗', label: 'Integrations Hub', section: 'automation' },
   { to: '/settings', icon: '⚙️', label: 'Settings', section: 'system' },
   { to: '/settings-detailed', icon: '🔧', label: 'System Settings', section: 'system' },
+  { to: '/notifications', icon: '🔔', label: 'Notifications', section: 'system' },
 ];
 
 const sections = {

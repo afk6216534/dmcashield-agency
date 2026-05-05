@@ -40,6 +40,9 @@ import TaskDetailed from './pages/TaskDetailed';
 import AIResponseDetailed from './pages/AIResponseDetailed';
 import WarmupDetailed from './pages/WarmupDetailed';
 import QuickLaunch from './pages/QuickLaunch';
+import SMSDetailed from './pages/SMSDetailed';
+import WhatsAppDetailed from './pages/WhatsAppDetailed';
+import Notifications from './pages/Notifications';
 import './styles/design-system.css';
 
 const API = import.meta.env.VITE_API_URL || 'https://dmcashield-agency.vercel.app';
@@ -136,6 +139,9 @@ export default function App() {
           <Route path="/ai-detailed" element={<AIResponseDetailed />} />
           <Route path="/warmup-detailed" element={<WarmupDetailed />} />
           <Route path="/quick-launch" element={<QuickLaunch />} />
+          <Route path="/sms-detailed" element={<SMSDetailed />} />
+          <Route path="/whatsapp-detailed" element={<WhatsAppDetailed />} />
+          <Route path="/notifications" element={<Notifications />} />
         </Routes>
         <JARVIS />
       </div>
