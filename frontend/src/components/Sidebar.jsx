@@ -9,6 +9,7 @@ const navItems = [
   { to: '/campaigns', icon: '📣', label: 'Campaigns', section: 'operations' },
   { to: '/warmup', icon: '🔥', label: 'Email Warmup', section: 'operations' },
   { to: '/analytics', icon: '📈', label: 'Analytics', section: 'intelligence' },
+  { to: '/analytics-advanced', icon: '📊', label: 'Advanced Analytics', section: 'intelligence' },
   { to: '/tasks', icon: '📋', label: 'Task Manager', section: 'intelligence' },
   { to: '/hot-leads', icon: '🔥', label: 'Hot Leads', section: 'intelligence' },
   { to: '/sms', icon: '💬', label: 'SMS Campaign', section: 'channels' },
@@ -24,6 +25,8 @@ const navItems = [
   { to: '/team', icon: '🤖', label: 'Team', section: 'automation' },
   { to: '/revenue', icon: '💰', label: 'Revenue', section: 'automation' },
   { to: '/webhooks', icon: '🔌', label: 'Webhooks', section: 'automation' },
+  { to: '/campaign-scheduler', icon: '⏰', label: 'Scheduler', section: 'automation' },
+  { to: '/integrations-hub', icon: '🔗', label: 'Integrations Hub', section: 'automation' },
   { to: '/settings', icon: '⚙️', label: 'Settings', section: 'system' },
 ];
 
