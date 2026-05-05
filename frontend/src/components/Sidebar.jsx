@@ -2,6 +2,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 
 const navItems = [
   { to: '/', icon: '📊', label: 'Dashboard', section: 'command' },
+  { to: '/command-center', icon: '🎛️', label: 'Command Center', section: 'command' },
   { to: '/system', icon: '🏢', label: 'Control Tower', section: 'command' },
   { to: '/launch', icon: '🚀', label: 'Launch Task', section: 'command' },
   { to: '/leads', icon: '👥', label: 'Lead Database', section: 'operations' },

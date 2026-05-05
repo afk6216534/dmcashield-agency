@@ -33,6 +33,7 @@ import LeadScoring from './pages/LeadScoring';
 import TemplateEditor from './pages/TemplateEditor';
 import SettingsDetailed from './pages/SettingsDetailed';
 import CampaignPerformance from './pages/CampaignPerformance';
+import CommandCenter from './pages/CommandCenter';
 import './styles/design-system.css';
 
 const API = import.meta.env.VITE_API_URL || 'https://dmcashield-agency.vercel.app';
@@ -122,6 +123,7 @@ export default function App() {
           <Route path="/templates" element={<TemplateEditor />} />
           <Route path="/settings-detailed" element={<SettingsDetailed />} />
           <Route path="/campaign-performance" element={<CampaignPerformance />} />
+          <Route path="/command-center" element={<CommandCenter />} />
         </Routes>
         <JARVIS />
       </div>
