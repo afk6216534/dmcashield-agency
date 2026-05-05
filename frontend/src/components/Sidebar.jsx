@@ -19,6 +19,7 @@ const navItems = [
   { to: '/ai-responses', icon: '🤖', label: 'AI Response', section: 'automation' },
   { to: '/integrations', icon: '🔗', label: 'Integrations', section: 'automation' },
   { to: '/learning', icon: '🧠', label: 'Self-Learning', section: 'automation' },
+  { to: '/dmca', icon: '⚖️', label: 'DMCA Tracker', section: 'automation' },
   { to: '/settings', icon: '⚙️', label: 'Settings', section: 'system' },
 ];
 

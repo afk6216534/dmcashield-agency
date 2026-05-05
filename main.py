@@ -434,5 +434,123 @@ def get_learning():
 def trigger_learning():
     return jsonify({"status": "completed", "cycle": 5, "discovered_rules": 2})
 
+# ─── DMCA TRACKING ───
+DEMO_DMCA_CASES = [
+    {"id": "dmca1", "client_name": "Smile Dental Clinic", "platform": "Google",
+     "status": "submitted", "negative_reviews_removed": 3, "submitted_at": "2026-05-01T10:00:00Z"},
+    {"id": "dmca2", "client_name": "Houston Auto Repair", "platform": "Yelp",
+     "status": "under_review", "negative_reviews_removed": 0, "submitted_at": "2026-05-03T14:00:00Z"},
+    {"id": "dmca3", "client_name": "Legal Eagles LLP", "platform": "Google",
+     "status": "completed", "negative_reviews_removed": 5, "submitted_at": "2026-04-28T09:00:00Z"},
+]
+
+@app.route('/api/dmca/cases')
+def dmca_cases():
+    return jsonify(DEMO_DMCA_CASES)
+
+@app.route('/api/dmca/cases', methods=['POST'])
+def create_dmca_case():
+    data = request.get_json() or {}
+    import uuid
+    case = {"id": str(uuid.uuid4())[:8], "client_name": data.get("client_name", ""),
+            "platform": data.get("platform", "Google"), "status": "submitted",
+            "negative_reviews_removed": 0, "submitted_at": datetime.utcnow().isoformat()}
+    DEMO_DMCA_CASES.append(case)
+    return jsonify({"id": case["id"], "status": "submitted"})
+
+@app.route('/api/dmca/cases/<case_id>')
+def get_dmca_case(case_id):
+    case = next((c for c in DEMO_DMCA_CASES if c["id"] == case_id), None)
+    if not case:
+        return jsonify({}), 404
+    return jsonify(case)
+
+# ─── WEBHOOKS ───
+@app.route('/api/webhooks', methods=['GET'])
+def list_webhooks():
+    return jsonify([
+        {"id": "wh1", "url": "https://example.com/webhook", "events": ["lead.created", "lead.hot"],
+         "active": True, "created_at": "2026-05-01T00:00:00Z"}
+    ])
+
+@app.route('/api/webhooks', methods=['POST'])
+def create_webhook():
+    data = request.get_json() or {}
+    import uuid
+    wh = {"id": str(uuid.uuid4())[:8], "url": data.get("url", ""),
+          "events": data.get("events", []), "active": True,
+          "created_at": datetime.utcnow().isoformat()}
+    return jsonify({"id": wh["id"], "status": "active"})
+
+# ─── CAMPAIGN SCHEDULER ───
+DEMO_SCHEDULES = [
+    {"id": "sch1", "campaign_id": "t1", "scheduled_at": "2026-05-05T14:00:00Z",
+     "action": "send_batch", "status": "pending", "leads_count": 20},
+    {"id": "sch2", "campaign_id": "t2", "scheduled_at": "2026-05-06T10:00:00Z",
+     "action": "send_batch", "status": "pending", "leads_count": 30},
+]
+
+@app.route('/api/scheduler')
+def scheduler():
+    return jsonify(DEMO_SCHEDULES)
+
+@app.route('/api/scheduler', methods=['POST'])
+def create_schedule():
+    data = request.get_json() or {}
+    import uuid
+    sch = {"id": str(uuid.uuid4())[:8], "campaign_id": data.get("campaign_id", ""),
+           "scheduled_at": data.get("scheduled_at", ""), "action": data.get("action", "send_batch"),
+           "status": "pending", "leads_count": data.get("leads_count", 0)}
+    DEMO_SCHEDULES.append(sch)
+    return jsonify({"id": sch["id"], "status": "scheduled"})
+
+# ─── CLIENTS ───
+DEMO_CLIENTS = [
+    {"id": "c1", "business_name": "Smile Dental Clinic", "owner": "Dr. Sarah Ahmed",
+     "email": "sarah@smileclinic.com", "phone": "555-0101", "plan": "pro",
+     "dmca_cases": 1, "total_spent": 2500, "status": "active", "joined_at": "2026-04-01T00:00:00Z"},
+    {"id": "c2", "business_name": "Houston Auto Repair", "owner": "Mike Johnson",
+     "email": "mike@houstonauto.com", "phone": "555-0102", "plan": "basic",
+     "dmca_cases": 1, "total_spent": 500, "status": "active", "joined_at": "2026-04-15T00:00:00Z"},
+]
+
+@app.route('/api/clients')
+def clients():
+    return jsonify(DEMO_CLIENTS)
+
+@app.route('/api/clients/<client_id>')
+def get_client(client_id):
+    client = next((c for c in DEMO_CLIENTS if c["id"] == client_id), None)
+    if not client:
+        return jsonify({}), 404
+    return jsonify(client)
+
+# ─── REVENUE ANALYTICS ───
+@app.route('/api/revenue')
+def revenue():
+    return jsonify({
+        "monthly_revenue": 12500, "annual_projection": 150000,
+        "active_clients": 47, "avg_client_value": 266,
+        "revenue_by_plan": {"pro": 8500, "basic": 4000},
+        "recent_payments": [
+            {"client": "Smile Dental Clinic", "amount": 500, "date": "2026-05-01T00:00:00Z"},
+            {"client": "Houston Auto Repair", "amount": 250, "date": "2026-05-02T00:00:00Z"},
+        ]
+    })
+
+# ─── TEAM & AGENTS ───
+@app.route('/api/team')
+def team():
+    return jsonify({
+        "departments": [
+            {"name": "Scraping", "agents": 3, "status": "active", "tasks_today": 47},
+            {"name": "Validation", "agents": 3, "status": "active", "tasks_today": 89},
+            {"name": "Marketing", "agents": 5, "status": "active", "tasks_today": 23},
+            {"name": "Sales", "agents": 4, "status": "active", "tasks_today": 12},
+            {"name": "DMCA", "agents": 2, "status": "active", "tasks_today": 8},
+        ],
+        "total_agents": 17, "online": 17
+    })
+
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
