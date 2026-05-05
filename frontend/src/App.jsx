@@ -43,6 +43,8 @@ import QuickLaunch from './pages/QuickLaunch';
 import SMSDetailed from './pages/SMSDetailed';
 import WhatsAppDetailed from './pages/WhatsAppDetailed';
 import Notifications from './pages/Notifications';
+import LinkedInDetailed from './pages/LinkedInDetailed';
+import ColdCallDetailed from './pages/ColdCallDetailed';
 import './styles/design-system.css';
 
 const API = import.meta.env.VITE_API_URL || 'https://dmcashield-agency.vercel.app';
@@ -142,6 +144,8 @@ export default function App() {
           <Route path="/sms-detailed" element={<SMSDetailed />} />
           <Route path="/whatsapp-detailed" element={<WhatsAppDetailed />} />
           <Route path="/notifications" element={<Notifications />} />
+          <Route path="/linkedin-detailed" element={<LinkedInDetailed />} />
+          <Route path="/cold-call-detailed" element={<ColdCallDetailed />} />
         </Routes>
         <JARVIS />
       </div>
