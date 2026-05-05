@@ -29,6 +29,8 @@ import Webhooks from './pages/Webhooks';
 import Scheduler from './pages/Scheduler';
 import IntegrationDetails from './pages/IntegrationDetails';
 import AnalyticsDetailed from './pages/AnalyticsDetailed';
+import LeadScoring from './pages/LeadScoring';
+import TemplateEditor from './pages/TemplateEditor';
 import './styles/design-system.css';
 
 const API = import.meta.env.VITE_API_URL || 'https://dmcashield-agency.vercel.app';
@@ -114,6 +116,8 @@ export default function App() {
           <Route path="/campaign-scheduler" element={<Scheduler />} />
           <Route path="/integrations-hub" element={<IntegrationDetails />} />
           <Route path="/analytics-advanced" element={<AnalyticsDetailed />} />
+          <Route path="/lead-scoring" element={<LeadScoring />} />
+          <Route path="/templates" element={<TemplateEditor />} />
         </Routes>
         <JARVIS />
       </div>
