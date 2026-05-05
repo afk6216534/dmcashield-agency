@@ -1,94 +1,80 @@
-import React, { useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
-import {
-  LayoutDashboard, Play, Users, Mail, BarChart3,
-  ListTodo, Flame, Settings, Shield,
-} from 'lucide-react'
+import { NavLink, useLocation } from 'react-router-dom';
 
 const navItems = [
-  { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
-  { path: '/launch-task', icon: Play, label: 'Launch Task' },
-  { path: '/leads', icon: Users, label: 'Lead Database' },
-  { path: '/email-accounts', icon: Mail, label: 'Email Accounts' },
-  { path: '/analytics', icon: BarChart3, label: 'Analytics' },
-  { path: '/tasks', icon: ListTodo, label: 'Task Manager' },
-  { path: '/hot-leads', icon: Flame, label: 'Hot Leads', highlight: true },
-  { path: '/settings', icon: Settings, label: 'Settings' },
-  { path: '/ceo', icon: Shield, label: 'CEO Dashboard', highlight: true },
-]
+  { to: '/', icon: '📊', label: 'Dashboard', section: 'command' },
+  { to: '/system', icon: '🏢', label: 'Control Tower', section: 'command' },
+  { to: '/launch', icon: '🚀', label: 'Launch Task', section: 'command' },
+  { to: '/leads', icon: '👥', label: 'Lead Database', section: 'operations' },
+  { to: '/accounts', icon: '📧', label: 'Email Accounts', section: 'operations' },
+  { to: '/campaigns', icon: '📣', label: 'Campaigns', section: 'operations' },
+  { to: '/warmup', icon: '🔥', label: 'Email Warmup', section: 'operations' },
+  { to: '/analytics', icon: '📈', label: 'Analytics', section: 'intelligence' },
+  { to: '/tasks', icon: '📋', label: 'Task Manager', section: 'intelligence' },
+  { to: '/hot-leads', icon: '🔥', label: 'Hot Leads', section: 'intelligence' },
+  { to: '/sms', icon: '💬', label: 'SMS Campaign', section: 'channels' },
+  { to: '/whatsapp', icon: '📱', label: 'WhatsApp', section: 'channels' },
+  { to: '/linkedin', icon: '💼', label: 'LinkedIn', section: 'channels' },
+  { to: '/cold-call', icon: '📞', label: 'Cold Call', section: 'channels' },
+  { to: '/schedule', icon: '📅', label: 'Scheduler', section: 'automation' },
+  { to: '/ai-responses', icon: '🤖', label: 'AI Response', section: 'automation' },
+  { to: '/integrations', icon: '🔗', label: 'Integrations', section: 'automation' },
+  { to: '/learning', icon: '🧠', label: 'Self-Learning', section: 'automation' },
+  { to: '/settings', icon: '⚙️', label: 'Settings', section: 'system' },
+];
 
-const departments = [
-  { name: 'CEO', status: 'online' },
-  { name: 'Scraping', status: 'online' },
-  { name: 'Validation', status: 'online' },
-  { name: 'Marketing', status: 'online' },
-  { name: 'Email Sending', status: 'online' },
-  { name: 'Tracking', status: 'online' },
-  { name: 'Sales', status: 'online' },
-  { name: 'JARVIS', status: 'online' },
-  { name: 'Memory', status: 'online' },
-]
+const sections = {
+  command: 'Command Center',
+  operations: 'Operations',
+  intelligence: 'Intelligence',
+  channels: 'Channels',
+  automation: 'Automation',
+  system: 'System',
+};
 
-export default function Sidebar() {
-  const location = useLocation()
+export default function Sidebar({ systemStatus, hotLeadCount }) {
+  const location = useLocation();
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 bg-dark-800 border-r border-dark-600 flex flex-col">
-      <div className="p-6 border-b border-dark-600">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-purple to-accent-cyan flex items-center justify-center">
-            <Shield className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h1 className="font-bold text-lg">DMCAShield</h1>
-            <p className="text-xs text-gray-500">Control Tower</p>
-          </div>
+    <aside className="sidebar">
+      <div className="sidebar-logo">
+        <div className="logo-icon">🛡️</div>
+        <div>
+          <h1>DMCAShield</h1>
+          <div className="version">Control Tower v2.0</div>
         </div>
       </div>
 
-      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-        {navItems.map(({ path, icon: Icon, label, highlight }) => (
-          <Link
-            key={path}
-            to={path}
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-              location.pathname === path
-                ? 'bg-accent-purple/20 text-accent-purple border border-accent-purple/30'
-                : highlight
-                ? 'bg-accent-red/10 text-accent-red border border-accent-red/30 hover:bg-accent-red/20'
-                : 'text-gray-400 hover:bg-dark-700 hover:text-white'
-            }`}
-          >
-            <Icon className="w-5 h-5" />
-            <span className="font-medium">{label}</span>
-          </Link>
+      <nav className="sidebar-nav">
+        {Object.entries(sections).map(([key, label]) => (
+          <div key={key}>
+            <div className="nav-section-label">{label}</div>
+            {navItems
+              .filter((item) => item.section === key)
+              .map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  className={({ isActive }) =>
+                    `nav-item ${isActive ? 'active' : ''}`
+                  }
+                >
+                  <span className="nav-icon">{item.icon}</span>
+                  <span>{item.label}</span>
+                  {item.to === '/hot-leads' && hotLeadCount > 0 && (
+                    <span className="nav-badge">{hotLeadCount}</span>
+                  )}
+                </NavLink>
+              ))}
+          </div>
         ))}
       </nav>
 
-      <div className="p-4 border-t border-dark-600">
-        <div className="text-xs text-gray-500 mb-3 uppercase tracking-wider font-semibold">
-          Departments
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          {departments.map((dept) => (
-            <div key={dept.name} className="flex items-center gap-2 text-xs text-gray-400">
-              <span className={`department-dot ${dept.status}`}></span>
-              <span className="truncate">{dept.name}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="p-4 border-t border-dark-600">
-        <div className="glass-card p-4">
-          <div className="flex items-center gap-2 text-xs text-accent-green mb-2">
-            <Shield className="w-4 h-4" />
-            <span className="font-semibold">System Status</span>
-          </div>
-          <div className="text-2xl font-bold">Operational</div>
-          <div className="text-xs text-gray-500">12 departments online</div>
-        </div>
+      <div className="sidebar-status">
+        <span className={`status-dot ${systemStatus === 'operational' ? 'green' : systemStatus === 'degraded' ? 'yellow' : 'red'}`}></span>
+        <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+          {systemStatus === 'operational' ? '12 depts • 36 agents' : systemStatus || 'connecting...'}
+        </span>
       </div>
     </aside>
-  )
+  );
 }

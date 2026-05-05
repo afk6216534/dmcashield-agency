@@ -1,112 +1,169 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Users, Mail, MessageSquare, TrendingUp, Play, Flame, ArrowRight } from 'lucide-react';
+import { useState, useEffect } from 'react';
+
+import API from '../config/api.js';
+
+const DEPT_ICONS = {
+  scraping: '🔍', validation: '✅', marketing: '📢',
+  sending: '📤', analytics: '📊', sales: '💼',
+  sheets: '📋', accounts: '📧', tasks: '📝',
+  ml: '🧠', jarvis: '🤖', memory: '💾',
+};
 
 export default function Dashboard() {
-  const [stats, setStats] = useState({});
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/status')
-      .then(r => r.json())
-      .then(setStats);
+    fetchDashboard();
+    const interval = setInterval(fetchDashboard, 15000);
+    return () => clearInterval(interval);
   }, []);
 
+  const fetchDashboard = async () => {
+    try {
+      const res = await fetch(`${API}/api/dashboard`);
+      const json = await res.json();
+      setData(json);
+    } catch (err) {
+      console.error('Dashboard fetch error:', err);
+    }
+    setLoading(false);
+  };
+
+  if (loading) return <div className="main-content"><div className="empty-state"><div className="empty-icon">⏳</div><h3>Loading Control Tower...</h3></div></div>;
+
+  const stats = data?.stats || {};
+  const soul = data?.soul || {};
+  const departments = data?.departments || {};
+
   return (
-    <div style={{ padding: '24px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px' }}>
-        <div>
-          <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '8px' }}>DMCAShield Command Center</h1>
-          <p style={{ color: '#8b949e' }}>Welcome back. Here's your agency overview.</p>
+    <div className="main-content animate-in">
+      <div className="page-header">
+        <h1>🛡️ DMCAShield Control Tower</h1>
+        <p>Autonomous Agency Dashboard — {Object.keys(departments).length} departments, {data?.system_status || 'initializing'}</p>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="stats-grid">
+        <div className="stat-card purple">
+          <div className="stat-label">Emails Sent Today</div>
+          <div className="stat-value purple">{stats.emails_sent_today || 0}</div>
+          <div className="stat-change">📤 Outbound active</div>
         </div>
-        <Link to="/launch-task" style={{ 
-          background: 'linear-gradient(135deg, #6C63FF, #4f46e5)', 
-          color: 'white', padding: '12px 24px', borderRadius: '10px', 
-          fontWeight: '600', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px'
-        }}>
-          <Play size={16} /> Launch Campaign
-        </Link>
+        <div className="stat-card teal">
+          <div className="stat-label">Opens Today</div>
+          <div className="stat-value teal">{stats.emails_opened_today || 0}</div>
+          <div className="stat-change">👀 Engagement tracking</div>
+        </div>
+        <div className="stat-card green">
+          <div className="stat-label">Replies Today</div>
+          <div className="stat-value green">{stats.replies_today || 0}</div>
+          <div className="stat-change">💬 Conversations active</div>
+        </div>
+        <div className="stat-card red">
+          <div className="stat-label">Hot Leads</div>
+          <div className="stat-value red">{stats.hot_leads || 0}</div>
+          <div className="stat-change">🔥 Ready to convert</div>
+        </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '32px' }}>
-        {[
-          { label: 'Active Leads', value: stats.stats?.hot_leads || 0, icon: Users, color: '#6C63FF' },
-          { label: 'Open Rate', value: stats.stats?.open_rate || 0, icon: Mail, color: '#22d3ee', isPercent: true },
-          { label: 'Reply Rate', value: stats.stats?.reply_rate || 0, icon: MessageSquare, color: '#10b981', isPercent: true },
-          { label: 'Conversion', value: stats.stats?.conversion_rate || 0, icon: TrendingUp, color: '#f97316', isPercent: true },
-        ].map((stat, i) => (
-          <div key={i} style={{
-            background: 'linear-gradient(135deg, rgba(22,27,34,0.9), rgba(28,35,51,0.7))',
-            backdropFilter: 'blur(16px)', border: '1px solid rgba(48,54,61,0.5)',
-            borderRadius: '16px', padding: '24px'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '12px', 
-                background: `${stat.color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <stat.icon size={24} color={stat.color} />
-              </div>
-              <span style={{ fontSize: '12px', fontWeight: '600', color: '#10b981' }}>+12%</span>
-            </div>
-            <p style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '4px' }}>
-              {stat.value}{stat.isPercent ? '%' : ''}
-            </p>
-            <p style={{ fontSize: '14px', color: '#8b949e' }}>{stat.label}</p>
+      {/* Active Tasks - full width */}
+      <div className="glass-card no-hover" style={{ marginBottom: 24 }}>
+        <h3 style={{ marginBottom: 16, fontSize: '1rem', fontWeight: 700 }}>🎯 Active Tasks</h3>
+        {(data?.active_tasks || []).length === 0 ? (
+          <div className="empty-state" style={{ padding: 30 }}>
+            <div className="empty-icon">🚀</div>
+            <h3>No active tasks</h3>
+            <p style={{ color: 'var(--text-tertiary)', fontSize: '0.82rem' }}>Go to Launch Task to start your first campaign</p>
           </div>
-        ))}
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px' }}>
-        <div style={{
-          background: 'linear-gradient(135deg, rgba(22,27,34,0.9), rgba(28,35,51,0.7))',
-          backdropFilter: 'blur(16px)', border: '1px solid rgba(48,54,61,0.5)',
-          borderRadius: '16px', padding: '24px'
-        }}>
-          <h2 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '20px' }}>Recent Activity</h2>
-          {[
-            { task: 'Dental Clinics LA', status: 'active', leads: 234 },
-            { task: 'Pizza Shops NYC', status: 'complete', leads: 156 },
-            { task: 'Law Firms TX', status: 'paused', leads: 89 },
-          ].map((task, i) => (
-            <div key={i} style={{ 
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
-              padding: '16px', background: 'rgba(33,38,45,0.5)', borderRadius: '12px', marginBottom: '12px'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <Flame size={20} color="#f97316" />
-                <div>
-                  <p style={{ fontWeight: '600' }}>{task.task}</p>
-                  <p style={{ fontSize: '14px', color: '#8b949e' }}>{task.leads} leads</p>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
+            {data.active_tasks.map((task) => (
+              <div key={task.id} style={{ padding: 16, background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                  <div>
+                    <strong style={{ fontSize: '0.88rem' }}>{task.business_type}</strong>
+                    <span style={{ color: 'var(--text-tertiary)', marginLeft: 8, fontSize: '0.78rem' }}>{task.city}, {task.state}</span>
+                  </div>
+                  <span className={`badge badge-${task.status}`}>{task.status}</span>
+                </div>
+                <div className="progress-bar" style={{ marginTop: 8 }}>
+                  <div className="progress-fill" style={{ width: `${task.leads_total > 0 ? (task.leads_emailed / task.leads_total) * 100 : 0}%` }} />
+                </div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', marginTop: 4 }}>
+                  {task.leads_emailed || 0}/{task.leads_total || 0} leads emailed • {task.leads_hot || 0} hot
                 </div>
               </div>
-              <span style={{ 
-                padding: '4px 12px', borderRadius: '100px', fontSize: '12px', fontWeight: '600',
-                background: task.status === 'active' ? 'rgba(16,185,129,0.15)' : task.status === 'complete' ? 'rgba(108,99,255,0.15)' : 'rgba(139,148,158,0.15)',
-                color: task.status === 'active' ? '#6ee7b7' : task.status === 'complete' ? '#c4b5fd' : '#8b949e'
-              }}>{task.status}</span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Department Status - full width with all 12 departments */}
+      <div className="glass-card no-hover" style={{ marginBottom: 24 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <h3 style={{ fontSize: '1rem', fontWeight: 700 }}>🏢 Department Status</h3>
+          <span style={{ fontSize: '0.72rem', color: 'var(--accent-secondary)', fontFamily: 'var(--font-mono)' }}>
+            {Object.keys(departments).length} departments • {Object.values(departments).reduce((a, d) => a + (d?.team_size || 0) + 1, 0)} agents
+          </span>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 10 }}>
+          {Object.entries(departments).map(([name, dept]) => {
+            const deptStatus = dept?.head?.status || 'idle';
+            const agentCount = (dept?.team_size || 0) + 1;
+            const isOnline = deptStatus === 'idle' || deptStatus === 'working';
+            const tasksCompleted = dept?.head?.tasks_completed || 0;
+            return (
+              <div className="dept-card" key={name} style={{ position: 'relative' }}>
+                <div style={{ fontSize: '1.4rem' }}>{DEPT_ICONS[name] || '🔧'}</div>
+                <div className="dept-name" style={{ textTransform: 'capitalize' }}>{name}</div>
+                <div className="dept-status-label">
+                  <span className={`status-dot ${isOnline ? 'green' : 'red'}`}></span>
+                  {deptStatus === 'working' ? 'busy' : 'online'} • {agentCount}
+                </div>
+                {tasksCompleted > 0 && (
+                  <div style={{ fontSize: '0.6rem', color: 'var(--accent-success)', marginTop: 2 }}>
+                    {tasksCompleted} tasks done
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Recent Activity & Soul - side by side */}
+      <div className="grid-2">
+        <div className="glass-card no-hover">
+          <h3 style={{ marginBottom: 16, fontSize: '1rem', fontWeight: 700 }}>📡 Recent Activity</h3>
+          {(data?.recent_activity || []).length === 0 ? (
+            <div style={{ color: 'var(--text-tertiary)', fontSize: '0.82rem', textAlign: 'center', padding: 20 }}>
+              No activity yet — launch a task to get started
             </div>
-          ))}
+          ) : (
+            data.recent_activity.slice(0, 10).map((msg, i) => (
+              <div className="activity-item" key={i}>
+                <div className={`activity-icon ${msg.message_type === 'alert' ? 'red' : msg.message_type === 'handoff' ? 'teal' : 'purple'}`}>
+                  {msg.message_type === 'alert' ? '🚨' : msg.message_type === 'handoff' ? '🔄' : '📤'}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div className="activity-text"><strong>{msg.from}</strong> → {msg.to}: {msg.notes || msg.message_type}</div>
+                  <div className="activity-time">{new Date(msg.timestamp).toLocaleTimeString()}</div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
 
-        <div style={{
-          background: 'linear-gradient(135deg, rgba(22,27,34,0.9), rgba(28,35,51,0.7))',
-          backdropFilter: 'blur(16px)', border: '1px solid rgba(48,54,61,0.5)',
-          borderRadius: '16px', padding: '24px'
-        }}>
-          <h2 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '20px' }}>Quick Actions</h2>
-          {[
-            { label: 'Browse Leads', icon: Users, color: '#6C63FF', path: '/leads' },
-            { label: 'New Campaign', icon: Play, color: '#22d3ee', path: '/launch-task' },
-            { label: 'Hot Leads', icon: Flame, color: '#f43f5e', path: '/hot-leads' },
-            { label: 'Analytics', icon: TrendingUp, color: '#10b981', path: '/analytics' },
-          ].map((action, i) => (
-            <Link key={i} to={action.path} style={{ 
-              display: 'flex', alignItems: 'center', gap: '12px', padding: '16px', 
-              background: 'rgba(33,38,45,0.5)', borderRadius: '12px', marginBottom: '12px',
-              textDecoration: 'none', color: 'inherit'
-            }}>
-              <action.icon size={20} color={action.color} />
-              <span>{action.label}</span>
-            </Link>
-          ))}
+        <div className="glass-card no-hover">
+          <h3 style={{ marginBottom: 12, fontSize: '1rem', fontWeight: 700 }}>🧬 Agency Soul</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <div><span style={{ color: 'var(--text-tertiary)', fontSize: '0.72rem' }}>Total Leads</span><div style={{ fontWeight: 700, fontSize: '1.2rem' }}>{soul.total_leads_processed || 0}</div></div>
+            <div><span style={{ color: 'var(--text-tertiary)', fontSize: '0.72rem' }}>Total Emails</span><div style={{ fontWeight: 700, fontSize: '1.2rem' }}>{soul.total_emails_sent || 0}</div></div>
+            <div><span style={{ color: 'var(--text-tertiary)', fontSize: '0.72rem' }}>Clients Won</span><div style={{ fontWeight: 700, fontSize: '1.2rem', color: 'var(--accent-success)' }}>{soul.total_clients_acquired || 0}</div></div>
+            <div><span style={{ color: 'var(--text-tertiary)', fontSize: '0.72rem' }}>Learning Cycle</span><div style={{ fontWeight: 700, fontSize: '1.2rem' }}>{soul.learning_cycle || 1}</div></div>
+            <div style={{ gridColumn: '1 / -1' }}><span style={{ color: 'var(--text-tertiary)', fontSize: '0.72rem' }}>Active Since</span><div style={{ fontWeight: 700, fontSize: '0.88rem', fontFamily: 'var(--font-mono)' }}>{soul.active_since || 'today'}</div></div>
+          </div>
         </div>
       </div>
     </div>

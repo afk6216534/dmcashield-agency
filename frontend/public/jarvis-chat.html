@@ -44,7 +44,7 @@
                 document.getElementById('response').innerText = data.response || JSON.stringify(data, null, 2);
                 document.getElementById('prompt').value = '';
             } catch (error) {
-                document.getElementById('response').innerText = 'Error: ' + error.message + '\n\nMake sure you are connected to the internet and the backend is running.';
+                document.getElementById('response').innerText = 'Error: Could not connect to backend at https://dmcashield-agency.vercel.app. Make sure the backend is deployed and running.';
             }
         }
     </script>

@@ -1,155 +1,140 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import API from '../config/api.js';
 
 export default function EmailAccounts() {
   const [accounts, setAccounts] = useState([]);
-  const [newEmail, setNewEmail] = useState({ email: '', password: '', display: '', provider: 'resend' });
+  const [showForm, setShowForm] = useState(false);
+  const [provider, setProvider] = useState('gmail');
+  const [form, setForm] = useState({ email_address: '', display_name: '', app_password: '' });
+  const [adding, setAdding] = useState(false);
 
-  useEffect(() => {
-    fetch('/api/accounts')
-      .then(r => r.json())
-      .then(setAccounts);
-  }, []);
+  useEffect(() => { fetchAccounts(); }, []);
 
-  const addAccount = (e) => {
-    e.preventDefault();
-    const payload = {
-      email_address: newEmail.email,
-      app_password: newEmail.password,
-      provider: newEmail.provider,
-      display_name: newEmail.display || newEmail.email.split('@')[0]
-    };
-    fetch('/api/accounts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    }).then(() => {
-      setNewEmail({ email: '', password: '', display: '', provider: 'resend' });
-      fetch('/api/accounts').then(r => r.json()).then(setAccounts);
-    });
+  const fetchAccounts = async () => {
+    try {
+      const res = await fetch(`${API}/api/accounts`);
+      setAccounts(await res.json());
+    } catch (err) { console.error(err); }
   };
 
-  const getStatusBadge = (acc) => {
-    if (acc.status === 'active') return '✅ Connected';
-    if (acc.status === 'warming_up') return '🔄 Warming Up';
-    if (acc.status === 'error') return '❌ Not Connected';
-    return acc.status;
+  const handleAdd = async (e) => {
+    e.preventDefault();
+    if (!form.email_address || !form.app_password) return;
+    setAdding(true);
+    try {
+      await fetch(`${API}/api/accounts`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...form, provider }),
+      });
+      setForm({ email_address: '', display_name: '', app_password: '' });
+      setShowForm(false);
+      fetchAccounts();
+    } catch (err) { console.error(err); }
+    setAdding(false);
+  };
+
+  const handleDelete = async (id) => {
+    if (!confirm('Remove this email account?')) return;
+    await fetch(`${API}/api/accounts/${id}`, { method: 'DELETE' });
+    fetchAccounts();
   };
 
   return (
-    <div className="email-accounts" style={{padding: '20px'}}>
-      <h1>📧 Email Accounts</h1>
-      <p>Add email providers to send outreach emails</p>
-      
-      <div style={{marginBottom: '20px'}}>
-        <label style={{fontWeight: 'bold', marginRight: '10px'}}>Email Provider:</label>
-        <select 
-          value={newEmail.provider}
-          onChange={e => setNewEmail({...newEmail, provider: e.target.value})}
-          style={{padding: '8px', borderRadius: '5px', minWidth: '200px'}}
-        >
-          <option value="resend">🔵 Resend (Recommended - Free 10k/month)</option>
-          <option value="gmail">📧 Gmail (Needs App Password)</option>
-          <option value="sendgrid">🟣 SendGrid</option>
-        </select>
+    <div className="main-content animate-in">
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div>
+          <h1>📧 Email Accounts</h1>
+          <p>Manage Gmail, Resend, and other sending accounts</p>
+        </div>
+        <button className="btn btn-primary" onClick={() => setShowForm(!showForm)}>
+          {showForm ? '✕ Cancel' : '➕ Add Account'}
+        </button>
       </div>
-      
-      <div style={{background: '#f5f5f5', padding: '20px', borderRadius: '10px', marginBottom: '20px'}}>
-        <form onSubmit={addAccount}>
-          {newEmail.provider === 'resend' ? (
-            <>
-              <input 
-                placeholder="API Key (from resend.com)" 
-                value={newEmail.email}
-                onChange={e => setNewEmail({...newEmail, email: e.target.value})}
-                style={{display: 'block', width: '100%', padding: '10px', marginBottom: '10px'}}
-              />
-              <input 
-                placeholder="Display Name" 
-                value={newEmail.display}
-                onChange={e => setNewEmail({...newEmail, display: e.target.value})}
-                style={{display: 'block', width: '100%', padding: '10px', marginBottom: '10px'}}
-              />
-            </>
+
+      {showForm && (
+        <div className="glass-card no-hover animate-in" style={{ marginBottom: 20 }}>
+          <h3 style={{ marginBottom: 16, fontSize: '1rem', fontWeight: 700 }}>🔐 Add Email Provider</h3>
+          
+          <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+            {[
+              { id: 'gmail', icon: '📧', label: 'Gmail' },
+              { id: 'resend', icon: '🔵', label: 'Resend (Free 10k/mo)' },
+              { id: 'sendgrid', icon: '🟣', label: 'SendGrid' },
+            ].map(p => (
+              <button key={p.id} className={`btn ${provider === p.id ? 'btn-primary' : ''}`}
+                style={{ background: provider === p.id ? 'var(--accent-primary)' : 'var(--bg-tertiary)', padding: '10px 16px' }}
+                onClick={() => setProvider(p.id)}>
+                {p.icon} {p.label}
+              </button>
+            ))}
+          </div>
+
+          {provider === 'resend' ? (
+            <form onSubmit={handleAdd}>
+              <div className="form-group">
+                <label className="form-label">Resend API Key</label>
+                <input className="form-input" placeholder="re_xxxx..." value={form.app_password} onChange={e => setForm({...form, app_password: e.target.value})} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">From Email</label>
+                <input className="form-input" placeholder="your@domain.com" value={form.email_address} onChange={e => setForm({...form, email_address: e.target.value})} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">From Name</label>
+                <input className="form-input" placeholder="Your Name" value={form.display_name} onChange={e => setForm({...form, display_name: e.target.value})} />
+              </div>
+              <button className="btn btn-success" type="submit" disabled={adding}>{adding ? '...' : '✅ Add Resend'}</button>
+            </form>
           ) : (
-            <>
-              <input 
-                placeholder="Email Address" 
-                value={newEmail.email}
-                onChange={e => setNewEmail({...newEmail, email: e.target.value})}
-                style={{display: 'block', width: '100%', padding: '10px', marginBottom: '10px'}}
-              />
-              <input 
-                placeholder={newEmail.provider === 'sendgrid' ? "API Key" : "App Password"} 
-                type="password" 
-                value={newEmail.password}
-                onChange={e => setNewEmail({...newEmail, password: e.target.value})}
-                style={{display: 'block', width: '100%', padding: '10px', marginBottom: '10px'}}
-              />
-            </>
+            <form onSubmit={handleAdd} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: 12, alignItems: 'end' }}>
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label">{provider === 'sendgrid' ? 'API Key' : 'Email Address'}</label>
+                <input className="form-input" placeholder={provider === 'sendgrid' ? 'SG.xxx' : 'you@gmail.com'} value={form.email_address} onChange={e => setForm({...form, email_address: e.target.value})} />
+              </div>
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label">Display Name</label>
+                <input className="form-input" placeholder="John Smith" value={form.display_name} onChange={e => setForm({...form, display_name: e.target.value})} />
+              </div>
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label">{provider === 'sendgrid' ? 'API Key' : 'App Password'}</label>
+                <input className="form-input" type="password" placeholder="xxxx xxxx xxxx xxxx" value={form.app_password} onChange={e => setForm({...form, app_password: e.target.value})} />
+              </div>
+              <button className="btn btn-success" type="submit" disabled={adding}>{adding ? '...' : '✅ Add'}</button>
+            </form>
           )}
-          <button 
-            type="submit" 
-            style={{
-              background: '#4CAF50', 
-              color: 'white', 
-              padding: '12px 30px', 
-              border: 'none', 
-              borderRadius: '5px',
-              cursor: 'pointer',
-              fontSize: '16px'
-            }}
-          >
-            ➕ Add {newEmail.provider === 'resend' ? 'Resend' : 'Email'} Account
-          </button>
-        </form>
-      </div>
-      
-      <table style={{width: '100%', borderCollapse: 'collapse'}}>
-        <thead>
-          <tr style={{background: '#333', color: 'white'}}>
-            <th style={{padding: '15px', textAlign: 'left'}}>Email</th>
-            <th style={{padding: '15px', textAlign: 'left'}}>Status</th>
-            <th style={{padding: '15px', textAlign: 'left'}}>Sent Today</th>
-            <th style={{padding: '15px', textAlign: 'left'}}>Health</th>
-            <th style={{padding: '15px', textAlign: 'left'}}>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {accounts.length === 0 ? (
-            <tr><td colSpan={5} style={{padding: '20px', textAlign: 'center'}}>No email accounts connected</td></tr>
-          ) : accounts.map(acc => (
-            <tr key={acc.id} style={{borderBottom: '1px solid #ddd'}}>
-              <td style={{padding: '15px'}}>
-                <strong>{acc.email_address}</strong><br/>
-                <small>{acc.display_name}</small>
-              </td>
-              <td style={{padding: '15px'}}>
-                <span style={{
-                  padding: '5px 10px',
-                  borderRadius: '5px',
-                  background: acc.status === 'active' ? '#4CAF50' : acc.status === 'error' ? '#f44336' : '#ff9800',
-                  color: 'white'
-                }}>
-                  {getStatusBadge(acc)}
-                </span>
-              </td>
-              <td style={{padding: '15px'}}>{acc.sent_today}/{acc.daily_limit}</td>
-              <td style={{padding: '15px'}}>{acc.health_score}%</td>
-              <td style={{padding: '15px'}}>
-                <button style={{background: '#f44336', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '3px', cursor: 'pointer'}}>Remove</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      
-      <div style={{marginTop: '30px', background: '#e3f2fd', padding: '20px', borderRadius: '10px'}}>
-        <h3>📌 How to get credentials:</h3>
-        <ul style={{lineHeight: '2'}}>
-          <li><strong>Resend (Recommended):</strong> Go to <a href="https://resend.com" target="_blank">resend.com</a> → Sign up → API Keys → Copy your key</li>
-          <li><strong>Gmail:</strong> Need 2FA enabled first, then go to <a href="https://myaccount.google.com/apppasswords" target="_blank">Google App Passwords</a></li>
-          <li><strong>SendGrid:</strong> Go to <a href="https://sendgrid.com" target="_blank">sendgrid.com</a> → API Keys</li>
-        </ul>
+        </div>
+      )}
+
+      <div className="glass-card no-hover">
+        {accounts.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-icon">📧</div>
+            <h3>No email accounts connected</h3>
+            <p style={{ color: 'var(--text-tertiary)' }}>Add Gmail, Resend, or SendGrid to send outreach emails</p>
+          </div>
+        ) : (
+          <table className="data-table">
+            <thead><tr><th>Provider</th><th>Email</th><th>Status</th><th>Sent Today</th><th>Health</th><th>Actions</th></tr></thead>
+            <tbody>
+              {accounts.map(acc => (
+                <tr key={acc.id}>
+                  <td><span className="badge" style={{ background: acc.provider === 'resend' ? '#3b82f6' : acc.provider === 'sendgrid' ? '#8b5cf6' : '#ef4444' }}>
+                    {acc.provider?.toUpperCase() || 'GMAIL'}
+                  </span></td>
+                  <td><strong>{acc.email_address}</strong><br/><span style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>{acc.display_name}</span></td>
+                  <td><span className={`badge ${acc.status === 'active' ? 'badge-active' : acc.status === 'warming_up' ? 'badge-warm' : 'badge-error'}`}>{acc.status}</span></td>
+                  <td>{acc.sent_today || 0}/{acc.daily_limit || 500}</td>
+                  <td>
+                    <div className="progress-bar" style={{ width: 60 }}>
+                      <div className="progress-fill" style={{ width: `${acc.health_score || 100}%`, background: 'var(--accent-success)' }} />
+                    </div>
+                  </td>
+                  <td><button className="btn btn-danger" style={{ padding: '4px 10px', fontSize: '0.72rem' }} onClick={() => handleDelete(acc.id)}>Remove</button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );
