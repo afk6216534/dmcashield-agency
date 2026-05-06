@@ -58,6 +58,8 @@ import Pipeline from './pages/Pipeline';
 import Kanban from './pages/Kanban';
 import Widgets from './pages/Widgets';
 import Changelog from './pages/Changelog';
+import Budget from './pages/Budget';
+import Goals from './pages/Goals';
 import './styles/design-system.css';
 
 const API = import.meta.env.VITE_API_URL || 'https://dmcashield-agency.vercel.app';
@@ -172,6 +174,8 @@ export default function App() {
           <Route path="/kanban" element={<Kanban />} />
           <Route path="/widgets" element={<Widgets />} />
           <Route path="/changelog" element={<Changelog />} />
+          <Route path="/budget" element={<Budget />} />
+          <Route path="/goals" element={<Goals />} />
         </Routes>
         <JARVIS />
       </div>

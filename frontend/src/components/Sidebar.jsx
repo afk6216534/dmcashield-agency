@@ -56,6 +56,8 @@ const navItems = [
   { to: '/kanban', icon: '📋', label: 'Kanban Board', section: 'automation' },
   { to: '/widgets', icon: '🧩', label: 'Widgets', section: 'automation' },
   { to: '/changelog', icon: '📝', label: 'Changelog', section: 'automation' },
+  { to: '/budget', icon: '💵', label: 'Budget', section: 'intelligence' },
+  { to: '/goals', icon: '🎯', label: 'Goals', section: 'intelligence' },
 ];
 
 const sections = {
