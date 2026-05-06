@@ -52,6 +52,8 @@ const navItems = [
   { to: '/landing', icon: '🌐', label: 'Landing Page', section: 'system' },
   { to: '/white-label', icon: '🎨', label: 'White Label', section: 'system' },
   { to: '/api-docs', icon: '📚', label: 'API Docs', section: 'system' },
+  { to: '/pipeline', icon: '🔄', label: 'Pipeline', section: 'automation' },
+  { to: '/kanban', icon: '📋', label: 'Kanban Board', section: 'automation' },
 ];
 
 const sections = {
