@@ -51,6 +51,7 @@ import SystemHealth from './pages/SystemHealth';
 import Overview from './pages/Overview';
 import HelpCenter from './pages/HelpCenter';
 import ClientPortal from './pages/ClientPortal';
+import LandingPage from './pages/LandingPage';
 import './styles/design-system.css';
 
 const API = import.meta.env.VITE_API_URL || 'https://dmcashield-agency.vercel.app';
@@ -158,6 +159,7 @@ export default function App() {
           <Route path="/overview" element={<Overview />} />
           <Route path="/help" element={<HelpCenter />} />
           <Route path="/client-portal" element={<ClientPortal />} />
+          <Route path="/landing" element={<LandingPage />} />
         </Routes>
         <JARVIS />
       </div>

@@ -49,6 +49,7 @@ const navItems = [
   { to: '/audit-log', icon: '📋', label: 'Audit Log', section: 'system' },
   { to: '/help', icon: '❓', label: 'Help Center', section: 'system' },
   { to: '/client-portal', icon: '🏢', label: 'Client Portal', section: 'system' },
+  { to: '/landing', icon: '🌐', label: 'Landing Page', section: 'system' },
 ];
 
 const sections = {
