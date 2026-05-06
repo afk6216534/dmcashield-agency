@@ -54,6 +54,8 @@ const navItems = [
   { to: '/api-docs', icon: '📚', label: 'API Docs', section: 'system' },
   { to: '/pipeline', icon: '🔄', label: 'Pipeline', section: 'automation' },
   { to: '/kanban', icon: '📋', label: 'Kanban Board', section: 'automation' },
+  { to: '/widgets', icon: '🧩', label: 'Widgets', section: 'automation' },
+  { to: '/changelog', icon: '📝', label: 'Changelog', section: 'automation' },
 ];
 
 const sections = {
