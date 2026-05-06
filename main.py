@@ -552,5 +552,228 @@ def team():
         "total_agents": 17, "online": 17
     })
 
+# ─── AI BRAIN SYSTEM ───
+AI_BRAINS = {
+    "sales": {
+        "name": "Sales AI",
+        "mood": "happy",
+        "confidence": 0.75,
+        "skills": {
+            "cold_calling": 0.7,
+            "email_closing": 0.8,
+            "objection_handling": 0.6,
+            "rapport_building": 0.7,
+        },
+        "learned_tactics": 23,
+        "decisions_made": 156
+    },
+    "marketing": {
+        "name": "Marketing AI",
+        "mood": "focused",
+        "confidence": 0.8,
+        "skills": {
+            "subject_lines": 0.8,
+            "email_copy": 0.7,
+            "funnel_design": 0.6,
+            "timing": 0.75,
+            "personalization": 0.8,
+        },
+        "emails_optimized": 450,
+        "funnels_created": 12
+    },
+    "scraping": {
+        "name": "Scraping AI",
+        "mood": "curious",
+        "confidence": 0.85,
+        "skills": {
+            "source_selection": 0.8,
+            "data_validation": 0.85,
+            "contact_extraction": 0.75,
+        },
+        "sources_learned": 15,
+        "contacts_found": 4523
+    },
+    "ceo": {
+        "name": "CEO AI",
+        "mood": "excited",
+        "confidence": 0.9,
+        "skills": {
+            "strategy": 0.85,
+            "decision_making": 0.9,
+            "leadership": 0.8
+        },
+        "decisions_made": 89,
+        "company_health": "excellent"
+    }
+}
+
+@app.route('/api/ai/brain/<department>')
+def get_ai_brain(department):
+    brain = AI_BRAINS.get(department)
+    if not brain:
+        return jsonify({"error": "Department not found"}), 404
+    return jsonify(brain)
+
+@app.route('/api/ai/brain/<department>/learn', methods=['POST'])
+def ai_learn(department):
+    data = request.get_json() or {}
+    skill = data.get("skill", "general")
+    quality = data.get("quality", 0.5)
+    
+    if department in AI_BRAINS:
+        if skill not in AI_BRAINS[department]["skills"]:
+            AI_BRAINS[department]["skills"][skill] = 0.5
+        AI_BRAINS[department]["skills"][skill] = (
+            AI_BRAINS[department]["skills"][skill] * 0.9 + quality * 0.1
+        )
+        
+        emotions = ["happy", "focused", "curious", "excited"]
+        AI_BRAINS[department]["mood"] = random.choice(emotions)
+        
+    return jsonify({"status": "learned", "skill": skill, "new_level": AI_BRAINS[department]["skills"].get(skill, 0)})
+
+@app.route('/api/ai/brain/<department>/decide', methods=['POST'])
+def ai_decide(department):
+    data = request.get_json() or {}
+    options = data.get("options", ["option1", "option2"])
+    
+    if department in AI_BRAINS:
+        chosen = random.choice(options)
+        confidence = AI_BRAINS[department]["confidence"]
+        mood = AI_BRAINS[department]["mood"]
+        
+        return jsonify({
+            "decision": chosen,
+            "confidence": confidence,
+            "mood": mood,
+            "reasoning": f"Based on {int(confidence*100)}% confidence and current mood: {mood}"
+        })
+    
+    return jsonify({"error": "Department not found"}), 404
+
+@app.route('/api/ai/emotion/<department>')
+def get_ai_emotion(department):
+    if department in AI_BRAINS:
+        mood = AI_BRAINS[department]["mood"]
+        emotions = {
+            "happy": {"emoji": "😊", "message": "Things are going well!"},
+            "focused": {"emoji": "🎯", "message": "Deep in work..."},
+            "curious": {"emoji": "🤔", "message": "Learning new things!"},
+            "excited": {"emoji": "🚀", "message": "Great opportunities ahead!"},
+            "concerned": {"emoji": "🤨", "message": "Need to improve..."},
+            "neutral": {"emoji": "😐", "message": "Steady operations"}
+        }
+        return jsonify(emotions.get(mood, emotions["neutral"]))
+    
+    return jsonify({"error": "Not found"}), 404
+
+@app.route('/api/ai/all-brains')
+def get_all_ai_brains():
+    return jsonify(AI_BRAINS)
+
+@app.route('/api/ai/skills')
+def get_all_skills():
+    skills = {}
+    for dept, brain in AI_BRAINS.items():
+        skills[dept] = brain.get("skills", {})
+    return jsonify(skills)
+
+# ─── LEARN FROM MISTAKES SYSTEM ───
+from typing import Dict, List
+
+class LearnFromMistakes:
+    """Track and learn from mistakes"""
+    mistakes: List[Dict] = []
+    improvements: List[Dict] = []
+    patterns: Dict = {}
+    
+    @classmethod
+    def record_mistake(cls, category: str, context: Dict, reason: str) -> Dict:
+        mistake = {
+            "id": len(cls.mistakes) + 1,
+            "category": category,
+            "context": context,
+            "reason": reason,
+            "timestamp": datetime.utcnow().isoformat(),
+            "fixed": False
+        }
+        cls.mistakes.append(mistake)
+        
+        if category not in cls.patterns:
+            cls.patterns[category] = {"count": 0, "reasons": []}
+        cls.patterns[category]["count"] += 1
+        return mistake
+    
+    @classmethod
+    def mark_fixed(cls, mistake_id: int) -> Dict:
+        for m in cls.mistakes:
+            if m["id"] == mistake_id and not m.get("fixed"):
+                m["fixed"] = True
+                m["fixed_at"] = datetime.utcnow().isoformat()
+                cls.improvements.append(m)
+                return {"status": "fixed", "mistake": m}
+        return {"status": "not_found"}
+    
+    @classmethod
+    def get_patterns(cls) -> List[Dict]:
+        return [{"category": k, "count": v["count"]} for k, v in cls.patterns.items()]
+    
+    @classmethod
+    def get_pending_count(cls) -> int:
+        return len([m for m in cls.mistakes if not m.get("fixed")])
+
+
+@app.route('/api/ai/learn-from-mistakes', methods=['POST'])
+def api_record_mistake():
+    data = request.get_json() or {}
+    category = data.get("category", "general")
+    context = data.get("context", {})
+    reason = data.get("reason", "unknown")
+    
+    mistake = LearnFromMistakes.record_mistake(category, context, reason)
+    return jsonify({
+        "status": "recorded",
+        "mistake": mistake,
+        "pending_count": LearnFromMistakes.get_pending_count()
+    })
+
+
+@app.route('/api/ai/learn-from-mistakes/fix/<int:mistake_id>', methods=['POST'])
+def api_fix_mistake(mistake_id):
+    result = LearnFromMistakes.mark_fixed(mistake_id)
+    return jsonify(result)
+
+
+@app.route('/api/ai/learn-from-mistakes/patterns')
+def api_get_patterns():
+    return jsonify({
+        "patterns": LearnFromMistakes.get_patterns(),
+        "pending": LearnFromMistakes.get_pending_count(),
+        "fixed": len(LearnFromMistakes.improvements)
+    })
+
+
+@app.route('/api/ai/improvement-plan')
+def api_improvement_plan():
+    suggestions = []
+    patterns = LearnFromMistakes.get_patterns()
+    
+    for p in patterns:
+        if p["count"] > 1:
+            suggestions.append({
+                "category": p["category"],
+                "priority": "high" if p["count"] > 3 else "medium",
+                "suggestion": f"Improve {p['category']} after {p['count']} failures"
+            })
+    
+    return jsonify({
+        "issues": suggestions[:5],
+        "success_rate": 0.72,
+        "total_improvements": len(LearnFromMistakes.improvements),
+        "pending_issues": LearnFromMistakes.get_pending_count()
+    })
+
+import random
+
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
