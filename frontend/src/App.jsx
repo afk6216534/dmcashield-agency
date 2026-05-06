@@ -47,6 +47,8 @@ import LinkedInDetailed from './pages/LinkedInDetailed';
 import ColdCallDetailed from './pages/ColdCallDetailed';
 import Reports from './pages/Reports';
 import AuditLog from './pages/AuditLog';
+import SystemHealth from './pages/SystemHealth';
+import Overview from './pages/Overview';
 import './styles/design-system.css';
 
 const API = import.meta.env.VITE_API_URL || 'https://dmcashield-agency.vercel.app';
@@ -150,6 +152,8 @@ export default function App() {
           <Route path="/cold-call-detailed" element={<ColdCallDetailed />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/audit-log" element={<AuditLog />} />
+          <Route path="/system-health" element={<SystemHealth />} />
+          <Route path="/overview" element={<Overview />} />
         </Routes>
         <JARVIS />
       </div>
