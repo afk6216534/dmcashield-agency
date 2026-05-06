@@ -50,6 +50,8 @@ const navItems = [
   { to: '/help', icon: '❓', label: 'Help Center', section: 'system' },
   { to: '/client-portal', icon: '🏢', label: 'Client Portal', section: 'system' },
   { to: '/landing', icon: '🌐', label: 'Landing Page', section: 'system' },
+  { to: '/white-label', icon: '🎨', label: 'White Label', section: 'system' },
+  { to: '/api-docs', icon: '📚', label: 'API Docs', section: 'system' },
 ];
 
 const sections = {
