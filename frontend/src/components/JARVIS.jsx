@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import API from '../config/api.js';
+const API = 'http://localhost:8000';
 
 export default function JARVIS() {
   const [input, setInput] = useState('');
