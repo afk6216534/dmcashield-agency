@@ -145,31 +145,81 @@ DEMO_LEADS = [
      "city": "Los Angeles", "state": "CA", "niche": "dentist",
      "current_rating": 3.8, "negative_review_count": 7, "lead_score": 85,
      "lead_temperature": "hot", "status": "funnel_ready", "funnel_step": 4,
-     "emails_sent_count": 12, "created_at": "2026-05-01T10:00:00Z"},
+     "emails_sent_count": 12, "created_at": "2026-05-01T10:00:00Z",
+     "website": "https://smiledentalclinic.com", "full_address": "123 Smile Ave, Los Angeles, CA 90001",
+     "business_nature": "General Dentistry & Cosmetic Dentistry",
+     "years_in_business": 8, "employee_count": "5-10", "revenue_range": "$500K-$1M",
+     "full_analysis": "High-value dental practice with strong patient base. Has 7 negative reviews mentioning billing issues and wait times. Competitors nearby: 3. Opportunities: cosmetic dentistry expansion, emergency dental services.",
+     "owner_profile": "Dr. Sarah Ahmed - DDS from UCLA, 12 years experience, active in local dental association, Facebook page with 2.3K followers.",
+     "gmail_important": True, "important_notes": "Referred by Dr. Johnson - high priority", "last_contact": "2026-05-04T10:00:00Z",
+     "interaction_history": [{"date": "2026-05-01", "type": "email_sent", "subject": "your google reviews", "result": "opened"}, {"date": "2026-05-03", "type": "email_sent", "subject": "review reputation", "result": "replied"}],
+     "competitors": ["West LA Dental", "Smile Studio LA"], "services_offered": ["General Checkups", "Whitening", "Crowns", "Implants"],
+     "review_platforms": {"google": 3.8, "yelp": 4.0, "healthgrades": 4.5}, "pain_points": ["wait times", "billing confusion"],
+     "call_script_notes": "Mention her UCLA background, ask about cosmetic dentistry interest", "closing_probability": 85},
     {"id": "l2", "business_name": "Houston Auto Repair", "owner_name": "Mike Johnson",
      "email_primary": "mike@houstonauto.com", "phone": "555-0102",
      "city": "Houston", "state": "TX", "niche": "auto repair",
      "current_rating": 4.2, "negative_review_count": 3, "lead_score": 72,
      "lead_temperature": "warm", "status": "emailed", "funnel_step": 3,
-     "emails_sent_count": 8, "created_at": "2026-05-02T14:00:00Z"},
+     "emails_sent_count": 8, "created_at": "2026-05-02T14:00:00Z",
+     "website": "https://houstonautorepair.com", "full_address": "456 Motor Lane, Houston, TX 77001",
+     "business_nature": "Full-Service Auto Repair & Maintenance",
+     "years_in_business": 15, "employee_count": "10-15", "revenue_range": "$1M-$2M",
+     "full_analysis": "Established auto repair shop with loyal customer base. 3 negative reviews about turnaround time. Located near highway exit - high visibility. Competitors: 5 in 5-mile radius. Opportunity: fleet services for local businesses.",
+     "owner_profile": "Mike Johnson - Former mechanic, self-taught business owner, active on Nextdoor, responds to reviews personally.",
+     "gmail_important": False, "important_notes": "", "last_contact": "2026-05-03T14:00:00Z",
+     "interaction_history": [{"date": "2026-05-02", "type": "email_sent", "subject": "online reviews matter", "result": "opened"}],
+     "competitors": ["QuickFix Auto", "ProTech Motors", "Texas Auto Care"], "services_offered": ["Oil Change", "Brakes", "Tires", "Engine Repair"],
+     "review_platforms": {"google": 4.2, "yelp": 3.9, "bbb": 4.5}, "pain_points": ["turnaround time", "pricing transparency"],
+     "call_script_notes": "Ask about fleet services, mention local business discount", "closing_probability": 72},
     {"id": "l3", "business_name": "Legal Eagles LLP", "owner_name": "James White",
      "email_primary": "james@legaleagles.com", "phone": "555-0103",
      "city": "Chicago", "state": "IL", "niche": "law firm",
      "current_rating": 4.8, "negative_review_count": 1, "lead_score": 92,
      "lead_temperature": "hot", "status": "replied", "funnel_step": 5,
-     "emails_sent_count": 18, "created_at": "2026-05-01T08:00:00Z"},
+     "emails_sent_count": 18, "created_at": "2026-05-01T08:00:00Z",
+     "website": "https://legaleaglesllp.com", "full_address": "789 Legal Plaza, Chicago, IL 60601",
+     "business_nature": "Personal Injury & Corporate Law",
+     "years_in_business": 20, "employee_count": "20-30", "revenue_range": "$5M-$10M",
+     "full_analysis": "Top-tier law firm with excellent reputation. Only 1 negative review about billing. Strong online presence with case results featured. Already using reputation management - competitor. High budget for legal services. Opportunity: DMCA for their copyrighted case studies.",
+     "owner_profile": "James White - Harvard Law graduate, 25 years experience, former prosecutor, active on LinkedIn (15K connections), published author.",
+     "gmail_important": True, "important_notes": "High value client - already interested in DMCA services", "last_contact": "2026-05-05T09:00:00Z",
+     "interaction_history": [{"date": "2026-05-01", "type": "email_sent", "subject": "your google reviews", "result": "opened"}, {"date": "2026-05-02", "type": "email_sent", "subject": "review reputation", "result": "opened"}, {"date": "2026-05-03", "type": "reply_received", "content": "Interested in learning more about your services"}],
+     "competitors": ["Smith & Associates", "Chicago Legal Group"], "services_offered": ["Personal Injury", "Corporate Law", "IP Protection", "Litigation"],
+     "review_platforms": {"google": 4.8, "yelp": 4.6, "avvo": 5.0}, "pain_points": ["client acquisition"],
+     "call_script_notes": "Offer free consultation, mention case study protection, ask about trademark needs", "closing_probability": 92},
     {"id": "l4", "business_name": "Pizza Palace", "owner_name": "Tom Wilson",
      "email_primary": "tom@pizzapalace.com", "phone": "555-0104",
      "city": "Denver", "state": "CO", "niche": "restaurant",
      "current_rating": 3.5, "negative_review_count": 12, "lead_score": 45,
      "lead_temperature": "cold", "status": "scraped", "funnel_step": 1,
-     "emails_sent_count": 2, "created_at": "2026-05-03T16:00:00Z"},
+     "emails_sent_count": 2, "created_at": "2026-05-03T16:00:00Z",
+     "website": "https://pizzapalacedenver.com", "full_address": "321 Food Court, Denver, CO 80201",
+     "business_nature": "Italian Restaurant & Pizza Delivery",
+     "years_in_business": 3, "employee_count": "5-8", "revenue_range": "$200K-$400K",
+     "full_analysis": "New restaurant struggling with online reputation. 12 negative reviews about food quality and service. Located in food court with high foot traffic. Needs help but low budget. Opportunity: basic reputation management package.",
+     "owner_profile": "Tom Wilson - First-time business owner, invested life savings, very concerned about reviews affecting business.",
+     "gmail_important": False, "important_notes": "", "last_contact": "2026-05-03T16:00:00Z",
+     "interaction_history": [{"date": "2026-05-03", "type": "email_sent", "subject": "denver restaurants", "result": "delivered"}],
+     "competitors": ["Domino's", "Papa John's", "Local Pizza Co"], "services_offered": ["Dine-in", "Delivery", "Catering"],
+     "review_platforms": {"google": 3.5, "yelp": 3.2, "tripadvisor": 3.0}, "pain_points": ["food quality", "service speed", "inconsistent orders"],
+     "call_script_notes": "Empathize with startup challenges, offer affordable starter package", "closing_probability": 45},
     {"id": "l5", "business_name": "Bright Eyes Optometry", "owner_name": "Dr. Lisa Chen",
      "email_primary": "lisa@brighteyes.com", "phone": "555-0105",
      "city": "Phoenix", "state": "AZ", "niche": "optometrist",
      "current_rating": 4.5, "negative_review_count": 2, "lead_score": 78,
      "lead_temperature": "hot", "status": "funnel_ready", "funnel_step": 4,
-     "emails_sent_count": 10, "created_at": "2026-05-02T09:00:00Z"},
+     "emails_sent_count": 10, "created_at": "2026-05-02T09:00:00Z",
+     "website": "https://brighteyesoptometry.com", "full_address": "555 Vision Way, Phoenix, AZ 85001",
+     "business_nature": "Optometry & Vision Care Services",
+     "years_in_business": 10, "employee_count": "8-12", "revenue_range": "$800K-$1.2M",
+     "full_analysis": "Growing optometry practice with strong community presence. 2 negative reviews about appointment scheduling. Offers unique services: pediatric care, sports vision. Competitors: 4 major chains nearby. Opportunity: specialty eye care marketing.",
+     "owner_profile": "Dr. Lisa Chen - OD from Arizona State, 15 years experience, passionate about pediatric vision care, local school volunteer.",
+     "gmail_important": True, "important_notes": "Referred by medical association - follow up this week", "last_contact": "2026-05-04T11:00:00Z",
+     "interaction_history": [{"date": "2026-05-02", "type": "email_sent", "subject": "phoenix optometry", "result": "opened"}, {"date": "2026-05-04", "type": "email_sent", "subject": "vision care reviews", "result": "opened"}],
+     "competitors": ["LensCrafters", "Pearle Vision", "Visionworks", "Local Eye Docs"], "services_offered": ["Eye Exams", "Contacts", "Glasses", "Pediatric Care", "Sports Vision"],
+     "review_platforms": {"google": 4.5, "yelp": 4.3, "healthgrades": 4.7}, "pain_points": ["appointment scheduling", "insurance processing"],
+     "call_script_notes": "Mention pediatric specialty, ask about school screening programs", "closing_probability": 78},
 ]
 
 @app.route('/api/leads')
@@ -220,6 +270,228 @@ def scored_leads():
                     "niche": l["niche"], "lead_score": l["lead_score"],
                     "lead_temperature": l["lead_temperature"],
                     "emails_sent_count": l["emails_sent_count"]} for l in scored])
+
+
+# ─── ENHANCED LEAD DETAILS ───
+@app.route('/api/leads/<lead_id>/full')
+def get_lead_full(lead_id):
+    lead = next((l for l in DEMO_LEADS if l["id"] == lead_id), None)
+    if not lead:
+        return jsonify({"error": "Lead not found"}), 404
+    return jsonify({
+        "id": lead["id"],
+        "business_name": lead.get("business_name"),
+        "owner_name": lead.get("owner_name"),
+        "email_primary": lead.get("email_primary"),
+        "phone": lead.get("phone"),
+        "website": lead.get("website", ""),
+        "full_address": lead.get("full_address", ""),
+        "city": lead.get("city"),
+        "state": lead.get("state"),
+        "business_nature": lead.get("business_nature", ""),
+        "niche": lead.get("niche"),
+        "years_in_business": lead.get("years_in_business", 0),
+        "employee_count": lead.get("employee_count", ""),
+        "revenue_range": lead.get("revenue_range", ""),
+        "full_analysis": lead.get("full_analysis", ""),
+        "owner_profile": lead.get("owner_profile", ""),
+        "current_rating": lead.get("current_rating"),
+        "negative_review_count": lead.get("negative_review_count"),
+        "review_platforms": lead.get("review_platforms", {}),
+        "pain_points": lead.get("pain_points", []),
+        "services_offered": lead.get("services_offered", []),
+        "competitors": lead.get("competitors", []),
+        "lead_score": lead.get("lead_score"),
+        "lead_temperature": lead.get("lead_temperature"),
+        "closing_probability": lead.get("closing_probability", 0),
+        "call_script_notes": lead.get("call_script_notes", ""),
+        "status": lead.get("status"),
+        "gmail_important": lead.get("gmail_important", False),
+        "important_notes": lead.get("important_notes", ""),
+        "last_contact": lead.get("last_contact"),
+        "emails_sent_count": lead.get("emails_sent_count", 0),
+        "interaction_history": lead.get("interaction_history", []),
+        "created_at": lead.get("created_at")
+    })
+
+
+# ─── GMAIL IMPORTANT LEADS ───
+@app.route('/api/leads/important')
+def get_important_leads():
+    important = [l for l in DEMO_LEADS if l.get("gmail_important", False)]
+    return jsonify([{
+        "id": l["id"],
+        "business_name": l["business_name"],
+        "owner_name": l["owner_name"],
+        "email_primary": l["email_primary"],
+        "phone": l["phone"],
+        "website": l.get("website", ""),
+        "business_nature": l.get("business_nature", ""),
+        "lead_score": l["lead_score"],
+        "lead_temperature": l["lead_temperature"],
+        "important_notes": l.get("important_notes", ""),
+        "closing_probability": l.get("closing_probability", 0),
+        "call_script_notes": l.get("call_script_notes", ""),
+        "last_contact": l.get("last_contact"),
+        "full_analysis": l.get("full_analysis", "")
+    } for l in important])
+
+
+@app.route('/api/leads/<lead_id>/mark-important', methods=['POST'])
+def mark_lead_important(lead_id):
+    data = request.get_json() or {}
+    for l in DEMO_LEADS:
+        if l["id"] == lead_id:
+            l["gmail_important"] = data.get("important", True)
+            l["important_notes"] = data.get("notes", l.get("important_notes", ""))
+            return jsonify({"status": "updated", "gmail_important": l["gmail_important"]})
+    return jsonify({"error": "Lead not found"}), 404
+
+
+# ─── GOOGLE SHEETS SYNC ───
+@app.route('/api/sheets/sync', methods=['POST'])
+def sync_to_sheets():
+    data = request.get_json() or {}
+    include_important_only = data.get("important_only", False)
+    
+    leads_to_sync = DEMO_LEADS
+    if include_important_only:
+        leads_to_sync = [l for l in DEMO_LEADS if l.get("gmail_important", False)]
+    
+    sheets_data = {
+        "spreadsheet_name": "DMCAShield Leads",
+        "sheets": [
+            {"name": "All Leads", "columns": [
+                "ID", "Business Name", "Owner", "Email", "Phone", "Website",
+                "Address", "City", "State", "Niche", "Business Nature",
+                "Years in Business", "Employee Count", "Revenue Range",
+                "Current Rating", "Negative Reviews", "Lead Score",
+                "Lead Temperature", "Closing Probability", "Status",
+                "Gmail Important", "Important Notes", "Last Contact",
+                "Created At", "Full Analysis", "Owner Profile",
+                "Pain Points", "Services Offered", "Competitors"
+            ]},
+            {"name": "Hot Leads", "columns": ["Business Name", "Owner", "Email", "Phone", "Website", "Lead Score", "Closing Prob", "Call Notes"]},
+            {"name": "Gmail Important", "columns": ["Business Name", "Owner", "Email", "Lead Score", "Important Notes", "Last Contact"]}
+        ],
+        "rows": []
+    }
+    
+    for lead in leads_to_sync:
+        sheets_data["rows"].append({
+            "All Leads": {
+                "ID": lead["id"],
+                "Business Name": lead.get("business_name", ""),
+                "Owner": lead.get("owner_name", ""),
+                "Email": lead.get("email_primary", ""),
+                "Phone": lead.get("phone", ""),
+                "Website": lead.get("website", ""),
+                "Address": lead.get("full_address", ""),
+                "City": lead.get("city", ""),
+                "State": lead.get("state", ""),
+                "Niche": lead.get("niche", ""),
+                "Business Nature": lead.get("business_nature", ""),
+                "Years in Business": lead.get("years_in_business", ""),
+                "Employee Count": lead.get("employee_count", ""),
+                "Revenue Range": lead.get("revenue_range", ""),
+                "Current Rating": lead.get("current_rating", ""),
+                "Negative Reviews": lead.get("negative_review_count", ""),
+                "Lead Score": lead.get("lead_score", ""),
+                "Lead Temperature": lead.get("lead_temperature", ""),
+                "Closing Probability": lead.get("closing_probability", ""),
+                "Status": lead.get("status", ""),
+                "Gmail Important": "Yes" if lead.get("gmail_important") else "No",
+                "Important Notes": lead.get("important_notes", ""),
+                "Last Contact": lead.get("last_contact", ""),
+                "Created At": lead.get("created_at", ""),
+                "Full Analysis": lead.get("full_analysis", ""),
+                "Owner Profile": lead.get("owner_profile", ""),
+                "Pain Points": ", ".join(lead.get("pain_points", [])),
+                "Services Offered": ", ".join(lead.get("services_offered", [])),
+                "Competitors": ", ".join(lead.get("competitors", []))
+            },
+            "Hot Leads": {
+                "Business Name": lead.get("business_name", ""),
+                "Owner": lead.get("owner_name", ""),
+                "Email": lead.get("email_primary", ""),
+                "Phone": lead.get("phone", ""),
+                "Website": lead.get("website", ""),
+                "Lead Score": lead.get("lead_score", ""),
+                "Closing Prob": lead.get("closing_probability", ""),
+                "Call Notes": lead.get("call_script_notes", "")
+            },
+            "Gmail Important": {
+                "Business Name": lead.get("business_name", ""),
+                "Owner": lead.get("owner_name", ""),
+                "Email": lead.get("email_primary", ""),
+                "Lead Score": lead.get("lead_score", ""),
+                "Important Notes": lead.get("important_notes", ""),
+                "Last Contact": lead.get("last_contact", "")
+            }
+        })
+    
+    return jsonify({
+        "status": "ready_for_export",
+        "format": "google_sheets_csv",
+        "sheets": sheets_data["sheets"],
+        "total_leads": len(leads_to_sync),
+        "data": sheets_data,
+        "instructions": "Download as CSV and import to Google Sheets, or use Google Sheets API for direct sync"
+    })
+
+
+@app.route('/api/sheets/export-csv')
+def export_sheets_csv():
+    import csv, io
+    
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    writer.writerow([
+        "Business Name", "Owner", "Email", "Phone", "Website", "Address",
+        "City", "State", "Niche", "Business Nature", "Years", "Employees",
+        "Revenue", "Rating", "Neg Reviews", "Lead Score", "Temperature",
+        "Closing %", "Status", "Gmail Important", "Important Notes",
+        "Last Contact", "Full Analysis", "Owner Profile", "Pain Points",
+        "Services", "Competitors", "Call Notes"
+    ])
+    
+    for lead in DEMO_LEADS:
+        writer.writerow([
+            lead.get("business_name", ""),
+            lead.get("owner_name", ""),
+            lead.get("email_primary", ""),
+            lead.get("phone", ""),
+            lead.get("website", ""),
+            lead.get("full_address", ""),
+            lead.get("city", ""),
+            lead.get("state", ""),
+            lead.get("niche", ""),
+            lead.get("business_nature", ""),
+            lead.get("years_in_business", ""),
+            lead.get("employee_count", ""),
+            lead.get("revenue_range", ""),
+            lead.get("current_rating", ""),
+            lead.get("negative_review_count", ""),
+            lead.get("lead_score", ""),
+            lead.get("lead_temperature", ""),
+            lead.get("closing_probability", ""),
+            lead.get("status", ""),
+            "Yes" if lead.get("gmail_important") else "No",
+            lead.get("important_notes", ""),
+            lead.get("last_contact", ""),
+            lead.get("full_analysis", ""),
+            lead.get("owner_profile", ""),
+            "; ".join(lead.get("pain_points", [])),
+            "; ".join(lead.get("services_offered", [])),
+            "; ".join(lead.get("competitors", [])),
+            lead.get("call_script_notes", "")
+        ])
+    
+    return output.getvalue(), 200, {
+        "Content-Type": "text/csv",
+        "Content-Disposition": "attachment; filename=dmcashield_leads_detailed.csv"
+    }
 
 # ─── HOT LEADS ───
 @app.route('/api/hot-leads')
