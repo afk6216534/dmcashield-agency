@@ -1552,15 +1552,47 @@ def jarvis_chat():
         funnel = mk.get("funnel", [])
         response = "📣 **Marketing Funnel (5-Email Sequence):**\n\n" + "\n".join([f"**Step {f['step']}: {f['name']}** — {f['goal']} ({f['timing']})" for f in funnel]) + f"\n\nTechniques: {', '.join(mk['techniques'][:4])}"
     elif "hot lead" in msg or "hot leads" in msg:
-        response = f"🔥 You have **{context_data['hot_leads']} hot leads** right now.\nThese are leads who replied with buying intent."
+        hot_leads = [l for l in DEMO_LEADS if l["lead_temperature"] == "hot"]
+        response = f"🔥 You have **{len(hot_leads)} hot leads** right now:\n\n"
+        for l in hot_leads[:5]:
+            response += f"  • **{l['business_name']}** ({l['niche']}, {l['city']}) — Score: {l['lead_score']}%, Closing: {l.get('closing_probability', 0)}%\n"
+        response += "\n💡 Go to **Departments → Sales** to manage follow-ups."
+    elif "brain" in msg or "skill" in msg or "learn" in msg:
+        top_agents = sorted(AGENT_BRAINS.items(), key=lambda x: max(x[1].get("skills", {}).values()) if x[1].get("skills") else 0, reverse=True)[:5]
+        response = "🧬 **Top Agent Brains:**\n\n"
+        for name, brain in top_agents:
+            skills = brain.get("skills", {})
+            top_skill = max(skills, key=skills.get) if skills else "none"
+            response += f"  • **{name}** — {top_skill.replace('_', ' ')}: {skills.get(top_skill, 0)}%\n"
+        response += f"\n📚 Learning engine: **Cycle {AUTO_LEARNING['cycle']}** | {AUTO_LEARNING['total_learnings']} learnings | {len(AUTO_LEARNING['discoveries'])} discoveries\n"
+        response += "\n💡 Visit **Agent Brains** page for full skill breakdown."
+    elif "agent" in msg and ("best" in msg or "top" in msg or "rank" in msg):
+        top_agents = sorted(AGENT_BRAINS.items(), key=lambda x: sum(x[1].get("skills", {}).values()) / max(len(x[1].get("skills", {})), 1), reverse=True)[:10]
+        response = "🏆 **Agent Rankings (by avg skill):**\n\n"
+        for i, (name, brain) in enumerate(top_agents):
+            skills = brain.get("skills", {})
+            avg = round(sum(skills.values()) / len(skills), 1) if skills else 0
+            personality = brain.get("personality", {}).get("tone", "professional")
+            response += f"  #{i+1} **{name}** — {avg}% avg ({personality})\n"
+    elif "discover" in msg or "experiment" in msg:
+        response = "🧪 **Active Experiments:**\n\n"
+        for exp in AUTO_LEARNING.get("active_experiments", []):
+            status_icon = "✅" if exp["status"] == "completed" else "🔄"
+            response += f"  {status_icon} **{exp['name']}** — {exp['results_so_far']}\n"
+        response += f"\n💡 **Latest Discoveries:**\n"
+        for d in AUTO_LEARNING.get("discoveries", [])[-3:]:
+            response += f"  • {d['discovery']} (confidence: {d['confidence']}%)\n"
     elif "status" in msg or "overview" in msg:
-        response = f"🏢 **DMCAShield Status:**\n• Departments: {len(context_data['departments'])}\n• Agents: {context_data['agents']}\n• Total Leads: {context_data['total_leads']}\n• Hot Leads: {context_data['hot_leads']}\n• Emails Sent: {context_data['total_emails']}"
+        response = f"🏢 **DMCAShield Status:**\n• Departments: {len(context_data['departments'])} (all online)\n• Agents: {context_data['agents']} (all active)\n• Total Leads: {context_data['total_leads']}\n• Hot Leads: {context_data['hot_leads']}\n• Emails Sent: {context_data['total_emails']}\n• Learning Cycle: {AUTO_LEARNING['cycle']}\n• Discoveries: {len(AUTO_LEARNING['discoveries'])}"
     elif "department" in msg or "team" in msg:
-        response = "🏢 **Your Departments:**\n\n" + "\n".join(f"{info['icon']} **{info['title']}** — online" for name, info in DEPT_INFO.items())
+        response = "🏢 **Your Departments:**\n\n" + "\n".join(f"{info['icon']} **{info['title']}** — online ({DEPT_AGENTS.get(name, {}).get('head', {}).get('name', 'N/A')})" for name, info in DEPT_INFO.items())
     elif "help" in msg:
-        response = "🧠 **JARVIS Commands:**\n\n• \"status\" — System overview\n• \"hot leads\" — Current hot lead count\n• \"marketing funnel\" — Email sequence\n• \"departments\" — List all departments\n• Select a department to chat directly"
+        response = "🧠 **JARVIS Commands:**\n\n• **\"status\"** — Full system overview\n• **\"hot leads\"** — Hot lead list with scores\n• **\"marketing funnel\"** — Email funnel sequence\n• **\"departments\"** — All 12 departments\n• **\"brain skills\"** — Top agent skills\n• **\"agent rankings\"** — Ranked agents\n• **\"experiments\"** — Active A/B tests\n• **\"run learning\"** — Trigger learning cycle\n\n💡 Or select a department on the left to chat directly."
+    elif any(w in msg for w in ["run learning", "trigger learning", "learn now"]):
+        AUTO_LEARNING["cycle"] += 1
+        response = f"⚡ **Learning Cycle {AUTO_LEARNING['cycle']} triggered!**\n\nAll agents are analyzing performance data and improving skills.\n\n💡 Go to **Agent Brains** page to see updated skill levels."
     else:
-        response = f"🧠 I understand: *{data.get('message', '')}*\n\nSystem has {context_data['total_leads']} leads, {context_data['hot_leads']} hot. Try 'help' for commands."
+        response = f"🧠 I heard: *\"{data.get('message', '')}\"*\n\nSystem has {context_data['total_leads']} leads, {context_data['hot_leads']} hot.\n\nTry: **status**, **hot leads**, **brain skills**, **departments**, or **help** for all commands."
 
     return jsonify({"response": response, "context": context_data, "actions": [], "timestamp": datetime.utcnow().isoformat()})
 
