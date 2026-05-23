@@ -5,6 +5,7 @@ const navItems = [
   { to: '/jarvis', icon: '🧠', label: 'JARVIS Chat', section: 'boss' },
   { to: '/department', icon: '🏢', label: 'Departments', section: 'boss' },
   { to: '/brains', icon: '🧬', label: 'Agent Brains', section: 'boss' },
+  { to: '/knowledge', icon: '📚', label: 'Knowledge Base', section: 'boss' },
   { to: '/', icon: '📊', label: 'Dashboard', section: 'command' },
   { to: '/system', icon: '🏢', label: 'Control Tower', section: 'command' },
   { to: '/launch', icon: '🚀', label: 'Launch Task', section: 'command' },
