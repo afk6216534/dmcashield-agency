@@ -1602,12 +1602,66 @@ def jarvis_chat():
     elif "department" in msg or "team" in msg:
         response = "🏢 **Your Departments:**\n\n" + "\n".join(f"{info['icon']} **{info['title']}** — online ({DEPT_AGENTS.get(name, {}).get('head', {}).get('name', 'N/A')})" for name, info in DEPT_INFO.items())
     elif "help" in msg:
-        response = "🧠 **JARVIS Commands:**\n\n• **\"status\"** — Full system overview\n• **\"hot leads\"** — Hot lead list with scores\n• **\"marketing funnel\"** — Email funnel sequence\n• **\"departments\"** — All 12 departments\n• **\"brain skills\"** — Top agent skills\n• **\"agent rankings\"** — Ranked agents\n• **\"experiments\"** — Active A/B tests\n• **\"run learning\"** — Trigger learning cycle\n\n💡 Or select a department on the left to chat directly."
+        response = "🧠 **JARVIS Commands:**\n\n**📊 Operations:**\n• **\"status\"** — Full system overview\n• **\"hot leads\"** — Hot lead list with scores\n• **\"departments\"** — All 12 departments\n\n**📚 Knowledge Base (41 repos):**\n• **\"cold email tips\"** — Cold email best practices\n• **\"psychology\"** — Persuasion principles\n• **\"lead magnet\"** — Lead magnet ideas for DMCA\n• **\"ab test\"** — A/B testing framework\n• **\"email playbook\"** — 5-step DMCA outreach sequence\n• **\"subject lines\"** — Subject line rules\n\n**🧬 Agent Intelligence:**\n• **\"brain skills\"** — Top agent skills\n• **\"agent rankings\"** — Ranked agents\n• **\"experiments\"** — Active A/B tests\n• **\"run learning\"** — Trigger learning cycle\n\n💡 Or just ask anything — I'll search our 41-repo knowledge base!"
     elif any(w in msg for w in ["run learning", "trigger learning", "learn now"]):
         AUTO_LEARNING["cycle"] += 1
         response = f"⚡ **Learning Cycle {AUTO_LEARNING['cycle']} triggered!**\n\nAll agents are analyzing performance data and improving skills.\n\n💡 Go to **Agent Brains** page to see updated skill levels."
+    elif any(w in msg for w in ["cold email", "email tip", "email best", "outreach tip"]):
+        principles = KNOWLEDGE_BASE["cold_email_knowledge"]["principles"]
+        frameworks = KNOWLEDGE_BASE["cold_email_knowledge"]["frameworks"][:3]
+        response = "📧 **Cold Email Mastery** (from marketingskills repo):\n\n**Core Principles:**\n" + "\n".join(f"✅ {p}" for p in principles[:5])
+        response += "\n\n**Top Frameworks:**\n" + "\n".join(f"🔧 **{f['name']}**: {f['desc']}" for f in frameworks)
+        response += "\n\n**Anti-Patterns (NEVER do):**\n" + "\n".join(f"❌ {a}" for a in KNOWLEDGE_BASE["cold_email_knowledge"]["anti_patterns"][:3])
+    elif any(w in msg for w in ["psychology", "persuasion", "mental model"]):
+        principles = KNOWLEDGE_BASE["psychology_knowledge"]["persuasion_principles"][:5]
+        response = "🧠 **Marketing Psychology** (from marketing-psychology repo):\n\n"
+        response += "\n".join(f"**{p['name']}**: {p['rule']}" for p in principles)
+        response += "\n\n**Pricing Psychology:**\n" + "\n".join(f"💰 {p}" for p in KNOWLEDGE_BASE["psychology_knowledge"]["pricing_psychology"][:3])
+    elif any(w in msg for w in ["lead magnet", "magnet", "lead capture"]):
+        magnets = KNOWLEDGE_BASE["lead_magnet_knowledge"]["dmca_lead_magnets"]
+        response = "🧲 **DMCA Lead Magnets** (from lead-magnets repo):\n\n"
+        response += "\n".join(f"📄 **{m['type']}**: {m['name']} — Est. conversion: {m['conversion']}" for m in magnets)
+        response += "\n\n**Key Principles:**\n" + "\n".join(f"✅ {p}" for p in KNOWLEDGE_BASE["lead_magnet_knowledge"]["principles"])
+        response += f"\n\n**Benchmarks:** Warm traffic {KNOWLEDGE_BASE['lead_magnet_knowledge']['benchmarks']['landing_page_warm']}"
+    elif any(w in msg for w in ["ab test", "a/b", "experiment", "split test"]):
+        exps = KNOWLEDGE_BASE["ab_testing_knowledge"]["current_experiments"]
+        response = "🧪 **A/B Testing** (from ab-test-setup repo):\n\n"
+        response += f"**Hypothesis Template:** {KNOWLEDGE_BASE['ab_testing_knowledge']['hypothesis_template']}\n\n"
+        response += "**Active Experiments:**\n" + "\n".join(f"{'🔄' if e['status']=='running' else '✅'} **{e['name']}**: {e['hypothesis']}" for e in exps)
+        response += "\n\n**Rules:**\n" + "\n".join(f"📏 {r}" for r in KNOWLEDGE_BASE["ab_testing_knowledge"]["rules"])
+    elif any(w in msg for w in ["email playbook", "email sequence", "outreach sequence", "funnel step"]):
+        steps = KNOWLEDGE_BASE["email_sequence_playbook"]["dmca_sequence"]
+        response = "📮 **DMCA 5-Step Email Playbook** (from email-sequence + cold-email repos):\n\n"
+        response += "\n".join(f"**Step {s['step']}: {s['name']}** ({s['timing']})\n  Framework: {s['framework']}\n  Goal: {s['goal']}" for s in steps)
+        response += "\n\n**Timing Rules:**\n" + "\n".join(f"⏰ {r}" for r in KNOWLEDGE_BASE["email_sequence_playbook"]["timing_rules"])
+    elif any(w in msg for w in ["subject line", "subject rule"]):
+        rules = KNOWLEDGE_BASE["cold_email_knowledge"]["subject_line_rules"]
+        response = "✉️ **Subject Line Rules** (from cold-email repo):\n\n" + "\n".join(f"📝 {r}" for r in rules)
+        response += "\n\n**Examples for DMCA:**\n• 'review reputation'\n• 'quick question'\n• 'your google reviews'\n• 'saw something concerning'"
+    elif any(w in msg for w in ["knowledge base", "repos", "skills", "what do you know"]):
+        sources = KNOWLEDGE_BASE["sources"]
+        integrated = sum(1 for s in sources.values() if s.get("status") == "integrated")
+        response = f"📚 **Knowledge Base:**\n\n• **{KNOWLEDGE_BASE['repos_integrated']} repos** integrated\n• **{KNOWLEDGE_BASE['skills_loaded']} skills** loaded\n• **{integrated}/{len(sources)} sources** fully integrated\n\n"
+        response += "**Top Sources:**\n" + "\n".join(f"{'✅' if s.get('status')=='integrated' else '📌'} **{k.replace('_', ' ').title()}** — {s['repo']}" for k, s in list(sources.items())[:8])
+        response += "\n\n💡 Visit **Knowledge Base** page for full details."
     else:
-        response = f"🧠 I heard: *\"{data.get('message', '')}\"*\n\nSystem has {context_data['total_leads']} leads, {context_data['hot_leads']} hot.\n\nTry: **status**, **hot leads**, **brain skills**, **departments**, or **help** for all commands."
+        # Smart fallback: search knowledge base
+        search_results = []
+        for word in msg.split():
+            if len(word) > 3:
+                for p in KNOWLEDGE_BASE["cold_email_knowledge"]["principles"]:
+                    if word in p.lower() and p not in [r.get("content") for r in search_results]:
+                        search_results.append({"category": "cold_email", "content": p})
+                for pp in KNOWLEDGE_BASE["psychology_knowledge"]["persuasion_principles"]:
+                    if word in pp["name"].lower() or word in pp["rule"].lower():
+                        search_results.append({"category": "psychology", "content": f"{pp['name']}: {pp['rule']}"})
+        
+        if search_results:
+            response = f"🔍 I found relevant knowledge for *\"{data.get('message', '')}\"*:\n\n"
+            response += "\n".join(f"💡 [{r['category']}] {r['content']}" for r in search_results[:4])
+            response += "\n\n📚 Try **help** for all commands, or visit **Knowledge Base** for deep dives."
+        else:
+            response = f"🧠 I heard: *\"{data.get('message', '')}\"*\n\nSystem has {context_data['total_leads']} leads, {context_data['hot_leads']} hot.\n\n📚 **Try these KB commands:** cold email tips, psychology, lead magnet, ab test, email playbook, subject lines\n\n💡 Or type **help** for all commands."
 
     return jsonify({"response": response, "context": context_data, "actions": [], "timestamp": datetime.utcnow().isoformat()})
 
