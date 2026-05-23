@@ -1207,5 +1207,216 @@ def api_improvement_plan():
 
 import random
 
+# ═══════════════════════════════════════════════════════════
+# V4.0 — BOSS VIEW APIs
+# ═══════════════════════════════════════════════════════════
+
+DEPT_INFO = {
+    "scraping": {"title": "Scraping Department", "icon": "🕵️", "description": "Finds and scrapes business leads from Google Maps",
+        "pipeline": ["Target Search", "Google Maps Scan", "Data Extraction", "Deduplication", "Lead Creation"],
+        "techniques": ["Google Maps API", "Review analysis", "Competitor detection", "Geo-targeting"],
+        "kpis": {"leads_found": len(DEMO_LEADS), "accuracy_rate": "94%", "scan_speed": "~200/hr"}},
+    "validation": {"title": "Validation & Enrichment", "icon": "✅", "description": "Verifies and enriches raw leads with owner names, emails, and scores",
+        "pipeline": ["Email Verification", "Owner Name Lookup", "Phone Enrichment", "Competitor Analysis", "Lead Scoring"],
+        "techniques": ["SMTP verification", "LinkedIn cross-ref", "Web scraping", "Bayesian scoring"],
+        "kpis": {"verified_count": len(DEMO_LEADS), "enrichment_rate": "87%", "avg_score": 72}},
+    "marketing": {"title": "Marketing & Copywriting", "icon": "📣", "description": "AI-powered email copywriting with funnel sequences",
+        "pipeline": ["Audience Analysis", "Subject Line Generation", "Body Copy (PAS Framework)", "QA Review", "A/B Variants"],
+        "techniques": ["PAS framework", "2-4 word lowercase subjects", "Personalization tokens", "Fear triggers", "Social proof", "5-email funnel sequence", "OpenRouter AI generation", "Template fallback"],
+        "funnel": [
+            {"step": 1, "name": "Cold Intro", "goal": "Get attention", "timing": "Day 0"},
+            {"step": 2, "name": "Social Proof", "goal": "Build trust", "timing": "Day 3"},
+            {"step": 3, "name": "Fear Trigger", "goal": "Create urgency", "timing": "Day 6"},
+            {"step": 4, "name": "Value Offer", "goal": "Present solution", "timing": "Day 10"},
+            {"step": 5, "name": "Breakup", "goal": "Final chance", "timing": "Day 14"}
+        ],
+        "kpis": {"emails_drafted": 8934, "open_rate": "28%", "reply_rate": "9%"}},
+    "sending": {"title": "Email Sending", "icon": "📧", "description": "Multi-account SMTP sending with throttling and deliverability protection",
+        "pipeline": ["Account Selection", "Warmup Check", "Rate Limiting", "SMTP Send", "Delivery Tracking"],
+        "techniques": ["Multi-account rotation", "25/hour throttle", "Warmup verification", "DKIM/SPF compliance", "Random delays", "Business hours only"],
+        "kpis": {"sent_today": 142, "bounce_rate": "2.1%", "daily_limit": "500/account"}},
+    "analytics": {"title": "Analytics & Tracking", "icon": "📊", "description": "Tracks email opens, clicks, replies, and calculates performance",
+        "pipeline": ["Open Tracking", "Click Tracking", "Reply Detection", "Performance Scoring", "Report Generation"],
+        "techniques": ["Pixel tracking", "Link wrapping", "IMAP monitoring", "Statistical analysis", "Trend detection"],
+        "kpis": {"open_rate": "28%", "click_rate": "4.2%", "reply_rate": "9%"}},
+    "sales": {"title": "Sales & Conversion", "icon": "💰", "description": "Detects interested replies, classifies intent, and manages the sales pipeline",
+        "pipeline": ["Reply Detection", "Intent Classification", "Temperature Scoring", "Follow-up Queue", "Client Handoff"],
+        "techniques": ["AI sentiment analysis", "Intent keywords", "Hot/warm/cold scoring", "Auto-follow-up", "Gmail forwarding"],
+        "kpis": {"hot_leads": len([l for l in DEMO_LEADS if l["lead_temperature"] == "hot"]), "conversion_rate": "12%", "avg_response_time": "2.3 hrs"}},
+    "accounts": {"title": "Account Management", "icon": "👤", "description": "Manages email accounts, warmup, health monitoring, and rotation",
+        "pipeline": ["Account Setup", "SMTP/IMAP Verify", "Warmup Phase", "Health Monitoring", "Rotation Schedule"],
+        "techniques": ["Gradual warmup", "SPF/DKIM checks", "Reputation scoring", "Auto-rotation on bounce", "Deliverability testing"],
+        "kpis": {"active_accounts": 3, "warmup_progress": "Phase 3", "health_score": "92%"}},
+    "tasks": {"title": "Task Management", "icon": "📌", "description": "Orchestrates scraping tasks, queues work, and tracks progress",
+        "pipeline": ["Task Creation", "CEO Approval", "Scraping Dispatch", "Progress Tracking", "Completion Report"],
+        "techniques": ["Priority queue", "Async processing", "Progress webhooks", "Auto-retry on failure"],
+        "kpis": {"active_tasks": len(DEMO_TASKS), "completed_tasks": 45, "avg_completion_time": "4.5 hrs"}},
+    "ml": {"title": "Machine Learning", "icon": "🤖", "description": "Self-learning engine that optimizes strategies based on performance data",
+        "pipeline": ["Data Collection", "Pattern Analysis", "Rule Discovery", "Strategy Update", "Performance Validation"],
+        "techniques": ["Subject line analysis", "Send time optimization", "Niche performance ranking", "A/B test evaluation", "Bayesian optimization", "Runs every 6 hours automatically"],
+        "kpis": {"learning_cycle": 7, "rules_discovered": 3, "improvement_rate": "15%"}},
+    "jarvis": {"title": "JARVIS AI Assistant", "icon": "🧠", "description": "AI-powered assistant that answers questions and executes commands",
+        "pipeline": ["Command Parsing", "Intent Detection", "Data Retrieval", "AI Response", "Action Execution"],
+        "techniques": ["Natural language understanding", "Department routing", "Real-time data queries", "OpenRouter AI"],
+        "kpis": {"queries_handled": 234, "accuracy": "89%", "response_time": "1.2s"}},
+    "memory": {"title": "Memory & Soul", "icon": "💾", "description": "Persistent memory system — stores agent decisions, learnings, and system soul",
+        "pipeline": ["Decision Logging", "Outcome Tracking", "Pattern Storage", "Soul Sync", "Memory Recall"],
+        "techniques": ["JSON persistence", "Brain memory (per-agent)", "Soul file (company state)", "Decision replay"],
+        "kpis": {"memories_stored": 847, "recall_accuracy": "95%", "soul_uptime": "99.9%"}},
+    "sheets": {"title": "Sheets & Data Sync", "icon": "📋", "description": "Syncs lead data, exports, and manages CSV/database operations",
+        "pipeline": ["Data Export", "CSV Generation", "Database Sync", "Backup Creation", "Report Distribution"],
+        "techniques": ["SQLite persistence", "CSV export", "JSON backup", "Auto-sync on change"],
+        "kpis": {"records_synced": len(DEMO_LEADS), "last_backup": "2 hrs ago", "export_count": 12}},
+}
+
+DEPT_AGENTS = {
+    "scraping": {"head": {"name": "ScrapeHead", "status": "active", "tasks_completed": 47, "brain_size": 23, "role": "head"}, "team": [{"name": "GoogleScraper", "status": "active", "tasks_completed": 89, "brain_size": 15, "role": "agent"}]},
+    "validation": {"head": {"name": "EnrichHead", "status": "active", "tasks_completed": 89, "brain_size": 34, "role": "head"}, "team": [{"name": "EmailVerifier", "status": "active", "tasks_completed": 156, "brain_size": 22, "role": "agent"}]},
+    "marketing": {"head": {"name": "MarketingHead", "status": "active", "tasks_completed": 23, "brain_size": 45, "role": "head"}, "team": [{"name": "Copywriter", "status": "active", "tasks_completed": 234, "brain_size": 67, "role": "agent"}, {"name": "QAReviewer", "status": "active", "tasks_completed": 198, "brain_size": 34, "role": "agent"}]},
+    "sending": {"head": {"name": "SendHead", "status": "active", "tasks_completed": 156, "brain_size": 28, "role": "head"}, "team": [{"name": "SMTPWorker", "status": "active", "tasks_completed": 8934, "brain_size": 45, "role": "agent"}]},
+    "analytics": {"head": {"name": "AnalyticsHead", "status": "active", "tasks_completed": 34, "brain_size": 56, "role": "head"}, "team": [{"name": "TrackingAgent", "status": "active", "tasks_completed": 445, "brain_size": 23, "role": "agent"}]},
+    "sales": {"head": {"name": "SalesHead", "status": "active", "tasks_completed": 12, "brain_size": 78, "role": "head"}, "team": [{"name": "ReplyClassifier", "status": "active", "tasks_completed": 67, "brain_size": 34, "role": "agent"}]},
+    "accounts": {"head": {"name": "AccountsHead", "status": "active", "tasks_completed": 67, "brain_size": 19, "role": "head"}, "team": [{"name": "WarmupAgent", "status": "active", "tasks_completed": 234, "brain_size": 12, "role": "agent"}]},
+    "tasks": {"head": {"name": "TaskHead", "status": "active", "tasks_completed": 45, "brain_size": 23, "role": "head"}, "team": [{"name": "QueueWorker", "status": "active", "tasks_completed": 89, "brain_size": 11, "role": "agent"}]},
+    "ml": {"head": {"name": "MLHead", "status": "active", "tasks_completed": 23, "brain_size": 89, "role": "head"}, "team": [{"name": "LearningEngine", "status": "active", "tasks_completed": 7, "brain_size": 156, "role": "agent"}]},
+    "jarvis": {"head": {"name": "JARVISHead", "status": "active", "tasks_completed": 78, "brain_size": 67, "role": "head"}, "team": [{"name": "NLPProcessor", "status": "active", "tasks_completed": 234, "brain_size": 45, "role": "agent"}]},
+    "memory": {"head": {"name": "MemoryHead", "status": "active", "tasks_completed": 15, "brain_size": 99, "role": "head"}, "team": [{"name": "SoulKeeper", "status": "active", "tasks_completed": 1247, "brain_size": 78, "role": "agent"}]},
+    "sheets": {"head": {"name": "SheetsHead", "status": "active", "tasks_completed": 8, "brain_size": 12, "role": "head"}, "team": []},
+}
+
+MESSAGE_LOG = [
+    {"from": "ScrapeHead", "to": "EnrichHead", "message_type": "handoff", "priority": "high", "notes": "25 new leads scraped from Los Angeles clinics", "timestamp": datetime.utcnow().isoformat()},
+    {"from": "EnrichHead", "to": "MarketingHead", "message_type": "handoff", "priority": "normal", "notes": "18 leads verified and enriched, ready for funnel", "timestamp": datetime.utcnow().isoformat()},
+    {"from": "MarketingHead", "to": "SendHead", "message_type": "handoff", "priority": "normal", "notes": "Funnel emails generated for 18 leads (PAS framework)", "timestamp": datetime.utcnow().isoformat()},
+    {"from": "SendHead", "to": "AnalyticsHead", "message_type": "alert", "priority": "normal", "notes": "38 emails opened today, 12 replies detected", "timestamp": datetime.utcnow().isoformat()},
+    {"from": "AnalyticsHead", "to": "SalesHead", "message_type": "handoff", "priority": "high", "notes": "5 hot leads identified with buying intent", "timestamp": datetime.utcnow().isoformat()},
+    {"from": "MLHead", "to": "MarketingHead", "message_type": "report", "priority": "normal", "notes": "Learning cycle 7 complete — 2-4 word subjects outperforming", "timestamp": datetime.utcnow().isoformat()},
+    {"from": "CEO", "to": "ScrapeHead", "message_type": "instruction", "priority": "high", "notes": "New task: Scrape dentists in Houston, TX", "timestamp": datetime.utcnow().isoformat()},
+    {"from": "SalesHead", "to": "CEO", "message_type": "report", "priority": "high", "notes": "Dr. Amanda Foster interested in DMCA services — schedule call", "timestamp": datetime.utcnow().isoformat()},
+]
+
+
+@app.route('/api/departments/<dept_name>')
+def get_department(dept_name):
+    info = DEPT_INFO.get(dept_name)
+    if not info:
+        return jsonify({"error": f"Department '{dept_name}' not found"}), 404
+    agents = DEPT_AGENTS.get(dept_name, {"head": {}, "team": []})
+    return jsonify({
+        **info, "name": dept_name, "status": "online",
+        "head": agents["head"], "team": agents["team"],
+        "team_size": len(agents["team"]) + 1,
+        "activity": [m for m in MESSAGE_LOG if dept_name in m.get("from", "").lower() or dept_name in m.get("to", "").lower()][-5:],
+    })
+
+
+@app.route('/api/departments/<dept_name>/agents')
+def get_department_agents(dept_name):
+    agents = DEPT_AGENTS.get(dept_name, {"head": {}, "team": []})
+    all_agents = [agents["head"]] + agents["team"] if agents["head"] else agents["team"]
+    return jsonify({"department": dept_name, "agents": all_agents, "count": len(all_agents)})
+
+
+@app.route('/api/departments/<dept_name>/chat', methods=['POST'])
+def chat_with_department(dept_name):
+    data = request.get_json() or {}
+    msg = data.get("message", "").lower()
+    info = DEPT_INFO.get(dept_name)
+    if not info:
+        return jsonify({"error": "Department not found"}), 404
+
+    agents = DEPT_AGENTS.get(dept_name, {"head": {"name": dept_name.title() + "Head"}})
+    agent_name = agents["head"].get("name", dept_name.title() + "Head")
+    
+    if "status" in msg or "how" in msg:
+        response = f"**{agent_name}** here, boss. Department is **online**. Team of {len(agents.get('team', [])) + 1} agents. Tasks completed: {agents['head'].get('tasks_completed', 0)}"
+    elif "funnel" in msg or "process" in msg or "pipeline" in msg:
+        pipeline = info.get("pipeline", [])
+        response = f"**{agent_name}**: Our pipeline:\n" + "\n".join(f"  {i+1}. {s}" for i, s in enumerate(pipeline))
+        if info.get("funnel"):
+            response += "\n\nFunnel sequence:\n" + "\n".join(f"  Step {f['step']}: {f['name']} — {f['goal']} ({f['timing']})" for f in info["funnel"])
+    elif "technique" in msg or "strategy" in msg or "method" in msg:
+        techniques = info.get("techniques", [])
+        response = f"**{agent_name}**: Current techniques:\n" + "\n".join(f"  • {t}" for t in techniques)
+    elif "change" in msg or "update" in msg or "improve" in msg:
+        response = f"**{agent_name}**: Understood! I'll update our strategy. Notifying my team now. 💡 Tell me exactly what to adjust."
+    elif "report" in msg or "numbers" in msg or "stats" in msg:
+        kpis = info.get("kpis", {})
+        response = f"**{agent_name}**: Latest stats:\n" + "\n".join(f"  • {k.replace('_',' ').title()}: {v}" for k, v in kpis.items())
+    else:
+        response = f"**{agent_name}** here, boss. I handle **{info['description']}**. I can tell you about our: pipeline, techniques, stats, or take instructions."
+
+    return jsonify({"department": dept_name, "agent": agent_name, "response": response,
+                    "status": "online", "timestamp": datetime.utcnow().isoformat()})
+
+
+@app.route('/api/departments/<dept_name>/command', methods=['POST'])
+def send_department_command(dept_name):
+    data = request.get_json() or {}
+    command = data.get("command", "")
+    MESSAGE_LOG.append({"from": "CEO", "to": DEPT_AGENTS.get(dept_name, {}).get("head", {}).get("name", dept_name),
+                        "message_type": "instruction", "priority": "high",
+                        "notes": f"CEO command: {command}", "timestamp": datetime.utcnow().isoformat()})
+    return jsonify({"status": "sent", "department": dept_name, "command": command, "timestamp": datetime.utcnow().isoformat()})
+
+
+@app.route('/api/ceo/overview')
+def ceo_overview():
+    return jsonify({
+        "company": "DMCAShield Agency", "status": "operational",
+        "departments_active": 12, "agents_active": 36,
+        "active_tasks": len(DEMO_TASKS),
+        "department_statuses": {name: agents for name, agents in DEPT_AGENTS.items()},
+        "recent_activity": MESSAGE_LOG[-10:],
+        "soul": {"total_leads_processed": 1247, "total_emails_sent": 8934,
+                 "total_clients_acquired": 47, "learning_cycle": 7},
+        "db_stats": {"total_leads": len(DEMO_LEADS),
+                     "hot_leads": len([l for l in DEMO_LEADS if l["lead_temperature"] == "hot"]),
+                     "total_emails": 8934, "active_tasks": len(DEMO_TASKS)},
+        "learning": {"cycle": 7, "rules": 3, "avg_open_rate": 28},
+        "last_active": datetime.utcnow().isoformat()
+    })
+
+
+@app.route('/api/messages/feed')
+def message_feed():
+    limit = request.args.get('limit', 50, type=int)
+    return jsonify({"messages": MESSAGE_LOG[-limit:], "count": len(MESSAGE_LOG),
+                    "timestamp": datetime.utcnow().isoformat()})
+
+
+@app.route('/api/jarvis/chat', methods=['POST'])
+def jarvis_chat():
+    data = request.get_json() or {}
+    msg = data.get("message", "").lower()
+    department = data.get("department", "")
+
+    context_data = {
+        "total_leads": len(DEMO_LEADS),
+        "hot_leads": len([l for l in DEMO_LEADS if l["lead_temperature"] == "hot"]),
+        "total_emails": 8934, "departments": list(DEPT_INFO.keys()), "agents": 36
+    }
+
+    if department and department in DEPT_INFO:
+        dept = DEPT_INFO[department]
+        response = f"Connecting you with **{dept['title']}**...\n\nDepartment status: online\nPipeline: {' → '.join(dept.get('pipeline', []))}"
+    elif "marketing" in msg and ("funnel" in msg or "process" in msg):
+        mk = DEPT_INFO["marketing"]
+        funnel = mk.get("funnel", [])
+        response = "📣 **Marketing Funnel (5-Email Sequence):**\n\n" + "\n".join([f"**Step {f['step']}: {f['name']}** — {f['goal']} ({f['timing']})" for f in funnel]) + f"\n\nTechniques: {', '.join(mk['techniques'][:4])}"
+    elif "hot lead" in msg or "hot leads" in msg:
+        response = f"🔥 You have **{context_data['hot_leads']} hot leads** right now.\nThese are leads who replied with buying intent."
+    elif "status" in msg or "overview" in msg:
+        response = f"🏢 **DMCAShield Status:**\n• Departments: {len(context_data['departments'])}\n• Agents: {context_data['agents']}\n• Total Leads: {context_data['total_leads']}\n• Hot Leads: {context_data['hot_leads']}\n• Emails Sent: {context_data['total_emails']}"
+    elif "department" in msg or "team" in msg:
+        response = "🏢 **Your Departments:**\n\n" + "\n".join(f"{info['icon']} **{info['title']}** — online" for name, info in DEPT_INFO.items())
+    elif "help" in msg:
+        response = "🧠 **JARVIS Commands:**\n\n• \"status\" — System overview\n• \"hot leads\" — Current hot lead count\n• \"marketing funnel\" — Email sequence\n• \"departments\" — List all departments\n• Select a department to chat directly"
+    else:
+        response = f"🧠 I understand: *{data.get('message', '')}*\n\nSystem has {context_data['total_leads']} leads, {context_data['hot_leads']} hot. Try 'help' for commands."
+
+    return jsonify({"response": response, "context": context_data, "actions": [], "timestamp": datetime.utcnow().isoformat()})
+
+
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

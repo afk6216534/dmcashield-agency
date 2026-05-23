@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import API from '../config/api.js';
 
 export default function LeadDatabase() {
@@ -6,8 +7,16 @@ export default function LeadDatabase() {
   const [filter, setFilter] = useState('all');
   const [selectedLead, setSelectedLead] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [syncStatus, setSyncStatus] = useState('');
+  const navigate = useNavigate();
 
-  useEffect(() => { fetchLeads(); }, [filter]);
+  useEffect(() => { 
+    if (filter === 'important') {
+      fetch(`${API}/api/leads/important`).then(r => r.json()).then(setLeads).catch(() => {});
+    } else {
+      fetchLeads();
+    }
+  }, [filter]);
 
   const fetchLeads = async () => {
     try {
@@ -25,22 +34,36 @@ export default function LeadDatabase() {
     } catch (err) { console.error(err); }
   };
 
-  const filters = ['all', 'cold', 'warm', 'hot', 'converted', 'archived'];
+  const syncToSheets = async () => {
+    setSyncStatus('Syncing...');
+    try {
+      const res = await fetch(`${API}/api/sheets/sync`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ important_only: false }) });
+      const data = await res.json();
+      window.open(`${API}/api/sheets/export-csv`, '_blank');
+      setSyncStatus(`Synced ${data.total_leads} leads!`);
+      setTimeout(() => setSyncStatus(''), 3000);
+    } catch (err) { setSyncStatus('Sync failed'); }
+  };
+
+  const filters = ['all', 'cold', 'warm', 'hot', 'important', 'converted', 'archived'];
 
   return (
     <div className="main-content animate-in">
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
           <h1>👥 Lead Database</h1>
-          <p>All scraped and enriched business leads across all campaigns</p>
+          <p>All scraped and enriched business leads with full details</p>
         </div>
-        <button className="btn btn-primary" style={{ padding: '8px 18px', fontSize: '0.82rem' }}
-          onClick={() => {
-            const params = filter !== 'all' ? `?temperature=${filter}` : '';
-            window.open(`${API}/api/leads/export${params}`, '_blank');
-          }}>
-          📥 Export CSV
-        </button>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button className="btn btn-primary" style={{ padding: '8px 18px', fontSize: '0.82rem', background: '#22c55e' }}
+            onClick={syncToSheets}>
+            📊 Sync to Sheets {syncStatus && `(${syncStatus})`}
+          </button>
+          <button className="btn btn-primary" style={{ padding: '8px 18px', fontSize: '0.82rem' }}
+            onClick={() => window.open(`${API}/api/sheets/export-csv`, '_blank')}>
+            📥 Export CSV
+          </button>
+        </div>
       </div>
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
@@ -64,18 +87,21 @@ export default function LeadDatabase() {
           ) : (
             <table className="data-table">
               <thead><tr>
-                <th>Business</th><th>City</th><th>Rating</th><th>Neg Reviews</th><th>Score</th><th>Status</th><th>Emails</th>
+                <th>Business</th><th>Website</th><th>City</th><th>Nature</th><th>Rating</th><th>Neg Reviews</th><th>Score</th><th>Closing %</th><th>Status</th><th>Important</th>
               </tr></thead>
               <tbody>
                 {leads.map(lead => (
-                  <tr key={lead.id} onClick={() => fetchLeadDetail(lead.id)} style={{ cursor: 'pointer' }}>
-                    <td><strong>{lead.business_name}</strong><br/><span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>{lead.email_primary}</span></td>
+                  <tr key={lead.id} onClick={() => navigate(`/leads/${lead.id}`)} style={{ cursor: 'pointer' }}>
+                    <td><strong>{lead.business_name}</strong><br/><span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>{lead.owner_name}</span></td>
+                    <td style={{ fontSize: '0.72rem' }}>{lead.website ? <a href={lead.website} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()}>🌐</a> : '-'}</td>
                     <td>{lead.city}, {lead.state}</td>
+                    <td style={{ fontSize: '0.7rem', maxWidth: '100px' }}>{lead.business_nature?.substring(0, 25) || lead.niche}</td>
                     <td>⭐ {lead.current_rating}</td>
                     <td style={{ color: 'var(--accent-hot)' }}>{lead.negative_review_count}</td>
-                    <td>{lead.lead_score}/10</td>
+                    <td>{lead.lead_score}</td>
+                    <td style={{ color: lead.closing_probability > 70 ? '#22c55e' : lead.closing_probability > 50 ? '#f59e0b' : '#6b7280' }}>{lead.closing_probability}%</td>
                     <td><span className={`badge badge-${lead.lead_temperature}`}>{lead.lead_temperature}</span></td>
-                    <td>{lead.emails_sent_count}</td>
+                    <td>{lead.gmail_important ? '⭐' : ''}</td>
                   </tr>
                 ))}
               </tbody>

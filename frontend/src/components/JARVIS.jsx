@@ -1,4 +1,5 @@
 import { useState } from 'react';
+
 import API from '../config/api.js';
 
 export default function JARVIS() {
@@ -19,7 +20,7 @@ export default function JARVIS() {
       const data = await res.json();
       setResponse(data.response || 'No response');
     } catch (err) {
-      setResponse('⚡ JARVIS is thinking... Try again in a moment.');
+      setResponse('Connection error — is the backend running?');
     }
     setLoading(false);
     setInput('');

@@ -1,6 +1,9 @@
 import { NavLink, useLocation } from 'react-router-dom';
 
 const navItems = [
+  { to: '/ceo', icon: '👔', label: 'CEO View', section: 'boss' },
+  { to: '/jarvis', icon: '🧠', label: 'JARVIS Chat', section: 'boss' },
+  { to: '/department', icon: '🏢', label: 'Departments', section: 'boss' },
   { to: '/', icon: '📊', label: 'Dashboard', section: 'command' },
   { to: '/system', icon: '🏢', label: 'Control Tower', section: 'command' },
   { to: '/launch', icon: '🚀', label: 'Launch Task', section: 'command' },
@@ -23,6 +26,7 @@ const navItems = [
 ];
 
 const sections = {
+  boss: '👔 Boss View',
   command: 'Command Center',
   operations: 'Operations',
   intelligence: 'Intelligence',
@@ -40,7 +44,7 @@ export default function Sidebar({ systemStatus, hotLeadCount }) {
         <div className="logo-icon">🛡️</div>
         <div>
           <h1>DMCAShield</h1>
-          <div className="version">Control Tower v2.0</div>
+          <div className="version">Boss View v4.0</div>
         </div>
       </div>
 
