@@ -1532,6 +1532,21 @@ def message_feed():
                     "timestamp": datetime.utcnow().isoformat()})
 
 
+@app.route('/api/campaigns')
+def get_campaigns():
+    campaigns = [
+        {"id": 1, "name": "DMCA Removal Outreach — Dentists LA", "status": "active", "sent": 1247, "opened": 349, "replied": 112, "hot": 38,
+         "funnel_step": 3, "niche": "dentists", "city": "Los Angeles", "started": "2026-05-15"},
+        {"id": 2, "name": "Review Response — Lawyers NYC", "status": "active", "sent": 892, "opened": 234, "replied": 67, "hot": 19,
+         "funnel_step": 2, "niche": "lawyers", "city": "New York", "started": "2026-05-18"},
+        {"id": 3, "name": "Reputation Shield — Med Spas Miami", "status": "running", "sent": 456, "opened": 123, "replied": 34, "hot": 11,
+         "funnel_step": 1, "niche": "med_spas", "city": "Miami", "started": "2026-05-21"},
+        {"id": 4, "name": "DMCA Awareness — Chiropractors Houston", "status": "scheduled", "sent": 0, "opened": 0, "replied": 0, "hot": 0,
+         "funnel_step": 0, "niche": "chiropractors", "city": "Houston", "started": "2026-05-24"},
+    ]
+    return jsonify(campaigns)
+
+
 @app.route('/api/jarvis/chat', methods=['POST'])
 def jarvis_chat():
     data = request.get_json() or {}
