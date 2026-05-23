@@ -25,6 +25,7 @@ import LeadDetails from './pages/LeadDetails';
 import DepartmentView from './pages/DepartmentView';
 import JARVISChat from './pages/JARVISChat';
 import CEOView from './pages/CEOView';
+import AgentBrains from './pages/AgentBrains';
 import './styles/design-system.css';
 
 import API from './config/api.js';
@@ -103,6 +104,7 @@ export default function App() {
           <Route path="/department/:dept" element={<DepartmentView />} />
           <Route path="/jarvis" element={<JARVISChat />} />
           <Route path="/ceo" element={<CEOView />} />
+          <Route path="/brains" element={<AgentBrains />} />
         </Routes>
         <JARVIS />
       </div>
