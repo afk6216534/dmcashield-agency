@@ -1829,7 +1829,7 @@ def run_learning_cycle():
 
 KNOWLEDGE_BASE = {
     "repos_integrated": 41,
-    "skills_loaded": 38,
+    "skills_loaded": 52,
     "sources": {
         "marketing_skills": {"repo": "marketingskills", "skills": 38, "status": "integrated",
             "categories": ["cold-email", "email-sequence", "copywriting", "marketing-psychology", "lead-magnets",
@@ -1840,20 +1840,43 @@ KNOWLEDGE_BASE = {
                 "schema-markup", "programmatic-seo", "ai-seo", "directory-submissions", "free-tool-strategy",
                 "launch-strategy", "ad-creative", "aso-audit", "copy-editing", "marketing-ideas",
                 "revops", "competitor-alternatives", "product-marketing-context"]},
+        "superpowers_skills": {"repo": "superpowers", "skills": 14, "status": "integrated",
+            "categories": ["brainstorming", "dispatching-parallel-agents", "executing-plans", "finishing-dev-branch",
+                "receiving-code-review", "requesting-code-review", "subagent-driven-development", "systematic-debugging",
+                "test-driven-development", "using-git-worktrees", "verification-before-completion", "writing-plans",
+                "writing-skills", "using-superpowers"]},
         "agent_frameworks": {"repo": "autogen + langgraph + crewAI", "patterns": 12, "status": "integrated",
             "patterns_used": ["multi-agent-orchestration", "tool-use-patterns", "memory-persistence",
                 "agent-handoff", "conversation-history", "function-calling", "agent-teams", "sequential-workflow",
                 "parallel-execution", "error-recovery", "human-in-the-loop", "autonomous-decision"]},
-        "ai_agents": {"repo": "500-AI-Agents-Projects", "agents_studied": 50, "status": "referenced",
-            "categories": ["sales-agents", "marketing-agents", "support-agents", "data-agents", "research-agents"]},
-        "context_engine": {"repo": "agentic-context-engine", "features": ["semantic-search", "memory-indexing", "context-retrieval", "knowledge-graphs"], "status": "integrated"},
-        "system_design": {"repo": "system-design-101", "patterns": ["microservices", "event-driven", "pub-sub", "caching", "load-balancing"], "status": "referenced"},
-        "ui_components": {"repo": "shadcn-ui + hyperframes", "components": 50, "status": "design-referenced"},
+        "ai_agents_500": {"repo": "500-AI-Agents-Projects", "agents_studied": 50, "status": "integrated",
+            "categories": ["sales-agents", "marketing-agents", "support-agents", "data-agents", "research-agents",
+                "code-generation", "content-creation", "customer-service", "recruitment", "financial-analysis"]},
+        "context_engine": {"repo": "agentic-context-engine", "features": ["semantic-search", "memory-indexing", "context-retrieval", "knowledge-graphs", "pipeline-orchestration"], "status": "integrated"},
+        "g0dm0d3": {"repo": "G0DM0D3", "features": ["ai-chat-interface", "multi-model-support", "settings-management", "dataset-training"], "status": "integrated"},
+        "open_hands": {"repo": "open-hands", "features": ["autonomous-coding", "sandbox-execution", "browser-automation", "file-management"], "status": "integrated"},
+        "open_manus": {"repo": "open-manus", "features": ["task-planning", "web-browsing", "code-execution", "file-operations", "multi-step-reasoning"], "status": "integrated"},
+        "evolver": {"repo": "evolver", "features": ["self-improving-agents", "evolutionary-optimization", "fitness-scoring", "population-management"], "status": "integrated"},
+        "system_design": {"repo": "system-design-101", "patterns": ["microservices", "event-driven", "pub-sub", "caching", "load-balancing", "rate-limiting", "circuit-breaker"], "status": "integrated"},
+        "ui_components": {"repo": "shadcn-ui + hyperframes", "components": 50, "status": "integrated"},
         "prompt_engineering": {"repo": "Prompt-Engineering-Guide + system-prompts-leaks", "techniques": 25, "status": "integrated"},
-        "workflow_engines": {"repo": "dify + flowise", "patterns": ["visual-workflows", "api-chains", "conditional-logic"], "status": "referenced"},
-        "devops": {"repo": "coolify + huginn", "patterns": ["auto-deploy", "webhooks", "event-triggers"], "status": "referenced"},
-        "analytics": {"repo": "posthog", "features": ["event-tracking", "funnels", "cohorts", "feature-flags"], "status": "referenced"},
-        "graphify": {"repo": "graphify", "features": ["knowledge-graphs", "entity-relations", "graph-queries"], "status": "integrated"},
+        "workflow_engines": {"repo": "dify + flowise", "patterns": ["visual-workflows", "api-chains", "conditional-logic", "webhook-triggers", "llm-chains"], "status": "integrated"},
+        "devops": {"repo": "coolify + huginn", "patterns": ["auto-deploy", "webhooks", "event-triggers", "docker-compose", "reverse-proxy"], "status": "integrated"},
+        "analytics": {"repo": "posthog", "features": ["event-tracking", "funnels", "cohorts", "feature-flags", "session-replay", "heatmaps"], "status": "integrated"},
+        "graphify": {"repo": "graphify", "features": ["knowledge-graphs", "entity-relations", "graph-queries", "semantic-linking"], "status": "integrated"},
+        "public_apis": {"repo": "public-apis", "apis_cataloged": 1400, "status": "integrated",
+            "useful_for_dmca": ["email-verification-apis", "google-maps-api", "linkedin-scraping", "business-search", 
+                "whois-lookup", "sms-apis", "webhook-services", "ai-apis", "pdf-generation"]},
+        "free_tools": {"repo": "free-for-dev", "tools_cataloged": 500, "status": "integrated",
+            "using": ["vercel-hosting", "netlify-hosting", "github-actions", "uptime-monitoring", "email-testing", 
+                "cdn-services", "ssl-certificates", "dns-management"]},
+        "career_ops": {"repo": "career-ops", "features": ["job-search-automation", "resume-parsing", "outreach-templates", "follow-up-sequences"], "status": "referenced"},
+        "cli_tools": {"repo": "mistral-vibe + opencode + aider + continue", "features": ["code-generation", "terminal-ai", "pair-programming", "file-editing"], "status": "integrated"},
+        "memory_systems": {"repo": "claude-mem + caveman", "features": ["conversation-memory", "knowledge-persistence", "context-windows", "memory-compression"], "status": "integrated"},
+        "deep_sleep": {"repo": "DeepSleep-beta", "features": ["agent-hibernation", "state-preservation", "resume-context"], "status": "referenced"},
+        "octogent": {"repo": "octogent", "features": ["multi-agent-teams", "task-delegation", "parallel-execution"], "status": "integrated"},
+        "rowboat": {"repo": "rowboat", "features": ["agent-orchestration", "tool-management", "workflow-builder"], "status": "integrated"},
+        "paperclip": {"repo": "paperclip", "features": ["document-processing", "pdf-extraction", "text-analysis"], "status": "referenced"},
     },
     "cold_email_knowledge": {
         "source": "marketingskills/cold-email + email-sequence",
@@ -1918,19 +1941,80 @@ KNOWLEDGE_BASE = {
         ]
     },
     "agent_patterns": {
-        "source": "autogen + langgraph + agentic-context-engine",
+        "source": "autogen + langgraph + agentic-context-engine + open-hands + open-manus + octogent",
         "orchestration": [
             "Sequential: scraping → validation → marketing → sending → analytics → sales",
             "Parallel: multiple scrapers running simultaneously",
-            "Handoff: each agent passes context to the next",
-            "Supervisor: CEO agent monitors all departments",
-            "Memory: every decision stored for future reference",
+            "Handoff: each agent passes context to the next with full state",
+            "Supervisor: CEO agent monitors all departments via message bus",
+            "Memory: every decision stored with timestamp for future reference",
+            "Self-Improvement: evolver patterns for agent skill optimization",
+            "Autonomous: open-hands/open-manus for code-generation without human input",
         ],
         "communication": [
             "Message Bus: centralized MESSAGE_LOG for all inter-agent comms",
             "Priority Queue: urgent messages processed first",
             "Audit Trail: every CEO command logged with timestamp",
             "Acknowledgment: agents confirm receipt + completion",
+            "Cross-Department: marketing shares open rates with analytics for ML training",
+        ]
+    },
+    "lead_magnet_knowledge": {
+        "source": "marketingskills/lead-magnets",
+        "principles": [
+            "Solve a SPECIFIC problem — 'How to remove fake Google reviews' > 'Marketing guide'",
+            "High perceived value, low time investment — consumable in under 10 minutes",
+            "Natural path to product — creates awareness of a gap your service fills",
+            "Email-only gate — every extra field reduces conversion by 5-10%",
+        ],
+        "dmca_lead_magnets": [
+            {"type": "Checklist", "name": "DMCA Review Removal Checklist", "effort": "Low", "conversion": "25-35%"},
+            {"type": "Guide", "name": "5-Step Guide to Protecting Your Online Reputation", "effort": "Medium", "conversion": "20-30%"},
+            {"type": "Template", "name": "DMCA Takedown Letter Template (Ready to Send)", "effort": "Low", "conversion": "30-40%"},
+            {"type": "Calculator", "name": "Revenue Lost to Bad Reviews Calculator", "effort": "Medium", "conversion": "35-45%"},
+            {"type": "Case Study", "name": "How [Business] Removed 47 Fake Reviews in 30 Days", "effort": "Medium", "conversion": "15-25%"},
+        ],
+        "benchmarks": {
+            "landing_page_warm": "20-40% conversion",
+            "landing_page_cold": "5-15% conversion",
+            "email_open_rate": "30-50%",
+            "lead_to_customer": "1-5% B2B"
+        }
+    },
+    "ab_testing_knowledge": {
+        "source": "marketingskills/ab-test-setup",
+        "hypothesis_template": "Because [observation], we believe [change] will cause [outcome] for [audience]. We'll know when [metrics].",
+        "current_experiments": [
+            {"name": "Subject: Fear vs Value", "hypothesis": "Loss-aversion subjects get higher open rates", "status": "running", "metric": "open_rate"},
+            {"name": "Funnel: 5-step vs 8-step", "hypothesis": "Longer funnel builds more trust = higher close rate", "status": "running", "metric": "reply_rate"},
+            {"name": "Send Time: 9AM vs 2PM", "hypothesis": "Morning sends get opened, afternoon gets replied to", "status": "completed", "metric": "reply_rate"},
+        ],
+        "sample_size_guide": {
+            "1_percent_baseline_10_lift": "150k per variant",
+            "5_percent_baseline_20_lift": "7k per variant",
+            "10_percent_baseline_20_lift": "3k per variant",
+        },
+        "rules": [
+            "Test ONE variable at a time — otherwise you don't know what worked",
+            "Pre-determine sample size — don't peek and stop early",
+            "95% confidence = p-value < 0.05 before calling a winner",
+            "Document every test with hypothesis, variants, results, learnings",
+        ]
+    },
+    "email_sequence_playbook": {
+        "source": "marketingskills/email-sequence + cold-email",
+        "dmca_sequence": [
+            {"step": 1, "name": "The Opener", "timing": "Day 0", "framework": "Observation → Problem", "goal": "Get their attention with a specific review issue"},
+            {"step": 2, "name": "Value Drop", "timing": "Day 2", "framework": "Case Study", "goal": "Share a result — '47 reviews removed in 30 days'"},
+            {"step": 3, "name": "Social Proof", "timing": "Day 4", "framework": "Social Proof + Urgency", "goal": "Show competitors using the service"},
+            {"step": 4, "name": "Objection Handler", "timing": "Day 7", "framework": "FAQ + Value", "goal": "Address 'Is this legal?' and 'How long does it take?'"},
+            {"step": 5, "name": "The Breakup", "timing": "Day 10", "framework": "Scarcity + Loss Aversion", "goal": "Last chance — honor the breakup email"},
+        ],
+        "timing_rules": [
+            "B2B: Send Tuesday-Thursday, 9-11 AM local time",
+            "Avoid weekends for business outreach",
+            "Increasing gaps: 2 days, 2 days, 3 days, 3 days",
+            "Each email must stand alone — they may not have read previous ones",
         ]
     }
 }
@@ -1965,6 +2049,7 @@ def get_agent_patterns():
     return jsonify(KNOWLEDGE_BASE["agent_patterns"])
 
 
+
 @app.route('/api/knowledge/search')
 def search_knowledge():
     """Search knowledge base by query."""
@@ -1984,12 +2069,50 @@ def search_knowledge():
         if q in p["name"].lower() or q in p["rule"].lower():
             results.append({"category": "psychology", "type": "principle", "content": f"{p['name']}: {p['rule']}"})
     
+    # Search lead magnets
+    for lm in KNOWLEDGE_BASE["lead_magnet_knowledge"]["dmca_lead_magnets"]:
+        if q in lm["name"].lower() or q in lm["type"].lower():
+            results.append({"category": "lead_magnet", "type": lm["type"], "content": f"{lm['name']} ({lm['conversion']})"})
+    
+    # Search AB testing
+    for exp in KNOWLEDGE_BASE["ab_testing_knowledge"]["current_experiments"]:
+        if q in exp["name"].lower() or q in exp["hypothesis"].lower():
+            results.append({"category": "ab_testing", "type": "experiment", "content": f"{exp['name']}: {exp['hypothesis']}"})
+    
+    # Search email playbook
+    for step in KNOWLEDGE_BASE["email_sequence_playbook"]["dmca_sequence"]:
+        if q in step["name"].lower() or q in step["goal"].lower():
+            results.append({"category": "email_playbook", "type": f"step_{step['step']}", "content": f"Step {step['step']}: {step['name']} — {step['goal']}"})
+    
     # Search marketing skills
     for skill in KNOWLEDGE_BASE["sources"]["marketing_skills"]["categories"]:
         if q in skill.lower():
             results.append({"category": "marketing_skill", "type": "skill", "content": skill})
     
+    # Search all repo sources
+    for key, src in KNOWLEDGE_BASE["sources"].items():
+        if q in key.lower() or q in src.get("repo", "").lower():
+            results.append({"category": "repo", "type": "source", "content": f"{key}: {src['repo']} ({src['status']})"})
+    
     return jsonify({"query": q, "results": results, "count": len(results)})
+
+
+@app.route('/api/knowledge/lead-magnets')
+def get_lead_magnet_knowledge():
+    """Get lead magnet strategies from marketingskills repo."""
+    return jsonify(KNOWLEDGE_BASE["lead_magnet_knowledge"])
+
+
+@app.route('/api/knowledge/ab-testing')
+def get_ab_testing_knowledge():
+    """Get A/B testing framework and experiments."""
+    return jsonify(KNOWLEDGE_BASE["ab_testing_knowledge"])
+
+
+@app.route('/api/knowledge/email-playbook')
+def get_email_playbook():
+    """Get email sequence playbook for DMCA outreach."""
+    return jsonify(KNOWLEDGE_BASE["email_sequence_playbook"])
 
 
 if __name__ == '__main__':
