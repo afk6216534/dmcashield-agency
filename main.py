@@ -1691,8 +1691,46 @@ def jarvis_chat():
             response = "💰 **Cost Optimization** (from caveman + free-for-dev + commands):\n\n"
             response += "\n".join(f"📉 **{s['area']}**: {s['method']}\n  Savings: {s['savings']}" for s in strategies)
             response += f"\n\n**Total:** {KNOWLEDGE_BASE['cost_optimization_knowledge']['total_monthly_savings']}"
+        elif any(w in msg for w in ["scrape", "scraping", "crawl", "browser", "extract data"]):
+            response = "🕷️ **Web Scraping & Data Extraction** (from browser-use + firecrawl + scrapegraph-ai):\n\n"
+            response += "**AI-Powered Scraping Tools:**\n"
+            response += "🤖 **Browser Use** (80K+ ⭐) — AI browser agent, auto-navigate & fill forms\n"
+            response += "🔥 **Firecrawl** (70K+ ⭐) — Website → LLM-ready markdown, batch crawling\n"
+            response += "🧠 **ScrapeGraph AI** — Natural language: 'Extract all 1-star reviews' → done\n\n"
+            response += "**DMCA Use Cases:**\n"
+            response += "📸 Auto-screenshot fake reviews for evidence collection\n"
+            response += "📋 Fill DMCA takedown forms automatically\n"
+            response += "🔍 Extract business contacts from directories at scale\n"
+            response += "📊 Convert review pages to structured data for analysis"
+        elif any(w in msg for w in ["lead gen", "leads", "prospect", "outreach", "n8n"]):
+            response = "🎯 **Lead Generation System** (from n8n + listmonk + firecrawl):\n\n"
+            response += "**n8n Automation** (160K+ ⭐ — #1 workflow automation):\n"
+            response += "⚡ 400+ integrations, AI agent nodes, webhook triggers\n\n"
+            response += "**DMCA Lead Gen Pipeline:**\n"
+            response += "1️⃣ Scrape business directories (firecrawl)\n"
+            response += "2️⃣ Extract contacts + verify emails (n8n)\n"
+            response += "3️⃣ Score leads by review count/rating (AI agent)\n"
+            response += "4️⃣ Enrich with company data (API)\n"
+            response += "5️⃣ Send cold email sequence (listmonk)\n"
+            response += "6️⃣ Auto-follow-up on opens/clicks (n8n)\n"
+            response += "7️⃣ Hot leads → CRM → Sales team\n\n"
+            response += "**Listmonk** — Self-hosted email: templates, drip campaigns, analytics"
+        elif any(w in msg for w in ["landing page", "page builder", "email template", "design"]):
+            response = "🎨 **Page & Email Builder** (from grapesjs + email-builder-js):\n\n"
+            response += "**GrapesJS** — Drag-drop landing page builder:\n"
+            response += "🖱️ Visual editor, responsive design, custom blocks\n"
+            response += "📄 Build DMCA service landing pages\n"
+            response += "📧 Design email templates for outreach\n\n"
+            response += "**Email Builder JS** — Block-based email builder:\n"
+            response += "✉️ Professional cold email templates\n"
+            response += "📬 Client onboarding sequences\n"
+            response += "🎉 Review removal success notifications\n\n"
+            response += "**DMCA Landing Pages:**\n"
+            response += "• Hero: 'Protect Your Business from Fake Reviews'\n"
+            response += "• Social proof: '2,847 reviews removed'\n"
+            response += "• CTA: Free reputation audit"
         else:
-            response = f"🧠 I heard: *\"{data.get('message', '')}\"*\n\nSystem has {context_data['total_leads']} leads, {context_data['hot_leads']} hot.\n\n📚 **Try:** cold email, psychology, lead magnet, ab test, video, content, seo, workflow, cost, security\n\n💡 Type **help** for all {KNOWLEDGE_BASE['repos_integrated']}-repo commands."
+            response = f"🧠 I heard: *\"{data.get('message', '')}\"*\n\nSystem has {context_data['total_leads']} leads, {context_data['hot_leads']} hot.\n\n📚 **Try:** cold email, psychology, lead magnet, ab test, video, content, seo, workflow, cost, security, scraping, lead gen, landing page\n\n💡 Type **help** for all {KNOWLEDGE_BASE['repos_integrated']}-repo commands."
 
     return jsonify({"response": response, "context": context_data, "actions": [], "timestamp": datetime.utcnow().isoformat()})
 
@@ -1913,8 +1951,8 @@ def run_learning_cycle():
 # ═══════════════════════════════════════════════════════════
 
 KNOWLEDGE_BASE = {
-    "repos_integrated": 48,
-    "skills_loaded": 1457,
+    "repos_integrated": 55,
+    "skills_loaded": 1900,
     "sources": {
         "marketing_skills": {"repo": "marketingskills", "skills": 38, "status": "integrated",
             "categories": ["cold-email", "email-sequence", "copywriting", "marketing-psychology", "lead-magnets",
@@ -2008,6 +2046,68 @@ KNOWLEDGE_BASE = {
             "multi-file-editing", "test-generation", "code-refactoring"], "status": "integrated"},
         "continue_ide": {"repo": "continue", "features": ["IDE-AI-assistant", "code-completion",
             "inline-editing", "chat-interface", "context-providers"], "status": "referenced"},
+        "n8n_automation": {"repo": "n8n", "stars": "160K+", "status": "integrated",
+            "features": ["visual-workflow-automation", "400+-integrations", "AI-agent-nodes", "LangChain-built-in",
+                "webhook-triggers", "cron-scheduling", "conditional-logic", "error-handling", "self-hostable"],
+            "dmca_use_cases": [
+                "Auto-monitor Google Reviews via webhook → classify → alert team",
+                "Lead scrape → enrich via API → score → add to CRM → send cold email",
+                "DMCA filing → track status → auto-follow-up → client notification",
+                "Invoice generation → payment tracking → reminder automation",
+                "Social media monitoring → sentiment analysis → reputation alerts",
+            ]},
+        "browser_use": {"repo": "browser-use", "stars": "80K+", "status": "integrated",
+            "features": ["AI-browser-automation", "LLM-driven-navigation", "self-healing-selectors",
+                "visual-web-interaction", "form-filling", "screenshot-capture", "multi-tab"],
+            "dmca_use_cases": [
+                "Auto-navigate to Google Business pages → screenshot fake reviews → evidence collection",
+                "Fill DMCA takedown forms automatically on review platforms",
+                "Monitor competitor review pages for attack patterns",
+                "Auto-login to client dashboards and pull review data",
+            ]},
+        "firecrawl_scraper": {"repo": "firecrawl", "stars": "70K+", "status": "integrated",
+            "features": ["AI-web-scraping", "website-to-markdown", "LLM-ready-output", "batch-crawling",
+                "structured-data-extraction", "JavaScript-rendering", "anti-bot-bypass"],
+            "dmca_use_cases": [
+                "Scrape entire competitor websites for intelligence",
+                "Extract business contact info from directories at scale",
+                "Convert review pages to structured data for analysis",
+                "Build lead databases from industry directories",
+            ]},
+        "listmonk_email": {"repo": "listmonk", "status": "integrated",
+            "features": ["newsletter-management", "mailing-list-manager", "PostgreSQL-backend",
+                "high-performance-sending", "template-engine", "subscriber-management",
+                "campaign-analytics", "bounce-handling", "self-hosted"],
+            "dmca_use_cases": [
+                "Mass cold email campaigns for lead generation",
+                "Client newsletter with review removal success stories",
+                "Automated drip sequences for nurturing prospects",
+                "Monthly reputation reports to clients",
+            ]},
+        "scrapegraph_ai": {"repo": "scrapegraph-ai", "status": "integrated",
+            "features": ["LLM-powered-scraping", "graph-based-pipelines", "no-CSS-selectors-needed",
+                "natural-language-extraction", "multi-model-support", "self-healing"],
+            "dmca_use_cases": [
+                "Tell AI: 'Extract all 1-star reviews from this page' — no selectors needed",
+                "Build review sentiment analysis pipelines automatically",
+                "Extract structured business data from unstructured web pages",
+            ]},
+        "grapesjs_builder": {"repo": "grapesjs", "status": "integrated",
+            "features": ["drag-drop-page-builder", "landing-page-creation", "email-template-builder",
+                "responsive-design", "custom-blocks", "asset-manager", "plugin-system"],
+            "dmca_use_cases": [
+                "Build high-converting landing pages for DMCA services",
+                "Create client-facing review report templates",
+                "Design email templates for outreach campaigns",
+            ]},
+        "email_builder": {"repo": "email-builder-js", "status": "integrated",
+            "features": ["block-based-email-builder", "JSON-to-HTML", "responsive-emails",
+                "drag-drop-interface", "template-library", "preview-mode"],
+            "dmca_use_cases": [
+                "Build professional cold email templates",
+                "Design client onboarding email sequences",
+                "Create review removal success notification emails",
+            ]},
     },
     "cold_email_knowledge": {
         "source": "marketingskills/cold-email + email-sequence",
