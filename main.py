@@ -1681,8 +1681,18 @@ def jarvis_chat():
             response = f"🔍 I found relevant knowledge for *\"{data.get('message', '')}\"*:\n\n"
             response += "\n".join(f"💡 [{r['category']}] {r['content']}" for r in search_results[:4])
             response += "\n\n📚 Try **help** for all commands, or visit **Knowledge Base** for deep dives."
+        elif any(w in msg for w in ["workflow", "automat", "pipeline", "process"]):
+            wf = KNOWLEDGE_BASE["workflow_automation_knowledge"]
+            response = "⚙️ **Workflow Automation** (from commands + dify + flowise + huginn):\n\n**DMCA Workflows:**\n"
+            response += "\n".join(f"🔄 **{w['name']}**\n  {' → '.join(w['steps'][0].split(' → ')[:4])}...\n  Tools: {w['tools']}" for w in wf["dmca_workflows"])
+            response += "\n\n**Dev Workflows (57 commands):**\n" + "\n".join(f"🛠️ {w}" for w in wf["dev_workflows"][:4])
+        elif any(w in msg for w in ["cost", "saving", "budget", "cheap", "free", "pricing"]):
+            strategies = KNOWLEDGE_BASE["cost_optimization_knowledge"]["strategies"]
+            response = "💰 **Cost Optimization** (from caveman + free-for-dev + commands):\n\n"
+            response += "\n".join(f"📉 **{s['area']}**: {s['method']}\n  Savings: {s['savings']}" for s in strategies)
+            response += f"\n\n**Total:** {KNOWLEDGE_BASE['cost_optimization_knowledge']['total_monthly_savings']}"
         else:
-            response = f"🧠 I heard: *\"{data.get('message', '')}\"*\n\nSystem has {context_data['total_leads']} leads, {context_data['hot_leads']} hot.\n\n📚 **Try these KB commands:** cold email tips, psychology, lead magnet, ab test, email playbook, subject lines\n\n💡 Or type **help** for all commands."
+            response = f"🧠 I heard: *\"{data.get('message', '')}\"*\n\nSystem has {context_data['total_leads']} leads, {context_data['hot_leads']} hot.\n\n📚 **Try:** cold email, psychology, lead magnet, ab test, video, content, seo, workflow, cost, security\n\n💡 Type **help** for all {KNOWLEDGE_BASE['repos_integrated']}-repo commands."
 
     return jsonify({"response": response, "context": context_data, "actions": [], "timestamp": datetime.utcnow().isoformat()})
 
@@ -1903,8 +1913,8 @@ def run_learning_cycle():
 # ═══════════════════════════════════════════════════════════
 
 KNOWLEDGE_BASE = {
-    "repos_integrated": 41,
-    "skills_loaded": 1200,
+    "repos_integrated": 48,
+    "skills_loaded": 1457,
     "sources": {
         "marketing_skills": {"repo": "marketingskills", "skills": 38, "status": "integrated",
             "categories": ["cold-email", "email-sequence", "copywriting", "marketing-psychology", "lead-magnets",
@@ -1975,6 +1985,29 @@ KNOWLEDGE_BASE = {
         "langgraph_agents": {"repo": "langgraph", "features": ["stateful-multi-agent", "graph-based-workflows", "conditional-branching", "persistence", "human-in-the-loop"], "status": "integrated"},
         "openwolf": {"repo": "openwolf", "features": ["autonomous-browsing", "web-agent", "task-automation"], "status": "integrated"},
         "rtk_toolkit": {"repo": "rtk", "features": ["rust-dev-toolkit", "code-analysis", "performance-tools"], "status": "referenced"},
+        "commands_57": {"repo": "commands", "skills": 57, "status": "integrated",
+            "features": ["15-workflows", "42-tools", "multi-agent-orchestration", "feature-dev", "smart-fix",
+                "TDD-cycle", "security-hardening", "incident-response", "performance-optimization"],
+            "workflows": ["feature-development", "full-review", "smart-fix", "tdd-cycle", "git-workflow",
+                "legacy-modernize", "security-hardening", "data-driven-feature", "incident-response"],
+            "tools": ["api-scaffold", "security-scan", "compliance-check", "docker-optimize", "k8s-manifest",
+                "monitor-setup", "db-migrate", "data-pipeline", "cost-optimize", "prompt-optimize",
+                "langchain-agent", "multi-agent-review", "error-analysis", "debug-trace"]},
+        "awesome_claude_skills": {"repo": "awesome-claude-skills", "features": ["skill-catalog", "official-anthropic-skills",
+            "docx-pdf-pptx-xlsx", "frontend-design", "web-artifacts", "mcp-builder", "webapp-testing",
+            "progressive-disclosure", "skill-creator"], "status": "integrated"},
+        "claw_code": {"repo": "claw-code", "features": ["rust-agent-harness", "CLI-agent", "session-management",
+            "parity-harness", "multi-model-support"], "status": "integrated"},
+        "caveman_optimization": {"repo": "caveman", "features": ["75-percent-token-savings", "output-compression",
+            "terse-commits", "one-line-reviews", "input-compression-46-percent",
+            "lite-full-ultra-modes"], "status": "integrated",
+            "dmca_application": "Apply caveman patterns to agent responses — reduce API costs by 75%"},
+        "claude_mem": {"repo": "claude-mem", "features": ["persistent-memory", "cross-session-recall",
+            "knowledge-persistence", "context-management"], "status": "integrated"},
+        "aider_coding": {"repo": "aider", "features": ["AI-pair-programming", "git-aware-coding",
+            "multi-file-editing", "test-generation", "code-refactoring"], "status": "integrated"},
+        "continue_ide": {"repo": "continue", "features": ["IDE-AI-assistant", "code-completion",
+            "inline-editing", "chat-interface", "context-providers"], "status": "referenced"},
     },
     "cold_email_knowledge": {
         "source": "marketingskills/cold-email + email-sequence",
@@ -2162,6 +2195,53 @@ KNOWLEDGE_BASE = {
             "Secure email handling — SPF, DKIM, DMARC verification",
             "Client data retention policies — auto-delete after 90 days",
         ]
+    },
+    "workflow_automation_knowledge": {
+        "source": "commands (57 slash commands) + dify + flowise + huginn",
+        "dmca_workflows": [
+            {"name": "Lead-to-Client Pipeline", "steps": ["Scrape → Verify → Score → Enrich → Outreach → Follow-up → Close"],
+                "tools": "huginn webhooks + dify RAG + flowise chatflows"},
+            {"name": "Review Monitoring", "steps": ["Monitor → Detect → Classify → Alert → Action → Report"],
+                "tools": "huginn + posthog analytics"},
+            {"name": "DMCA Filing Automation", "steps": ["Evidence → Draft → Review → Submit → Track → Confirm"],
+                "tools": "paperclip doc processing + dify workflows"},
+            {"name": "Client Reporting", "steps": ["Collect → Analyze → Visualize → Generate → Deliver"],
+                "tools": "posthog + open-montage video reports"},
+        ],
+        "dev_workflows": [
+            "feature-development: End-to-end feature with multi-agent orchestration",
+            "smart-fix: Intelligent problem resolution with dynamic agent selection",
+            "tdd-cycle: Test-driven development with automated red-green-refactor",
+            "security-hardening: Zero-trust architecture implementation",
+            "incident-response: Production issue → root cause → hotfix pipeline",
+            "performance-optimization: System-wide profiling and caching strategies",
+        ],
+        "dev_tools": [
+            "api-scaffold: REST endpoint generation with CRUD + auth + validation",
+            "security-scan: OWASP, CVE, dependency audits (Bandit, Trivy, Semgrep, Snyk)",
+            "compliance-check: GDPR, HIPAA, SOC2, PCI-DSS verification",
+            "docker-optimize: Multi-stage builds, 50-90% size reduction",
+            "monitor-setup: Prometheus metrics + Grafana dashboards + alerts",
+            "prompt-optimize: AI prompt engineering with cost + quality metrics",
+        ]
+    },
+    "cost_optimization_knowledge": {
+        "source": "caveman + cost-optimize (commands) + free-for-dev",
+        "strategies": [
+            {"area": "API Costs", "method": "Caveman output compression", "savings": "75% fewer tokens = 75% less cost",
+                "source": "caveman repo — proven benchmarks: 22-87% savings across tasks"},
+            {"area": "Hosting", "method": "Free tier stacking", "savings": "$0/month for MVP",
+                "source": "free-for-dev: Vercel (free), Netlify (free), Cloudflare (free)"},
+            {"area": "Email", "method": "Free tier email services", "savings": "$0 for first 10k emails/month",
+                "source": "public-apis: SendGrid free, Mailgun free tier"},
+            {"area": "Analytics", "method": "Self-hosted PostHog", "savings": "Free unlimited events",
+                "source": "posthog + coolify self-hosting"},
+            {"area": "Video Content", "method": "OpenMontage free pipeline", "savings": "$0.00-$0.15 per video",
+                "source": "open-montage: Piper TTS (free) + stock footage (free)"},
+            {"area": "AI/ML", "method": "OpenRouter cheapest models", "savings": "10x cheaper than direct API",
+                "source": "Already implemented in DMCAShield backend"},
+        ],
+        "total_monthly_savings": "Estimated $2,000-$5,000/month vs traditional stack"
     }
 }
 
@@ -2277,6 +2357,18 @@ def get_content_creation():
 def get_security_knowledge():
     """Get security and compliance knowledge."""
     return jsonify(KNOWLEDGE_BASE["security_knowledge"])
+
+
+@app.route('/api/knowledge/workflows')
+def get_workflow_knowledge():
+    """Get workflow automation knowledge from commands + dify + flowise."""
+    return jsonify(KNOWLEDGE_BASE["workflow_automation_knowledge"])
+
+
+@app.route('/api/knowledge/cost-optimization')
+def get_cost_optimization():
+    """Get cost optimization strategies from caveman + free-for-dev."""
+    return jsonify(KNOWLEDGE_BASE["cost_optimization_knowledge"])
 
 
 if __name__ == '__main__':
