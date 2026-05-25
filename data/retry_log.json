@@ -1,0 +1,17 @@
+{
+  "failed_sends": [
+    {
+      "id": "fail_1",
+      "lead_id": "lead1",
+      "email": "a@b.com",
+      "subject": "subject",
+      "account_id": "acct1",
+      "error": "timeout",
+      "failed_at": "2026-05-24T11:32:26.736275",
+      "retry_count": 0,
+      "last_retry": null,
+      "status": "pending"
+    }
+  ],
+  "retry_history": []
+}

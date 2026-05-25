@@ -1,0 +1,348 @@
+{
+  "campaigns": {
+    "warmup_test_acct_fce7": {
+      "id": "warmup_test_acct_fce7",
+      "account_id": "test_acct",
+      "email": "test@test.com",
+      "start_date": "2026-05-24T11:32:26.732957",
+      "target_days": 28,
+      "current_day": 1,
+      "total_sent": 0,
+      "replies": 0,
+      "bounces": 0,
+      "status": "active",
+      "schedule": [
+        {
+          "day": 1,
+          "target": 2,
+          "send_hours": [
+            18,
+            19
+          ]
+        },
+        {
+          "day": 2,
+          "target": 3,
+          "send_hours": [
+            9,
+            11,
+            14
+          ]
+        },
+        {
+          "day": 3,
+          "target": 5,
+          "send_hours": [
+            13,
+            14,
+            16,
+            17,
+            18
+          ]
+        },
+        {
+          "day": 4,
+          "target": 6,
+          "send_hours": [
+            9,
+            10,
+            11,
+            12,
+            17,
+            19
+          ]
+        },
+        {
+          "day": 5,
+          "target": 6,
+          "send_hours": [
+            8,
+            12,
+            13,
+            14,
+            16,
+            17
+          ]
+        },
+        {
+          "day": 6,
+          "target": 6,
+          "send_hours": [
+            8,
+            9,
+            11,
+            12,
+            13,
+            17
+          ]
+        },
+        {
+          "day": 7,
+          "target": 6,
+          "send_hours": [
+            8,
+            9,
+            12,
+            13,
+            14,
+            18
+          ]
+        },
+        {
+          "day": 8,
+          "target": 6,
+          "send_hours": [
+            8,
+            10,
+            14,
+            15,
+            18,
+            19
+          ]
+        },
+        {
+          "day": 9,
+          "target": 6,
+          "send_hours": [
+            9,
+            11,
+            13,
+            14,
+            16,
+            17
+          ]
+        },
+        {
+          "day": 10,
+          "target": 6,
+          "send_hours": [
+            10,
+            12,
+            13,
+            14,
+            17,
+            18
+          ]
+        },
+        {
+          "day": 11,
+          "target": 6,
+          "send_hours": [
+            8,
+            10,
+            15,
+            16,
+            17,
+            19
+          ]
+        },
+        {
+          "day": 12,
+          "target": 6,
+          "send_hours": [
+            9,
+            10,
+            12,
+            14,
+            17,
+            18
+          ]
+        },
+        {
+          "day": 13,
+          "target": 6,
+          "send_hours": [
+            10,
+            11,
+            12,
+            14,
+            16,
+            17
+          ]
+        },
+        {
+          "day": 14,
+          "target": 6,
+          "send_hours": [
+            8,
+            9,
+            12,
+            14,
+            17,
+            18
+          ]
+        },
+        {
+          "day": 15,
+          "target": 6,
+          "send_hours": [
+            8,
+            9,
+            10,
+            12,
+            15,
+            19
+          ]
+        },
+        {
+          "day": 16,
+          "target": 6,
+          "send_hours": [
+            9,
+            10,
+            13,
+            15,
+            17,
+            18
+          ]
+        },
+        {
+          "day": 17,
+          "target": 6,
+          "send_hours": [
+            8,
+            10,
+            11,
+            13,
+            18,
+            19
+          ]
+        },
+        {
+          "day": 18,
+          "target": 6,
+          "send_hours": [
+            9,
+            11,
+            12,
+            13,
+            15,
+            17
+          ]
+        },
+        {
+          "day": 19,
+          "target": 6,
+          "send_hours": [
+            9,
+            12,
+            13,
+            14,
+            17,
+            18
+          ]
+        },
+        {
+          "day": 20,
+          "target": 6,
+          "send_hours": [
+            8,
+            9,
+            12,
+            15,
+            16,
+            18
+          ]
+        },
+        {
+          "day": 21,
+          "target": 6,
+          "send_hours": [
+            13,
+            15,
+            16,
+            17,
+            18,
+            19
+          ]
+        },
+        {
+          "day": 22,
+          "target": 6,
+          "send_hours": [
+            8,
+            9,
+            10,
+            11,
+            13,
+            18
+          ]
+        },
+        {
+          "day": 23,
+          "target": 6,
+          "send_hours": [
+            9,
+            11,
+            14,
+            15,
+            16,
+            19
+          ]
+        },
+        {
+          "day": 24,
+          "target": 6,
+          "send_hours": [
+            8,
+            11,
+            13,
+            14,
+            18,
+            19
+          ]
+        },
+        {
+          "day": 25,
+          "target": 6,
+          "send_hours": [
+            8,
+            11,
+            13,
+            14,
+            17,
+            18
+          ]
+        },
+        {
+          "day": 26,
+          "target": 6,
+          "send_hours": [
+            8,
+            9,
+            11,
+            13,
+            17,
+            19
+          ]
+        },
+        {
+          "day": 27,
+          "target": 6,
+          "send_hours": [
+            9,
+            10,
+            13,
+            15,
+            16,
+            18
+          ]
+        },
+        {
+          "day": 28,
+          "target": 6,
+          "send_hours": [
+            8,
+            11,
+            16,
+            17,
+            18,
+            19
+          ]
+        }
+      ],
+      "daily_log": []
+    }
+  },
+  "account_pairs": []
+}

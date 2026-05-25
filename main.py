@@ -2471,6 +2471,238 @@ def get_cost_optimization():
     return jsonify(KNOWLEDGE_BASE["cost_optimization_knowledge"])
 
 
+# ═══════════════════════════════════════════════════════════
+# V5.0 — REAL-WORLD ENGINE (Gmail + Real Leads + Campaigns)
+# ═══════════════════════════════════════════════════════════
+
+# --- Gmail Configuration ---
+@app.route('/api/gmail/status')
+def gmail_status():
+    """Get Gmail connection status."""
+    try:
+        from agents.real_lead_engine import get_gmail_status
+        status = get_gmail_status()
+        return jsonify(status)
+    except Exception as e:
+        return jsonify({"status": "disconnected", "error": str(e)})
+
+
+@app.route('/api/gmail/configure', methods=['POST'])
+def gmail_configure():
+    """Connect Gmail account."""
+    data = request.json or {}
+    email = data.get("email", "")
+    app_password = data.get("app_password", "")
+    display_name = data.get("display_name", "DMCAShield Agency")
+    
+    if not email or not app_password:
+        return jsonify({"error": "Email and app_password required"}), 400
+    
+    try:
+        from agents.real_lead_engine import save_gmail_config, test_gmail_connection
+        # Test first
+        test = test_gmail_connection(email, app_password)
+        if not test["success"]:
+            return jsonify({"error": f"Connection failed: {test['message']}"}), 400
+        
+        # Save
+        result = save_gmail_config(email, app_password, display_name)
+        return jsonify({**result, "test": test})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/gmail/test', methods=['POST'])
+def gmail_test():
+    """Test Gmail connection."""
+    data = request.json or {}
+    email = data.get("email", "")
+    app_password = data.get("app_password", "")
+    
+    if not email or not app_password:
+        return jsonify({"error": "Provide email and app_password"}), 400
+    
+    try:
+        from agents.real_lead_engine import test_gmail_connection
+        return jsonify(test_gmail_connection(email, app_password))
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
+
+
+# --- Real Leads ---
+@app.route('/api/real-leads')
+def get_real_leads():
+    """Get real leads from SQLite database."""
+    try:
+        from agents.real_lead_engine import get_leads, get_lead_stats
+        status = request.args.get("status")
+        temp = request.args.get("temperature")
+        niche = request.args.get("niche")
+        leads = get_leads(status=status, temperature=temp, niche=niche)
+        stats = get_lead_stats()
+        return jsonify({"leads": leads, "stats": stats, "source": "real_database"})
+    except Exception as e:
+        return jsonify({"leads": [], "stats": {}, "error": str(e)})
+
+
+@app.route('/api/real-leads/add', methods=['POST'])
+def add_real_lead():
+    """Add a real lead manually or from scraping."""
+    data = request.json or {}
+    if not data.get("business_name"):
+        return jsonify({"error": "business_name required"}), 400
+    
+    try:
+        from agents.real_lead_engine import add_lead
+        result = add_lead(data)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/real-leads/stats')
+def real_lead_stats():
+    """Get real lead statistics."""
+    try:
+        from agents.real_lead_engine import get_lead_stats
+        return jsonify(get_lead_stats())
+    except Exception as e:
+        return jsonify({"error": str(e)})
+
+
+@app.route('/api/real-leads/<lead_id>', methods=['PUT'])
+def update_real_lead(lead_id):
+    """Update a real lead."""
+    try:
+        from agents.real_lead_engine import update_lead
+        data = request.json or {}
+        update_lead(lead_id, data)
+        return jsonify({"status": "updated", "id": lead_id})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/real-leads/<lead_id>', methods=['DELETE'])
+def delete_real_lead(lead_id):
+    """Delete a real lead."""
+    try:
+        from agents.real_lead_engine import delete_lead
+        delete_lead(lead_id)
+        return jsonify({"status": "deleted", "id": lead_id})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# --- Campaigns ---
+@app.route('/api/campaigns/real')
+def get_real_campaigns():
+    """Get all real email campaigns."""
+    try:
+        from agents.real_lead_engine import get_campaigns
+        return jsonify({"campaigns": get_campaigns()})
+    except Exception as e:
+        return jsonify({"campaigns": [], "error": str(e)})
+
+
+@app.route('/api/campaigns/create', methods=['POST'])
+def create_real_campaign():
+    """Create a new email campaign."""
+    data = request.json or {}
+    name = data.get("name", "New Campaign")
+    niche = data.get("niche", "")
+    city = data.get("city", "")
+    state = data.get("state", "")
+    
+    try:
+        from agents.real_lead_engine import create_campaign
+        result = create_campaign(name, niche, city, state)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/campaigns/<campaign_id>/send', methods=['POST'])
+def send_campaign_batch(campaign_id):
+    """Send a batch of emails for a campaign."""
+    data = request.json or {}
+    batch_size = data.get("batch_size", 10)
+    
+    try:
+        from agents.email_campaign_engine import run_campaign_batch
+        result = run_campaign_batch(campaign_id, batch_size)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# --- Email Stats ---
+@app.route('/api/email/stats')
+def email_stats():
+    """Get email sending statistics."""
+    try:
+        from agents.email_campaign_engine import get_email_stats, can_send_today
+        stats = get_email_stats()
+        rate = can_send_today()
+        return jsonify({**stats, "rate_limit": rate})
+    except Exception as e:
+        return jsonify({"error": str(e)})
+
+
+@app.route('/api/email/send', methods=['POST'])
+def send_single_email():
+    """Send a single email to a lead."""
+    data = request.json or {}
+    lead_id = data.get("lead_id")
+    template = data.get("template", "day1_opener")
+    
+    if not lead_id:
+        return jsonify({"error": "lead_id required"}), 400
+    
+    try:
+        from agents.real_lead_engine import get_leads
+        from agents.email_campaign_engine import send_email
+        leads = get_leads()
+        lead = next((l for l in leads if l["id"] == lead_id), None)
+        if not lead:
+            return jsonify({"error": "Lead not found"}), 404
+        result = send_email(lead, template)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# --- System Status (combined) ---
+@app.route('/api/system/full-status')
+def full_system_status():
+    """Get complete system status — Gmail, leads, campaigns, KB."""
+    status = {
+        "version": "5.0",
+        "repos_integrated": KNOWLEDGE_BASE["repos_integrated"],
+        "skills_loaded": KNOWLEDGE_BASE["skills_loaded"],
+        "demo_leads": len(DEMO_LEADS),
+        "departments": len(DEPARTMENTS),
+        "timestamp": datetime.utcnow().isoformat()
+    }
+    
+    try:
+        from agents.real_lead_engine import get_lead_stats, get_gmail_status, get_campaigns
+        status["gmail"] = get_gmail_status()
+        status["real_leads"] = get_lead_stats()
+        status["campaigns"] = len(get_campaigns())
+    except:
+        status["gmail"] = {"status": "not_initialized"}
+        status["real_leads"] = {"total": 0}
+        status["campaigns"] = 0
+    
+    try:
+        from agents.email_campaign_engine import get_email_stats
+        status["email"] = get_email_stats()
+    except:
+        status["email"] = {"total_sent": 0}
+    
+    return jsonify(status)
+
+
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
 
