@@ -2680,7 +2680,7 @@ def full_system_status():
         "repos_integrated": KNOWLEDGE_BASE["repos_integrated"],
         "skills_loaded": KNOWLEDGE_BASE["skills_loaded"],
         "demo_leads": len(DEMO_LEADS),
-        "departments": len(DEPARTMENTS),
+        "departments": len(DEPT_INFO),
         "timestamp": datetime.utcnow().isoformat()
     }
     
