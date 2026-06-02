@@ -1,3 +1,4 @@
+import sys
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.websockets import WebSocket
@@ -6,6 +7,10 @@ import sqlite3
 import uuid
 import os
 import json
+from datetime import datetime
+
+# Add parent directory to sys.path so we can import from agents folder
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 app = FastAPI(title="DMCAShield Agency API")
 
@@ -17,9 +22,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-DB_PATH = "dmcashield.db"
+DB_PATH = os.path.join(os.path.dirname(__file__), '..', 'data', 'dmcashield.db')
 
 def init_db():
+    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS leads (
@@ -28,8 +34,27 @@ def init_db():
         temperature TEXT DEFAULT 'cold', created_at TEXT DEFAULT CURRENT_TIMESTAMP
     )''')
     c.execute('''CREATE TABLE IF NOT EXISTS tasks (
-        id TEXT PRIMARY KEY, title TEXT, description TEXT,
-        status TEXT DEFAULT 'active', progress INTEGER DEFAULT 0,
+        id TEXT PRIMARY KEY,
+        title TEXT,
+        description TEXT,
+        business_type TEXT,
+        city TEXT,
+        state TEXT,
+        country TEXT DEFAULT 'USA',
+        status TEXT DEFAULT 'active',
+        progress INTEGER DEFAULT 0,
+        leads_total INTEGER DEFAULT 0,
+        leads_emailed INTEGER DEFAULT 0,
+        leads_opened INTEGER DEFAULT 0,
+        leads_replied INTEGER DEFAULT 0,
+        leads_hot INTEGER DEFAULT 0,
+        open_rate INTEGER DEFAULT 0,
+        phase_scraping TEXT DEFAULT 'pending',
+        phase_validation TEXT DEFAULT 'pending',
+        phase_funnel_creation TEXT DEFAULT 'pending',
+        phase_email_sending TEXT DEFAULT 'pending',
+        phase_tracking TEXT DEFAULT 'pending',
+        phase_sales TEXT DEFAULT 'pending',
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
     )''')
     c.execute('''CREATE TABLE IF NOT EXISTS accounts (
@@ -37,7 +62,7 @@ def init_db():
         sent_today INTEGER DEFAULT 0, daily_limit INTEGER DEFAULT 500,
         health_score INTEGER DEFAULT 100
     )''')
-    c.execute('''CREATE TABLE IF NOT EXISTS campaigns (
+    c.execute('''CREATE TABLE IF NOT EXISTS demo_campaigns (
         id TEXT PRIMARY KEY, name TEXT, subject TEXT, body TEXT,
         status TEXT DEFAULT 'active', sent INTEGER DEFAULT 0,
         opened INTEGER DEFAULT 0, replied INTEGER DEFAULT 0,
@@ -216,13 +241,43 @@ async def create_task(task: dict):
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     task_id = f"task-{uuid.uuid4().hex[:8]}"
-    c.execute("INSERT INTO tasks (id, title, description, status, progress) VALUES (?, ?, ?, 'active', 0)",
-              (task_id, task.get("title"), task.get("description")))
+    business_type = task.get("business_type", "dentist")
+    city = task.get("city", "Houston")
+    state = task.get("state", "Texas")
+    country = task.get("country", "USA")
+    title = f"Scraping {business_type} in {city}"
+    description = f"Scraping and outreach for {business_type} near {city}, {state}"
+    
+    c.execute("""
+        INSERT INTO tasks (
+            id, title, description, business_type, city, state, country, status, progress,
+            phase_scraping, phase_validation, phase_funnel_creation,
+            phase_email_sending, phase_tracking, phase_sales, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, 'active', 0, 'in_progress', 'pending', 'pending', 'pending', 'pending', 'pending', ?)
+    """, (task_id, title, description, business_type, city, state, country, datetime.utcnow().isoformat()))
     conn.commit()
     c.execute("SELECT * FROM tasks WHERE id = ?", (task_id,))
     row = c.fetchone()
     conn.close()
-    return row_to_dict(c, row)
+    
+    # Start the scraper in a background thread
+    import threading
+    from agents.real_lead_scraper import run_scraper_pipeline
+    threading.Thread(target=run_scraper_pipeline, args=(task_id, business_type, city, state, country), daemon=True).start()
+    
+    # Return structure matching frontend expectations
+    return {
+        "task_id": task_id,
+        "task": {
+            "id": task_id,
+            "business_type": business_type,
+            "city": city,
+            "state": state,
+            "status": "active"
+        },
+        "status": "launched",
+        "phase": "scraping"
+    }
 
 @app.put("/api/tasks/{task_id}")
 async def update_task(task_id: str, task: dict):
@@ -307,9 +362,9 @@ async def get_campaigns(status: Optional[str] = None):
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     if status:
-        c.execute("SELECT * FROM campaigns WHERE status = ?", (status,))
+        c.execute("SELECT * FROM demo_campaigns WHERE status = ?", (status,))
     else:
-        c.execute("SELECT * FROM campaigns")
+        c.execute("SELECT * FROM demo_campaigns")
     rows = c.fetchall()
     conn.close()
     return [row_to_dict(c, row) for row in rows]
@@ -319,10 +374,10 @@ async def create_campaign(campaign: dict):
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     campaign_id = f"camp-{uuid.uuid4().hex[:8]}"
-    c.execute("INSERT INTO campaigns (id, name, subject, body, status, sent, opened, replied) VALUES (?, ?, ?, ?, 'active', 0, 0, 0)",
+    c.execute("INSERT INTO demo_campaigns (id, name, subject, body, status, sent, opened, replied) VALUES (?, ?, ?, ?, 'active', 0, 0, 0)",
               (campaign_id, campaign.get("name"), campaign.get("subject"), campaign.get("body")))
     conn.commit()
-    c.execute("SELECT * FROM campaigns WHERE id = ?", (campaign_id,))
+    c.execute("SELECT * FROM demo_campaigns WHERE id = ?", (campaign_id,))
     row = c.fetchone()
     conn.close()
     return row_to_dict(c, row)
@@ -333,9 +388,9 @@ async def update_campaign(campaign_id: str, campaign: dict):
     c = conn.cursor()
     fields = ", ".join([f"{k} = ?" for k in campaign.keys()])
     values = list(campaign.values()) + [campaign_id]
-    c.execute(f"UPDATE campaigns SET {fields} WHERE id = ?", values)
+    c.execute(f"UPDATE demo_campaigns SET {fields} WHERE id = ?", values)
     conn.commit()
-    c.execute("SELECT * FROM campaigns WHERE id = ?", (campaign_id,))
+    c.execute("SELECT * FROM demo_campaigns WHERE id = ?", (campaign_id,))
     row = c.fetchone()
     conn.close()
     if row is None:
@@ -346,7 +401,7 @@ async def update_campaign(campaign_id: str, campaign: dict):
 async def delete_campaign(campaign_id: str):
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute("DELETE FROM campaigns WHERE id = ?", (campaign_id,))
+    c.execute("DELETE FROM demo_campaigns WHERE id = ?", (campaign_id,))
     conn.commit()
     conn.close()
     return {"deleted": campaign_id}
@@ -440,9 +495,9 @@ async def get_analytics():
     active_tasks = c.fetchone()[0]
     c.execute("SELECT COUNT(*) FROM tasks WHERE status = 'completed'")
     completed_tasks = c.fetchone()[0]
-    c.execute("SELECT COUNT(*) FROM campaigns")
+    c.execute("SELECT COUNT(*) FROM demo_campaigns")
     total_campaigns = c.fetchone()[0]
-    c.execute("SELECT COUNT(*) FROM campaigns WHERE status = 'active'")
+    c.execute("SELECT COUNT(*) FROM demo_campaigns WHERE status = 'active'")
     active_campaigns = c.fetchone()[0]
     conn.close()
     return {
@@ -664,7 +719,7 @@ async def get_dashboard():
     hot_leads = c.fetchone()[0]
     c.execute("SELECT COUNT(*) FROM tasks WHERE status IN ('queued', 'active', 'running')")
     active_tasks = c.fetchone()[0]
-    c.execute("SELECT COUNT(*) FROM campaigns")
+    c.execute("SELECT COUNT(*) FROM demo_campaigns")
     total_campaigns = c.fetchone()[0]
     c.execute("SELECT AVG(lead_score) FROM leads")
     avg_score = c.fetchone()[0] or 0
@@ -812,6 +867,364 @@ async def check_reload():
 async def trigger_reload():
     """Trigger manual reload"""
     return {"status": "reload_triggered", "message": "Server will reload on next request"}
+
+# ===============================================================
+# V5.0 — REAL-WORLD OUTREACH (Gmail + Real Leads + Campaigns)
+# ===============================================================
+
+# --- Gmail Configuration ---
+@app.get("/api/gmail/status")
+async def gmail_status():
+    """Get Gmail connection status."""
+    try:
+        from agents.real_lead_engine import get_gmail_status
+        return get_gmail_status()
+    except Exception as e:
+        return {"status": "disconnected", "error": str(e)}
+
+@app.post("/api/gmail/configure")
+async def gmail_configure(data: dict):
+    """Connect Gmail account."""
+    email = data.get("email", "")
+    app_password = data.get("app_password", "")
+    display_name = data.get("display_name", "DMCAShield Agency")
+    
+    if not email or not app_password:
+        raise HTTPException(status_code=400, detail="Email and app_password required")
+    
+    try:
+        from agents.real_lead_engine import save_gmail_config, test_gmail_connection
+        # Test SMTP connection first
+        test = test_gmail_connection(email, app_password)
+        if not test["success"]:
+            raise HTTPException(status_code=400, detail=f"Connection failed: {test['message']}")
+        
+        # Save Gmail configuration
+        result = save_gmail_config(email, app_password, display_name)
+        return {**result, "test": test}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/gmail/test")
+async def gmail_test(data: dict):
+    """Test Gmail connection."""
+    email = data.get("email", "")
+    app_password = data.get("app_password", "")
+    
+    if not email or not app_password:
+        raise HTTPException(status_code=400, detail="Provide email and app_password")
+    
+    try:
+        from agents.real_lead_engine import test_gmail_connection
+        return test_gmail_connection(email, app_password)
+    except Exception as e:
+        return {"success": False, "message": str(e)}
+
+# --- Real Leads ---
+@app.get("/api/real-leads")
+async def get_real_leads(status: Optional[str] = None, temperature: Optional[str] = None, niche: Optional[str] = None):
+    """Get real leads from SQLite database."""
+    try:
+        from agents.real_lead_engine import get_leads, get_lead_stats
+        leads = get_leads(status=status, temperature=temperature, niche=niche)
+        stats = get_lead_stats()
+        return {"leads": leads, "stats": stats, "source": "real_database"}
+    except Exception as e:
+        return {"leads": [], "stats": {}, "error": str(e)}
+
+@app.post("/api/real-leads/add")
+async def add_real_lead(data: dict):
+    """Add a real lead manually or from scraping."""
+    if not data.get("business_name"):
+        raise HTTPException(status_code=400, detail="business_name required")
+    
+    try:
+        from agents.real_lead_engine import add_lead
+        return add_lead(data)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/real-leads/stats")
+async def real_lead_stats():
+    """Get real lead statistics."""
+    try:
+        from agents.real_lead_engine import get_lead_stats
+        return get_lead_stats()
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.put("/api/real-leads/{lead_id}")
+async def update_real_lead(lead_id: str, data: dict):
+    """Update a real lead."""
+    try:
+        from agents.real_lead_engine import update_lead
+        update_lead(lead_id, data)
+        return {"status": "updated", "id": lead_id}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.delete("/api/real-leads/{lead_id}")
+async def delete_real_lead(lead_id: str):
+    """Delete a real lead."""
+    try:
+        from agents.real_lead_engine import delete_lead
+        delete_lead(lead_id)
+        return {"status": "deleted", "id": lead_id}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# --- Campaigns ---
+@app.get("/api/campaigns/real")
+async def get_real_campaigns():
+    """Get all real email campaigns."""
+    try:
+        from agents.real_lead_engine import get_campaigns
+        return {"campaigns": get_campaigns()}
+    except Exception as e:
+        return {"campaigns": [], "error": str(e)}
+
+@app.post("/api/campaigns/create")
+async def create_real_campaign(data: dict):
+    """Create a new email campaign."""
+    name = data.get("name", "New Campaign")
+    niche = data.get("niche", "")
+    city = data.get("city", "")
+    state = data.get("state", "")
+    
+    try:
+        from agents.real_lead_engine import create_campaign
+        return create_campaign(name, niche, city, state)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/campaigns/{campaign_id}/send")
+async def send_campaign_batch(campaign_id: str, data: dict):
+    """Send a batch of emails for a campaign."""
+    batch_size = data.get("batch_size", 10)
+    
+    try:
+        from agents.email_campaign_engine import run_campaign_batch
+        return run_campaign_batch(campaign_id, batch_size)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# --- Email Stats ---
+@app.get("/api/email/stats")
+async def email_stats():
+    """Get email sending statistics."""
+    try:
+        from agents.email_campaign_engine import get_email_stats, can_send_today
+        stats = get_email_stats()
+        rate = can_send_today()
+        return {**stats, "rate_limit": rate}
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.post("/api/email/send")
+async def send_single_email(data: dict):
+    """Send a single email to a lead."""
+    lead_id = data.get("lead_id")
+    template = data.get("template", "day1_opener")
+    
+    if not lead_id:
+        raise HTTPException(status_code=400, detail="lead_id required")
+    
+    try:
+        from agents.real_lead_engine import get_leads
+        from agents.email_campaign_engine import send_email
+        leads = get_leads(limit=1000)
+        lead = next((l for l in leads if l["id"] == lead_id), None)
+        if not lead:
+            raise HTTPException(status_code=404, detail="Lead not found")
+        return send_email(lead, template)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# --- System Status (combined) ---
+@app.get("/api/system/full-status")
+async def full_system_status():
+    """Get complete system status — Gmail, leads, campaigns, KB."""
+    try:
+        from agents.real_lead_engine import get_gmail_status
+        gmail_info = get_gmail_status()
+    except Exception:
+        gmail_info = {"status": "not_initialized"}
+        
+    try:
+        from agents.real_lead_engine import get_lead_stats
+        lead_info = get_lead_stats()
+    except Exception:
+        lead_info = {"total": 0}
+        
+    try:
+        from agents.real_lead_engine import get_campaigns
+        campaign_count = len(get_campaigns())
+    except Exception:
+        campaign_count = 0
+        
+    try:
+        from agents.email_campaign_engine import get_email_stats
+        email_info = get_email_stats()
+    except Exception:
+        email_info = {"total_sent": 0}
+        
+    return {
+        "version": "5.0",
+        "timestamp": datetime.utcnow().isoformat(),
+        "gmail": gmail_info,
+        "real_leads": lead_info,
+        "campaigns": campaign_count,
+        "email": email_info
+    }
+
+# --- Enhanced Lead Details ---
+@app.get("/api/leads/{lead_id}/full")
+async def get_lead_full(lead_id: str):
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    
+    # 1. Check if it's a real lead
+    if lead_id.startswith("rl_") or lead_id.startswith("rl-"):
+        c.execute("SELECT * FROM real_leads WHERE id = ?", (lead_id,))
+        row = c.fetchone()
+        if not row:
+            conn.close()
+            raise HTTPException(status_code=404, detail="Lead not found")
+        
+        lead = row_to_dict(c, row)
+        
+        # Get emails sent to this lead
+        c.execute("SELECT * FROM email_log WHERE lead_id = ? ORDER BY sent_at DESC", (lead_id,))
+        email_rows = c.fetchall()
+        email_history = []
+        interaction_history = []
+        
+        for erow in email_rows:
+            e = row_to_dict(c, erow)
+            email_history.append({
+                "id": e["id"],
+                "subject_line": e["subject"],
+                "sent_at": e["sent_at"],
+                "opened": bool(e["opened_at"]),
+                "open_count": 1 if e["opened_at"] else 0,
+                "replied": bool(e["replied_at"]),
+                "reply_content": e.get("clicked_at", ""),
+                "status": e["status"]
+            })
+            
+            interaction_history.append({
+                "date": e["sent_at"][:10] if e["sent_at"] else "",
+                "type": "email_sent",
+                "subject": e["subject"],
+                "result": e["status"],
+                "content": e["body_preview"]
+            })
+            
+            if e["opened_at"]:
+                interaction_history.append({
+                    "date": e["opened_at"][:10],
+                    "type": "email_opened",
+                    "subject": e["subject"],
+                    "result": "Opened",
+                    "content": "Recipient opened the email."
+                })
+                
+            if e["replied_at"]:
+                interaction_history.append({
+                    "date": e["replied_at"][:10],
+                    "type": "email_replied",
+                    "subject": e["subject"],
+                    "result": "Replied",
+                    "content": "Recipient replied to the email."
+                })
+        
+        conn.close()
+        
+        return {
+            "id": lead["id"],
+            "business_name": lead["business_name"],
+            "owner_name": lead.get("owner_name") or "Business Owner",
+            "email_primary": lead["email_primary"],
+            "phone": lead.get("phone") or "N/A",
+            "website": lead.get("website") or "",
+            "full_address": lead.get("full_address") or "",
+            "city": lead.get("city") or "",
+            "state": lead.get("state") or "",
+            "business_nature": lead.get("niche") or "Local Business",
+            "niche": lead.get("niche") or "general",
+            "years_in_business": 4,
+            "employee_count": "5-10",
+            "revenue_range": "$500k - $1M",
+            "full_analysis": f"Outreach lead found via Google Maps. Negative reviews: {lead.get('negative_review_count', 0)}. Current rating: {lead.get('current_rating', 0.0)}/5.",
+            "owner_profile": f"Decision maker for {lead['business_name']}.",
+            "current_rating": lead.get("current_rating", 0.0),
+            "negative_review_count": lead.get("negative_review_count", 0),
+            "review_platforms": {"Google Maps": lead.get("current_rating", 0.0)},
+            "pain_points": ["Negative reviews online", "Reputation management"],
+            "services_offered": ["Core Services"],
+            "competitors": ["Local Competitor 1", "Local Competitor 2"],
+            "lead_score": lead.get("lead_score", 0),
+            "lead_temperature": lead.get("lead_temperature", "cold"),
+            "closing_probability": lead.get("lead_score", 0),
+            "call_script_notes": f"Verify negative review count ({lead.get('negative_review_count')}) and pitch DMCA removal process.",
+            "status": lead.get("status", "new"),
+            "gmail_important": lead.get("last_reply") != "",
+            "important_notes": lead.get("notes") or "",
+            "last_contact": lead.get("last_email_sent") or None,
+            "emails_sent_count": lead.get("emails_sent_count", 0),
+            "interaction_history": interaction_history,
+            "created_at": lead.get("created_at")
+        }
+    else:
+        # 2. Demo lead
+        c.execute("SELECT * FROM leads WHERE id = ?", (lead_id,))
+        row = c.fetchone()
+        conn.close()
+        
+        if not row:
+            raise HTTPException(status_code=404, detail="Lead not found")
+        
+        l = row_to_dict(c, row)
+        
+        return {
+            "id": l["id"],
+            "business_name": l["business_name"],
+            "owner_name": l.get("owner_name") or "John Doe",
+            "email_primary": l["email_primary"],
+            "phone": l.get("phone") or "555-0199",
+            "website": "https://example.com",
+            "full_address": f"123 Main St, {l.get('city')}, {l.get('state')}",
+            "city": l.get("city"),
+            "state": l.get("state"),
+            "business_nature": "Local Service Provider",
+            "niche": "dental" if "dent" in l["business_name"].lower() else "general",
+            "years_in_business": 5,
+            "employee_count": "10-20",
+            "revenue_range": "$1M - $2M",
+            "full_analysis": "Demo lead showing high outreach potential.",
+            "owner_profile": "Lead Dentist & Business Owner.",
+            "current_rating": l.get("current_rating") or 3.2,
+            "negative_review_count": 8,
+            "review_platforms": {"Google": 3.2, "Yelp": 2.8},
+            "pain_points": ["Unfair fake reviews", "Negative competitor SEO"],
+            "services_offered": ["General Dentistry", "Outreach"],
+            "competitors": ["Dental Clinic B", "Family Dental"],
+            "lead_score": l.get("lead_score") or 75,
+            "lead_temperature": l.get("temperature") or "warm",
+            "closing_probability": 65,
+            "call_script_notes": "Offer a free reputation report to start.",
+            "status": "new",
+            "gmail_important": False,
+            "important_notes": "Demo data",
+            "last_contact": None,
+            "emails_sent_count": 0,
+            "interaction_history": [],
+            "created_at": l.get("created_at")
+        }
 
 print("DMCAShield API started on http://localhost:8000")
 print(f"Database: {DB_PATH}")

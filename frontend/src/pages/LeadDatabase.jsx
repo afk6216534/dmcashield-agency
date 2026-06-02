@@ -8,22 +8,34 @@ export default function LeadDatabase() {
   const [selectedLead, setSelectedLead] = useState(null);
   const [loading, setLoading] = useState(true);
   const [syncStatus, setSyncStatus] = useState('');
+  const [databaseMode, setDatabaseMode] = useState('demo'); // 'demo' or 'real'
   const navigate = useNavigate();
 
   useEffect(() => { 
-    if (filter === 'important') {
+    if (filter === 'important' && databaseMode === 'demo') {
       fetch(`${API}/api/leads/important`).then(r => r.json()).then(setLeads).catch(() => {});
     } else {
       fetchLeads();
     }
-  }, [filter]);
+  }, [filter, databaseMode]);
 
   const fetchLeads = async () => {
+    setLoading(true);
     try {
-      const params = filter !== 'all' ? `?temperature=${filter}` : '';
-      const res = await fetch(`${API}/api/leads${params}`);
-      setLeads(await res.json());
-    } catch (err) { console.error(err); }
+      if (databaseMode === 'real') {
+        const params = filter !== 'all' ? `?temperature=${filter}` : '';
+        const res = await fetch(`${API}/api/real-leads${params}`);
+        const data = await res.json();
+        setLeads(data.leads || []);
+      } else {
+        const params = filter !== 'all' ? `?temperature=${filter}` : '';
+        const res = await fetch(`${API}/api/leads${params}`);
+        setLeads(await res.json());
+      }
+    } catch (err) { 
+      console.error(err); 
+      setLeads([]);
+    }
     setLoading(false);
   };
 
@@ -66,6 +78,20 @@ export default function LeadDatabase() {
         </div>
       </div>
 
+      {/* V5.0 Database Selector Toggle */}
+      <div style={{ display: 'flex', gap: 12, marginBottom: 20, borderBottom: '1px solid var(--border-subtle)', paddingBottom: 12 }}>
+        <button className={`btn ${databaseMode === 'demo' ? 'btn-primary' : 'btn-secondary'}`}
+          style={{ padding: '8px 16px', fontSize: '0.85rem', background: databaseMode === 'demo' ? 'var(--accent-primary)' : 'transparent', border: databaseMode === 'demo' ? 'none' : '1px solid var(--border-subtle)' }}
+          onClick={() => setDatabaseMode('demo')}>
+          📋 Demo Leads Database
+        </button>
+        <button className={`btn ${databaseMode === 'real' ? 'btn-primary' : 'btn-secondary'}`}
+          style={{ padding: '8px 16px', fontSize: '0.85rem', background: databaseMode === 'real' ? 'var(--accent-primary)' : 'transparent', border: databaseMode === 'real' ? 'none' : '1px solid var(--border-subtle)' }}
+          onClick={() => setDatabaseMode('real')}>
+          🔒 Real Scraped Leads
+        </button>
+      </div>
+
       <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
         {filters.map(f => (
           <button key={f} className={`btn ${filter === f ? 'btn-primary' : 'btn-secondary'}`}
@@ -82,26 +108,30 @@ export default function LeadDatabase() {
             <div className="empty-state">
               <div className="empty-icon">👥</div>
               <h3>No leads yet</h3>
-              <p style={{ color: 'var(--text-tertiary)' }}>Launch a task to start scraping leads</p>
+              <p style={{ color: 'var(--text-tertiary)' }}>
+                {databaseMode === 'real' ? 'Launch a scraping task to start finding real leads' : 'Demo database is currently empty'}
+              </p>
             </div>
           ) : (
             <table className="data-table">
               <thead><tr>
-                <th>Business</th><th>Website</th><th>City</th><th>Nature</th><th>Rating</th><th>Neg Reviews</th><th>Score</th><th>Closing %</th><th>Status</th><th>Important</th>
+                <th>Business</th><th>Website</th><th>City</th><th>Nature</th><th>Rating</th><th>Neg Reviews</th><th>Score</th><th>Closing %</th><th>Status</th><th>Outreach</th>
               </tr></thead>
               <tbody>
                 {leads.map(lead => (
                   <tr key={lead.id} onClick={() => navigate(`/leads/${lead.id}`)} style={{ cursor: 'pointer' }}>
-                    <td><strong>{lead.business_name}</strong><br/><span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>{lead.owner_name}</span></td>
+                    <td><strong>{lead.business_name}</strong><br/><span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>{lead.owner_name || 'Business Owner'}</span></td>
                     <td style={{ fontSize: '0.72rem' }}>{lead.website ? <a href={lead.website} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()}>🌐</a> : '-'}</td>
                     <td>{lead.city}, {lead.state}</td>
-                    <td style={{ fontSize: '0.7rem', maxWidth: '100px' }}>{lead.business_nature?.substring(0, 25) || lead.niche}</td>
+                    <td style={{ fontSize: '0.7rem', maxWidth: '100px' }}>{databaseMode === 'real' ? lead.niche : (lead.business_nature?.substring(0, 25) || lead.niche)}</td>
                     <td>⭐ {lead.current_rating}</td>
                     <td style={{ color: 'var(--accent-hot)' }}>{lead.negative_review_count}</td>
                     <td>{lead.lead_score}</td>
-                    <td style={{ color: lead.closing_probability > 70 ? '#22c55e' : lead.closing_probability > 50 ? '#f59e0b' : '#6b7280' }}>{lead.closing_probability}%</td>
-                    <td><span className={`badge badge-${lead.lead_temperature}`}>{lead.lead_temperature}</span></td>
-                    <td>{lead.gmail_important ? '⭐' : ''}</td>
+                    <td style={{ color: (databaseMode === 'real' ? lead.lead_score : lead.closing_probability) > 70 ? '#22c55e' : (databaseMode === 'real' ? lead.lead_score : lead.closing_probability) > 50 ? '#f59e0b' : '#6b7280' }}>
+                      {databaseMode === 'real' ? `${lead.lead_score}%` : `${lead.closing_probability}%`}
+                    </td>
+                    <td><span className={`badge badge-${lead.lead_temperature || 'cold'}`}>{lead.lead_temperature || 'cold'}</span></td>
+                    <td>{databaseMode === 'real' ? (lead.last_reply ? '💬' : lead.emails_sent_count > 0 ? '📤' : '') : (lead.gmail_important ? '⭐' : '')}</td>
                   </tr>
                 ))}
               </tbody>

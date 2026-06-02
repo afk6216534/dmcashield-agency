@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
-import API from '../config/api.js';
+const API = 'http://localhost:8000';
 
 export default function CEOView() {
   const [overview, setOverview] = useState(null);

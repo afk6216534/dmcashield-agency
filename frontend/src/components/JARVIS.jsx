@@ -1,22 +1,18 @@
 import { useState } from 'react';
-import { useLocation } from 'react-router-dom';
-import API from '../config/api.js';
+
+const API = 'http://localhost:8000';
 
 export default function JARVIS() {
   const [input, setInput] = useState('');
   const [response, setResponse] = useState('');
   const [loading, setLoading] = useState(false);
-  const location = useLocation();
-
-  // Hide bottom bar on the full JARVIS chat page to avoid duplicate
-  if (location.pathname === '/jarvis') return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
     setLoading(true);
     try {
-      const res = await fetch(`${API}/api/jarvis/chat`, {
+      const res = await fetch(`${API}/api/jarvis`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: input }),

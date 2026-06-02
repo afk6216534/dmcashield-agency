@@ -7,13 +7,13 @@ import uuid
 
 @dataclass
 class AgentMessage:
-    id: str = field(default_factory=lambda str(uuid.uuid4()))
+    id: str = field(default_factory=lambda: str(uuid.uuid4()))
     from_agent: str = ''
     to_agent: str = ''
     message_type: str = 'update'
     priority: str = 'normal'
-    payload: Dict[str, Any] = field(field(default_factory=dict))
-    timestamp: str = field(field(default_factory=lambda datetime.utcnow()))
+    payload: Dict[str, Any] = field(default_factory=dict)
+    timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
     read: bool = False
 
     def to_dict(self) -> dict:
@@ -105,3 +105,21 @@ class MessageBus:
         self.messages.append(msg)
         self._save_messages()
         return msg
+
+def create_handoff_message(from_agent: str, to_agent: str, payload: Dict[str, Any]) -> AgentMessage:
+    return AgentMessage(
+        from_agent=from_agent,
+        to_agent=to_agent,
+        message_type="handoff",
+        priority="high",
+        payload=payload
+    )
+
+def create_alert_message(from_agent: str, to_agent: str, payload: Dict[str, Any]) -> AgentMessage:
+    return AgentMessage(
+        from_agent=from_agent,
+        to_agent=to_agent,
+        message_type="alert",
+        priority="urgent",
+        payload=payload
+    )

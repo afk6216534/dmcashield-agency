@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 
-import API from '../config/api.js';
+const API = 'http://localhost:8000';
 
 const DEPT_LIST = [
   { key: 'scraping', icon: '🕵️', name: 'Scraping' },
