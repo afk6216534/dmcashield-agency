@@ -113,6 +113,27 @@ SCHEMA_SQL = """
         created_at TEXT NOT NULL,
         completed_at TEXT DEFAULT ''
     );
+
+    CREATE TABLE IF NOT EXISTS email_accounts (
+        id TEXT PRIMARY KEY,
+        email_address TEXT UNIQUE NOT NULL,
+        display_name TEXT DEFAULT '',
+        app_password TEXT DEFAULT '',
+        daily_limit INTEGER DEFAULT 5,
+        sent_today INTEGER DEFAULT 0,
+        total_sent INTEGER DEFAULT 0,
+        warmup_day INTEGER DEFAULT 1,
+        warmup_complete INTEGER DEFAULT 0,
+        status TEXT DEFAULT 'warming_up',
+        blacklist_status TEXT DEFAULT 'clean',
+        health_score INTEGER DEFAULT 50,
+        total_opens INTEGER DEFAULT 0,
+        total_replies INTEGER DEFAULT 0,
+        created_at TEXT NOT NULL
+    );
+
+    INSERT OR IGNORE INTO email_accounts (id, email_address, display_name, daily_limit, sent_today, total_sent, warmup_day, warmup_complete, status, blacklist_status, health_score, total_opens, total_replies, created_at)
+    VALUES ('a1', 'outreach@dmcashield.com', 'DMCA Support', 30, 15, 234, 14, 0, 'warming_up', 'clean', 82, 90, 22, '2026-04-15T00:00:00Z');
 """
 
 

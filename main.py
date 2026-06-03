@@ -681,37 +681,111 @@ DEMO_ACCOUNTS = [
 
 @app.route('/api/accounts')
 def accounts():
-    return jsonify(DEMO_ACCOUNTS)
+    try:
+        from agents.cloud_db import get_db
+        conn = get_db()
+        rows = conn.execute("SELECT * FROM email_accounts ORDER BY created_at DESC").fetchall()
+        conn.close()
+        
+        accounts_list = []
+        for r in rows:
+            acc = dict(r)
+            acc["warmup_complete"] = bool(acc["warmup_complete"])
+            accounts_list.append(acc)
+        return jsonify(accounts_list)
+    except Exception as e:
+        return jsonify(DEMO_ACCOUNTS)
+
 
 @app.route('/api/accounts', methods=['POST'])
 def add_account():
     data = request.get_json() or {}
+    email_address = data.get("email_address", "")
+    display_name = data.get("display_name", "")
+    app_password = data.get("app_password", "")
+    
+    if not email_address:
+        return jsonify({"error": "email_address is required"}), 400
+        
     import uuid
     new_id = str(uuid.uuid4())[:8]
-    acc = {"id": new_id, "email_address": data.get("email_address", ""),
-           "display_name": data.get("display_name", ""), "daily_limit": 5,
-           "sent_today": 0, "total_sent": 0, "warmup_day": 1,
-           "warmup_complete": False, "status": "warming_up", "blacklist_status": "clean",
-           "health_score": 50, "total_opens": 0, "total_replies": 0,
-           "created_at": datetime.utcnow().isoformat()}
-    DEMO_ACCOUNTS.append(acc)
-    return jsonify({"id": new_id, "email_address": acc["email_address"], "status": "warming_up"})
+    created_at = datetime.utcnow().isoformat()
+    
+    try:
+        from agents.cloud_db import get_db
+        conn = get_db()
+        conn.execute("""
+            INSERT OR REPLACE INTO email_accounts (
+                id, email_address, display_name, app_password, daily_limit, 
+                sent_today, total_sent, warmup_day, warmup_complete, 
+                status, blacklist_status, health_score, total_opens, total_replies, created_at
+            ) VALUES (?, ?, ?, ?, 5, 0, 0, 1, 0, 'warming_up', 'clean', 50, 0, 0, ?)
+        """, (new_id, email_address, display_name, app_password, created_at))
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            "id": new_id, 
+            "email_address": email_address, 
+            "display_name": display_name,
+            "status": "warming_up",
+            "warmup_complete": False
+        })
+    except Exception as e:
+        acc = {"id": new_id, "email_address": email_address,
+               "display_name": display_name, "daily_limit": 5,
+               "sent_today": 0, "total_sent": 0, "warmup_day": 1,
+               "warmup_complete": False, "status": "warming_up", "blacklist_status": "clean",
+               "health_score": 50, "total_opens": 0, "total_replies": 0,
+               "created_at": created_at}
+        DEMO_ACCOUNTS.append(acc)
+        return jsonify({"id": new_id, "email_address": email_address, "status": "warming_up"})
+
 
 @app.route('/api/accounts/<account_id>', methods=['DELETE'])
 def delete_account(account_id):
+    try:
+        from agents.cloud_db import get_db
+        conn = get_db()
+        conn.execute("DELETE FROM email_accounts WHERE id = ?", (account_id,))
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+        
     global DEMO_ACCOUNTS
     DEMO_ACCOUNTS = [a for a in DEMO_ACCOUNTS if a["id"] != account_id]
     return jsonify({"deleted": True})
 
+
 @app.route('/api/accounts/<account_id>/warmup', methods=['POST'])
 def start_warmup(account_id):
+    try:
+        from agents.cloud_db import get_db
+        conn = get_db()
+        conn.execute("UPDATE email_accounts SET status = 'warming_up' WHERE id = ?", (account_id,))
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+        
     for a in DEMO_ACCOUNTS:
         if a["id"] == account_id:
             a["status"] = "warming_up"
     return jsonify({"status": "warming_up"})
 
+
 @app.route('/api/accounts/<account_id>/warmup', methods=['DELETE'])
 def stop_warmup(account_id):
+    try:
+        from agents.cloud_db import get_db
+        conn = get_db()
+        conn.execute("UPDATE email_accounts SET status = 'paused' WHERE id = ?", (account_id,))
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+        
     for a in DEMO_ACCOUNTS:
         if a["id"] == account_id:
             a["status"] = "paused"
