@@ -116,6 +116,19 @@ SCHEMA_SQL = """
 """
 
 
+def _run_migrations(conn: sqlite3.Connection):
+    """Run table migrations to add missing columns if upgrading from old DB versions."""
+    try:
+        cursor = conn.execute("PRAGMA table_info(real_leads)")
+        columns = [row[1] for row in cursor.fetchall()]
+        if "country" not in columns:
+            conn.execute("ALTER TABLE real_leads ADD COLUMN country TEXT DEFAULT 'USA'")
+            conn.commit()
+            logger.info("[DB] Migrated real_leads: Added country column")
+    except Exception as e:
+        logger.warning(f"[DB] Migration failed: {e}")
+
+
 def get_db() -> sqlite3.Connection:
     """
     Get a database connection with auto-initialized schema.
@@ -132,6 +145,9 @@ def get_db() -> sqlite3.Connection:
     
     conn.executescript(SCHEMA_SQL)
     conn.commit()
+    
+    # Run dynamic schema migrations
+    _run_migrations(conn)
     
     return conn
 
