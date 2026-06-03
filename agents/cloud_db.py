@@ -134,6 +134,9 @@ SCHEMA_SQL = """
 
     INSERT OR IGNORE INTO email_accounts (id, email_address, display_name, daily_limit, sent_today, total_sent, warmup_day, warmup_complete, status, blacklist_status, health_score, total_opens, total_replies, created_at)
     VALUES ('a1', 'outreach@dmcashield.com', 'DMCA Support', 30, 15, 234, 14, 0, 'warming_up', 'clean', 82, 90, 22, '2026-04-15T00:00:00Z');
+
+    INSERT OR IGNORE INTO email_accounts (id, email_address, display_name, app_password, daily_limit, sent_today, total_sent, warmup_day, warmup_complete, status, blacklist_status, health_score, total_opens, total_replies, created_at)
+    VALUES ('ce972985-b30e-4420-90ff-c1c9ed99b741', 'af6216em2@gmail.com', 'John', 'Ahmad12345@', 40, 0, 0, 1, 0, 'warming_up', 'clean', 100, 0, 0, '2026-04-29T13:13:27Z');
 """
 
 
