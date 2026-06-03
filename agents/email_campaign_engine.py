@@ -2,13 +2,12 @@
 DMCAShield Email Campaign Engine
 =================================
 Sends real emails via Gmail SMTP with rate limiting, tracking, and auto-follow-up.
-Uses patterns from: listmonk, email-builder-js, n8n, caveman
+Uses cloud_db for Vercel-compatible storage.
 """
 
 import smtplib
 import os
 import json
-import sqlite3
 import uuid
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -23,7 +22,11 @@ MAX_EMAILS_PER_DAY = int(os.environ.get("MAX_EMAILS_PER_ACCOUNT_PER_DAY", 40))
 MIN_GAP_SECONDS = int(os.environ.get("EMAIL_SEND_GAP_MIN_SECONDS", 180))
 MAX_GAP_SECONDS = int(os.environ.get("EMAIL_SEND_GAP_MAX_SECONDS", 420))
 
-DB_PATH = os.path.join(os.path.dirname(__file__), '..', 'data', 'dmcashield.db')
+
+def get_db():
+    """Get database connection via cloud_db layer."""
+    from agents.cloud_db import get_db as _get_db
+    return _get_db()
 
 
 # ─── EMAIL TEMPLATES (from cold-email KB) ───
@@ -97,32 +100,11 @@ SEQUENCE_ORDER = ["day1_opener", "day3_followup", "day7_value", "day14_breakup"]
 SEQUENCE_DELAYS = [0, 3, 7, 14]  # Days between emails
 
 
-def get_db():
-    """Get SQLite connection."""
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
-
-
 def get_gmail_credentials() -> Optional[Dict]:
-    """Load Gmail credentials from .env or environment."""
+    """Load Gmail credentials from environment variables."""
     email = os.environ.get("GMAIL_EMAIL", "")
     password = os.environ.get("GMAIL_APP_PASSWORD", "")
     display = os.environ.get("GMAIL_DISPLAY_NAME", "DMCAShield Agency")
-    
-    # Try .env file
-    env_path = os.path.join(os.path.dirname(__file__), '..', 'backend', '.env')
-    if os.path.exists(env_path) and not email:
-        with open(env_path, 'r') as f:
-            for line in f:
-                if '=' in line and not line.startswith('#'):
-                    key, val = line.strip().split('=', 1)
-                    if key == "GMAIL_EMAIL":
-                        email = val
-                    elif key == "GMAIL_APP_PASSWORD":
-                        password = val
-                    elif key == "GMAIL_DISPLAY_NAME":
-                        display = val
     
     if not email or email == "your@gmail.com" or not password or password == "xxxx xxxx xxxx xxxx":
         return None
@@ -173,7 +155,7 @@ def send_email(lead: Dict, template_name: str, credentials: Dict = None) -> Dict
         credentials = get_gmail_credentials()
     
     if not credentials:
-        return {"success": False, "error": "Gmail not configured. Add your Gmail credentials first."}
+        return {"success": False, "error": "Gmail not configured. Set GMAIL_EMAIL and GMAIL_APP_PASSWORD environment variables."}
     
     # Check rate limits
     rate = can_send_today()
@@ -212,7 +194,7 @@ def send_email(lead: Dict, template_name: str, credentials: Dict = None) -> Dict
         msg["To"] = to_email
         msg.attach(MIMEText(body, "plain"))
         
-        with smtplib.SMTP("smtp.gmail.com", 587) as server:
+        with smtplib.SMTP("smtp.gmail.com", 587, timeout=15) as server:
             server.starttls()
             server.login(credentials["email"], credentials["password"])
             server.send_message(msg)
@@ -284,7 +266,7 @@ def run_campaign_batch(campaign_id: str, batch_size: int = 10) -> Dict:
     """Send a batch of emails for a campaign."""
     credentials = get_gmail_credentials()
     if not credentials:
-        return {"success": False, "error": "Gmail not configured"}
+        return {"success": False, "error": "Gmail not configured. Set GMAIL_EMAIL and GMAIL_APP_PASSWORD environment variables."}
     
     conn = get_db()
     campaign = conn.execute("SELECT * FROM campaigns WHERE id = ?", (campaign_id,)).fetchone()
@@ -332,7 +314,6 @@ def run_campaign_batch(campaign_id: str, batch_size: int = 10) -> Dict:
         
         # Random gap between sends
         gap = random.randint(MIN_GAP_SECONDS, MAX_GAP_SECONDS)
-        # In production this would be async; for now just note the gap
         results["next_send_in"] = f"{gap} seconds"
     
     # Update campaign stats

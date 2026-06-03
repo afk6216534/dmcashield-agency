@@ -2472,13 +2472,24 @@ def get_cost_optimization():
 
 
 # ═══════════════════════════════════════════════════════════
-# V5.0 — REAL-WORLD ENGINE (Gmail + Real Leads + Campaigns)
+# V5.1 — REAL-WORLD ENGINE (Cloud DB + Gmail + Scraping)
+# Vercel-compatible: /tmp/ SQLite, env vars for Gmail
 # ═══════════════════════════════════════════════════════════
+
+# Initialize cloud database on startup (idempotent)
+try:
+    from agents.cloud_db import get_db as _init_db, seed_gmail_from_env
+    _conn = _init_db()
+    seed_gmail_from_env(_conn)
+    _conn.close()
+except Exception as _e:
+    print(f"[WARN] DB init: {_e}")
+
 
 # --- Gmail Configuration ---
 @app.route('/api/gmail/status')
 def gmail_status():
-    """Get Gmail connection status."""
+    """Get Gmail connection status. Reads from env vars first."""
     try:
         from agents.real_lead_engine import get_gmail_status
         status = get_gmail_status()
@@ -2500,12 +2511,9 @@ def gmail_configure():
     
     try:
         from agents.real_lead_engine import save_gmail_config, test_gmail_connection
-        # Test first
         test = test_gmail_connection(email, app_password)
         if not test["success"]:
             return jsonify({"error": f"Connection failed: {test['message']}"}), 400
-        
-        # Save
         result = save_gmail_config(email, app_password, display_name)
         return jsonify({**result, "test": test})
     except Exception as e:
@@ -2532,7 +2540,7 @@ def gmail_test():
 # --- Real Leads ---
 @app.route('/api/real-leads')
 def get_real_leads():
-    """Get real leads from SQLite database."""
+    """Get real leads from cloud database."""
     try:
         from agents.real_lead_engine import get_leads, get_lead_stats
         status = request.args.get("status")
@@ -2591,6 +2599,49 @@ def delete_real_lead(lead_id):
         return jsonify({"status": "deleted", "id": lead_id})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+# --- Scraping (NEW — v5.1) ---
+@app.route('/api/scrape', methods=['POST'])
+def scrape_businesses():
+    """Scrape real businesses from web directories.
+    
+    POST body: {
+        "business_type": "dentist",
+        "city": "Los Angeles",
+        "state": "CA",
+        "country": "USA",
+        "max_results": 20
+    }
+    """
+    data = request.json or {}
+    business_type = data.get("business_type", "")
+    city = data.get("city", "")
+    state = data.get("state", "")
+    country = data.get("country", "USA")
+    max_results = min(data.get("max_results", 20), 50)
+    
+    if not business_type or not city:
+        return jsonify({"error": "business_type and city are required"}), 400
+    
+    try:
+        import uuid
+        task_id = f"scrape_{uuid.uuid4().hex[:8]}"
+        from agents.real_lead_scraper import run_scraper_pipeline
+        result = run_scraper_pipeline(task_id, business_type, city, state, country, max_results)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e), "task_id": task_id}), 500
+
+
+@app.route('/api/scrape/tasks')
+def get_scrape_tasks():
+    """Get scraping task history."""
+    try:
+        from agents.real_lead_scraper import get_scrape_tasks
+        return jsonify({"tasks": get_scrape_tasks()})
+    except Exception as e:
+        return jsonify({"tasks": [], "error": str(e)})
 
 
 # --- Campaigns ---
@@ -2674,9 +2725,9 @@ def send_single_email():
 # --- System Status (combined) ---
 @app.route('/api/system/full-status')
 def full_system_status():
-    """Get complete system status — Gmail, leads, campaigns, KB."""
+    """Get complete system status — Gmail, leads, campaigns, KB, DB."""
     status = {
-        "version": "5.0",
+        "version": "5.1",
         "repos_integrated": KNOWLEDGE_BASE["repos_integrated"],
         "skills_loaded": KNOWLEDGE_BASE["skills_loaded"],
         "demo_leads": len(DEMO_LEADS),
@@ -2689,7 +2740,7 @@ def full_system_status():
         status["gmail"] = get_gmail_status()
         status["real_leads"] = get_lead_stats()
         status["campaigns"] = len(get_campaigns())
-    except:
+    except Exception:
         status["gmail"] = {"status": "not_initialized"}
         status["real_leads"] = {"total": 0}
         status["campaigns"] = 0
@@ -2697,12 +2748,30 @@ def full_system_status():
     try:
         from agents.email_campaign_engine import get_email_stats
         status["email"] = get_email_stats()
-    except:
+    except Exception:
         status["email"] = {"total_sent": 0}
+    
+    try:
+        from agents.cloud_db import get_db_info
+        status["database"] = get_db_info()
+    except Exception:
+        status["database"] = {"status": "unknown"}
     
     return jsonify(status)
 
 
+# --- Database Info ---
+@app.route('/api/db/info')
+def db_info():
+    """Get database connection info (for debugging)."""
+    try:
+        from agents.cloud_db import get_db_info
+        return jsonify(get_db_info())
+    except Exception as e:
+        return jsonify({"error": str(e)})
+
+
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
+
 

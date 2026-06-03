@@ -1,100 +1,21 @@
 """
 DMCAShield Real Lead Engine
 ==========================
-Scrapes real businesses from the web, scores them, and stores in SQLite.
-Uses patterns from: firecrawl, browser-use, scrapegraph-ai, n8n
+Scrapes real businesses from the web, scores them, and stores in database.
+Uses cloud_db for Vercel-compatible storage.
 """
 
 import json
 import os
-import sqlite3
 import uuid
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 
 
-DB_PATH = os.path.join(os.path.dirname(__file__), '..', 'data', 'dmcashield.db')
-
-
 def get_db():
-    """Get SQLite connection, create tables if needed."""
-    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA journal_mode=WAL")
-    
-    conn.executescript("""
-        CREATE TABLE IF NOT EXISTS real_leads (
-            id TEXT PRIMARY KEY,
-            business_name TEXT NOT NULL,
-            owner_name TEXT DEFAULT '',
-            email_primary TEXT DEFAULT '',
-            phone TEXT DEFAULT '',
-            website TEXT DEFAULT '',
-            city TEXT DEFAULT '',
-            state TEXT DEFAULT '',
-            niche TEXT DEFAULT '',
-            full_address TEXT DEFAULT '',
-            current_rating REAL DEFAULT 0,
-            review_count INTEGER DEFAULT 0,
-            negative_review_count INTEGER DEFAULT 0,
-            lead_score INTEGER DEFAULT 0,
-            lead_temperature TEXT DEFAULT 'cold',
-            status TEXT DEFAULT 'new',
-            funnel_step INTEGER DEFAULT 0,
-            emails_sent_count INTEGER DEFAULT 0,
-            last_email_sent TEXT DEFAULT '',
-            last_reply TEXT DEFAULT '',
-            source TEXT DEFAULT 'manual',
-            notes TEXT DEFAULT '',
-            created_at TEXT NOT NULL,
-            updated_at TEXT NOT NULL
-        );
-
-        CREATE TABLE IF NOT EXISTS email_log (
-            id TEXT PRIMARY KEY,
-            lead_id TEXT NOT NULL,
-            subject TEXT NOT NULL,
-            body_preview TEXT DEFAULT '',
-            template_name TEXT DEFAULT '',
-            sent_at TEXT NOT NULL,
-            opened_at TEXT DEFAULT '',
-            clicked_at TEXT DEFAULT '',
-            replied_at TEXT DEFAULT '',
-            status TEXT DEFAULT 'sent',
-            FOREIGN KEY (lead_id) REFERENCES real_leads(id)
-        );
-
-        CREATE TABLE IF NOT EXISTS campaigns (
-            id TEXT PRIMARY KEY,
-            name TEXT NOT NULL,
-            niche TEXT DEFAULT '',
-            city TEXT DEFAULT '',
-            state TEXT DEFAULT '',
-            status TEXT DEFAULT 'draft',
-            total_leads INTEGER DEFAULT 0,
-            emails_sent INTEGER DEFAULT 0,
-            opens INTEGER DEFAULT 0,
-            replies INTEGER DEFAULT 0,
-            template_sequence TEXT DEFAULT '[]',
-            created_at TEXT NOT NULL,
-            updated_at TEXT NOT NULL
-        );
-
-        CREATE TABLE IF NOT EXISTS gmail_config (
-            id INTEGER PRIMARY KEY CHECK (id = 1),
-            email TEXT DEFAULT '',
-            app_password_set INTEGER DEFAULT 0,
-            display_name TEXT DEFAULT 'DMCAShield Agency',
-            connected_at TEXT DEFAULT '',
-            last_test TEXT DEFAULT '',
-            status TEXT DEFAULT 'disconnected'
-        );
-
-        INSERT OR IGNORE INTO gmail_config (id) VALUES (1);
-    """)
-    conn.commit()
-    return conn
+    """Get database connection via cloud_db layer."""
+    from agents.cloud_db import get_db as _get_db
+    return _get_db()
 
 
 def add_lead(lead_data: Dict) -> Dict:
@@ -109,9 +30,9 @@ def add_lead(lead_data: Dict) -> Dict:
     
     conn.execute("""
         INSERT INTO real_leads (id, business_name, owner_name, email_primary, phone, website,
-            city, state, niche, full_address, current_rating, review_count, negative_review_count,
+            city, state, country, niche, full_address, current_rating, review_count, negative_review_count,
             lead_score, lead_temperature, status, source, notes, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'new', ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'new', ?, ?, ?, ?)
     """, (
         lead_id,
         lead_data.get("business_name", ""),
@@ -121,6 +42,7 @@ def add_lead(lead_data: Dict) -> Dict:
         lead_data.get("website", ""),
         lead_data.get("city", ""),
         lead_data.get("state", ""),
+        lead_data.get("country", "USA"),
         lead_data.get("niche", ""),
         lead_data.get("full_address", ""),
         lead_data.get("current_rating", 0),
@@ -254,17 +176,35 @@ def delete_lead(lead_id: str) -> bool:
 
 # --- Gmail Config ---
 def get_gmail_status() -> Dict:
-    """Get Gmail connection status."""
-    conn = get_db()
-    row = conn.execute("SELECT * FROM gmail_config WHERE id = 1").fetchone()
-    conn.close()
-    if row:
-        return dict(row)
+    """Get Gmail connection status. Checks env vars first, then DB."""
+    # Check environment variables (Vercel env vars)
+    env_email = os.environ.get("GMAIL_EMAIL", "")
+    env_pass = os.environ.get("GMAIL_APP_PASSWORD", "")
+    
+    if env_email and env_email != "your@gmail.com" and env_pass and env_pass != "xxxx xxxx xxxx xxxx":
+        return {
+            "status": "connected",
+            "email": env_email,
+            "app_password_set": 1,
+            "display_name": os.environ.get("GMAIL_DISPLAY_NAME", "DMCAShield Agency"),
+            "source": "environment",
+        }
+    
+    # Fallback to database
+    try:
+        conn = get_db()
+        row = conn.execute("SELECT * FROM gmail_config WHERE id = 1").fetchone()
+        conn.close()
+        if row:
+            return dict(row)
+    except Exception as e:
+        return {"status": "disconnected", "email": "", "error": str(e)}
+    
     return {"status": "disconnected", "email": ""}
 
 
 def save_gmail_config(email: str, app_password: str, display_name: str = "DMCAShield Agency") -> Dict:
-    """Save Gmail config (password stored only in .env, not in DB)."""
+    """Save Gmail config to database."""
     conn = get_db()
     now = datetime.utcnow().isoformat()
     
@@ -277,16 +217,6 @@ def save_gmail_config(email: str, app_password: str, display_name: str = "DMCASh
     conn.commit()
     conn.close()
     
-    # Also update .env file
-    env_path = os.path.join(os.path.dirname(__file__), '..', 'backend', '.env')
-    if os.path.exists(env_path):
-        with open(env_path, 'r') as f:
-            content = f.read()
-        content = content.replace("GMAIL_EMAIL=your@gmail.com", f"GMAIL_EMAIL={email}")
-        content = content.replace("GMAIL_APP_PASSWORD=xxxx xxxx xxxx xxxx", f"GMAIL_APP_PASSWORD={app_password}")
-        with open(env_path, 'w') as f:
-            f.write(content)
-    
     return {"status": "connected", "email": email}
 
 
@@ -294,17 +224,20 @@ def test_gmail_connection(email: str, app_password: str) -> Dict:
     """Test Gmail SMTP connection."""
     import smtplib
     try:
-        server = smtplib.SMTP("smtp.gmail.com", 587)
+        server = smtplib.SMTP("smtp.gmail.com", 587, timeout=10)
         server.starttls()
         server.login(email, app_password)
         server.quit()
         
         # Update DB
-        conn = get_db()
-        conn.execute("UPDATE gmail_config SET last_test = ?, status = 'connected' WHERE id = 1",
-                     (datetime.utcnow().isoformat(),))
-        conn.commit()
-        conn.close()
+        try:
+            conn = get_db()
+            conn.execute("UPDATE gmail_config SET last_test = ?, status = 'connected' WHERE id = 1",
+                         (datetime.utcnow().isoformat(),))
+            conn.commit()
+            conn.close()
+        except Exception:
+            pass
         
         return {"success": True, "message": "Gmail connection verified!"}
     except Exception as e:
