@@ -137,6 +137,18 @@ SCHEMA_SQL = """
 
     INSERT OR IGNORE INTO email_accounts (id, email_address, display_name, app_password, daily_limit, sent_today, total_sent, warmup_day, warmup_complete, status, blacklist_status, health_score, total_opens, total_replies, created_at)
     VALUES ('ce972985-b30e-4420-90ff-c1c9ed99b741', 'af6216em2@gmail.com', 'John', 'Ahmad12345@', 40, 0, 0, 1, 0, 'warming_up', 'clean', 100, 0, 0, '2026-04-29T13:13:27Z');
+
+    INSERT OR IGNORE INTO real_leads (id, business_name, owner_name, email_primary, phone, website, city, state, country, niche, full_address, current_rating, review_count, negative_review_count, lead_score, lead_temperature, status, funnel_step, emails_sent_count, last_email_sent, last_reply, source, notes, created_at, updated_at)
+    VALUES ('rl_362307dd', 'Midtown Dental', '', 'contact@midtowndental.com', '(871) 894-5445', 'https://www.midtowndental.com', 'Houston', 'Texas', 'USA', 'dentist', 'Midtown Dental, 2450, Louisiana Street, Midtown, Houston, Harris County, Texas, 77006, United States', 4.3, 112, 10, 80, 'hot', 'new', 0, 0, '', '', 'scrape_scrape_588c7131', '', '2026-06-03T09:20:30.509104', '2026-06-03T09:20:30.509104');
+
+    INSERT OR IGNORE INTO real_leads (id, business_name, owner_name, email_primary, phone, website, city, state, country, niche, full_address, current_rating, review_count, negative_review_count, lead_score, lead_temperature, status, funnel_step, emails_sent_count, last_email_sent, last_reply, source, notes, created_at, updated_at)
+    VALUES ('rl_af7025fd', 'Urban Dental', '', 'contact@urbandental.com', '(207) 623-7774', 'https://www.urbandental.com', 'Houston', 'Texas', 'USA', 'dentist', 'Urban Dental, 2511, Bagby Street, Midtown, Houston, Harris County, Texas, 77006, United States', 4.0, 83, 7, 80, 'hot', 'new', 0, 0, '', '', 'scrape_scrape_588c7131', '', '2026-06-03T09:20:30.526590', '2026-06-03T09:20:30.526590');
+
+    INSERT OR IGNORE INTO real_leads (id, business_name, owner_name, email_primary, phone, website, city, state, country, niche, full_address, current_rating, review_count, negative_review_count, lead_score, lead_temperature, status, funnel_step, emails_sent_count, last_email_sent, last_reply, source, notes, created_at, updated_at)
+    VALUES ('rl_e2215acd', 'Bayou City Smiles', '', 'contact@bayoucitysmiles.com', '(786) 564-3919', 'https://www.bayoucitysmiles.com', 'Houston', 'Texas', 'USA', 'dentist', 'Bayou City Smiles, 2313, Edwards Street, Washington Avenue Coalition / Memorial Park, Old Sixth Ward, Houston, Harris County, Texas, 77007, United States', 4.1, 65, 12, 80, 'hot', 'new', 0, 0, '', '', 'scrape_scrape_588c7131', '', '2026-06-03T09:20:30.538672', '2026-06-03T09:20:30.538672');
+
+    INSERT OR IGNORE INTO campaigns (id, name, niche, city, state, status, total_leads, emails_sent, opens, replies, template_sequence, created_at, updated_at)
+    VALUES ('c1', 'Houston Dentist Outreach', 'dentist', 'Houston', 'Texas', 'active', 3, 0, 0, 0, '["day1_opener", "day3_followup", "day7_value", "day14_breakup"]', '2026-06-03T10:00:00Z', '2026-06-03T10:00:00Z');
 """
 
 
