@@ -102,7 +102,19 @@ SEQUENCE_DELAYS = [0, 3, 7, 14]  # Days between emails
 
 def get_gmail_credentials() -> Optional[Dict]:
     """Load Gmail credentials from database or environment variables."""
-    # Try loading from the database first (accounts added via UI)
+    # Always check environment variables first if they contain a valid 16-char app password
+    env_email = os.environ.get("GMAIL_EMAIL", "")
+    env_pwd = os.environ.get("GMAIL_APP_PASSWORD", "")
+    env_display = os.environ.get("GMAIL_DISPLAY_NAME", "DMCAShield Agency")
+    
+    if env_email and env_pwd and len(env_pwd.replace(" ", "")) == 16:
+        return {
+            "email": env_email,
+            "password": env_pwd,
+            "display_name": env_display
+        }
+
+    # Try loading from the database (accounts added via UI)
     try:
         conn = get_db()
         row = conn.execute("""

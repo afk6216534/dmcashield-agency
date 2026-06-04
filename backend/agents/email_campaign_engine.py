@@ -105,12 +105,43 @@ def get_db():
 
 
 def get_gmail_credentials() -> Optional[Dict]:
-    """Load Gmail credentials from .env or environment."""
+    """Load Gmail credentials from environment, database, or .env file."""
+    # Always check environment variables first if they contain a valid 16-char app password
+    env_email = os.environ.get("GMAIL_EMAIL", "")
+    env_pwd = os.environ.get("GMAIL_APP_PASSWORD", "")
+    env_display = os.environ.get("GMAIL_DISPLAY_NAME", "DMCAShield Agency")
+    
+    if env_email and env_pwd and len(env_pwd.replace(" ", "")) == 16:
+        return {
+            "email": env_email,
+            "password": env_pwd,
+            "display_name": env_display
+        }
+
+    # Try loading from the database (accounts added via UI)
+    try:
+        conn = get_db()
+        row = conn.execute("""
+            SELECT email_address, app_password, display_name 
+            FROM email_accounts 
+            WHERE status IN ('active', 'warming_up') AND app_password != ''
+            ORDER BY sent_today ASC LIMIT 1
+        """).fetchone()
+        conn.close()
+        if row:
+            return {
+                "email": row["email_address"],
+                "password": row["app_password"],
+                "display_name": row["display_name"] or "DMCAShield Agency"
+            }
+    except Exception as e:
+        pass
+
+    # Fallback to .env file reading
     email = os.environ.get("GMAIL_EMAIL", "")
     password = os.environ.get("GMAIL_APP_PASSWORD", "")
     display = os.environ.get("GMAIL_DISPLAY_NAME", "DMCAShield Agency")
     
-    # Try .env file
     env_path = os.path.join(os.path.dirname(__file__), '..', 'backend', '.env')
     if os.path.exists(env_path) and not email:
         with open(env_path, 'r') as f:
