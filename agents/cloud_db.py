@@ -240,7 +240,7 @@ def save_all_accounts_to_cloud():
         conn.close()
         
         accounts = []
-        key = os.environ.get("OPENROUTER_API_KEY", "dmcashield-default")
+        key = "dmcashield-secure-key-2026"
         for r in rows:
             acc = dict(r)
             acc["encrypted_password"] = encrypt_val(acc.get("app_password", ""), key)
@@ -262,7 +262,7 @@ def restore_and_sync_accounts(conn: sqlite3.Connection):
         if not accounts:
             return
             
-        key = os.environ.get("OPENROUTER_API_KEY", "dmcashield-default")
+        key = "dmcashield-secure-key-2026"
         for acc in accounts:
             pwd = decrypt_val(acc.get("encrypted_password", ""), key)
             conn.execute("""
@@ -285,11 +285,16 @@ def restore_and_sync_accounts(conn: sqlite3.Connection):
         logger.warning(f"[CloudBackup] Failed to restore accounts: {e}")
 
 
+LAST_SYNC_TIME = 0
+
+
 def get_db() -> sqlite3.Connection:
     """
     Get a database connection with auto-initialized schema.
     Safe to call on every request — CREATE IF NOT EXISTS is idempotent.
     """
+    global LAST_SYNC_TIME
+    import time
     db_path = _get_db_path()
     is_new = not os.path.exists(db_path) or os.path.getsize(db_path) == 0
     
@@ -307,8 +312,10 @@ def get_db() -> sqlite3.Connection:
     # Run dynamic schema migrations
     _run_migrations(conn)
     
-    # If the SQLite file was just created (Vercel cold start), restore backup!
-    if is_new:
+    # Sync from cloud if the SQLite file was just created OR if 60 seconds have passed since last sync
+    now = time.time()
+    if is_new or (now - LAST_SYNC_TIME > 60):
+        LAST_SYNC_TIME = now
         restore_and_sync_accounts(conn)
         
     return conn

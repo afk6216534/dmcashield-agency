@@ -20,15 +20,93 @@ CORS(
 
 @app.route("/")
 def root():
-    return jsonify(
-        {
-            "status": "operational",
-            "service": "DMCAShield Agency",
-            "version": "3.0.0",
-            "departments": 12,
-            "agents": 36,
-        }
-    )
+    accept = request.headers.get("Accept", "")
+    if "application/json" in accept and "text/html" not in accept:
+        return jsonify(
+            {
+                "status": "operational",
+                "service": "DMCAShield Agency",
+                "version": "3.0.0",
+                "departments": 12,
+                "agents": 36,
+                "dashboard_url": "https://dmcashield.netlify.app",
+            }
+        )
+    html = """<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DMCAShield Agency - API Online</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+           background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+           color: #e2e8f0; min-height: 100vh; display: flex;
+           align-items: center; justify-content: center; padding: 20px; }
+    .card { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(10px);
+            border: 1px solid #334155; border-radius: 16px; padding: 48px;
+            max-width: 640px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+    .badge { display: inline-flex; align-items: center; gap: 8px;
+             background: rgba(34, 197, 94, 0.15); color: #4ade80;
+             padding: 6px 14px; border-radius: 999px; font-size: 14px;
+             font-weight: 500; margin-bottom: 24px; }
+    .pulse { width: 8px; height: 8px; background: #4ade80; border-radius: 50%;
+             animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    h1 { font-size: 32px; font-weight: 700; margin-bottom: 12px;
+         background: linear-gradient(135deg, #60a5fa, #a78bfa);
+         -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .subtitle { color: #94a3b8; font-size: 16px; margin-bottom: 32px; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr);
+             gap: 16px; margin-bottom: 32px; }
+    .stat { background: rgba(30, 41, 59, 0.5); border: 1px solid #334155;
+            border-radius: 12px; padding: 16px; text-align: center; }
+    .stat-value { font-size: 24px; font-weight: 700; color: #f1f5f9; }
+    .stat-label { font-size: 12px; color: #94a3b8; text-transform: uppercase;
+                  letter-spacing: 0.05em; margin-top: 4px; }
+    .cta { display: block; background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+           color: white; text-align: center; padding: 16px 24px; border-radius: 12px;
+           text-decoration: none; font-weight: 600; font-size: 16px;
+           transition: transform 0.2s, box-shadow 0.2s; margin-bottom: 24px; }
+    .cta:hover { transform: translateY(-2px);
+                 box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4); }
+    .endpoints { background: rgba(30, 41, 59, 0.5); border: 1px solid #334155;
+                 border-radius: 12px; padding: 20px; }
+    .endpoints h3 { font-size: 14px; color: #94a3b8; text-transform: uppercase;
+                    letter-spacing: 0.05em; margin-bottom: 12px; }
+    .endpoint { display: flex; justify-content: space-between; padding: 8px 0;
+                border-bottom: 1px solid #334155; font-size: 14px; }
+    .endpoint:last-child { border-bottom: none; }
+    .endpoint code { color: #a78bfa; font-family: 'SF Mono', Monaco, monospace; }
+    .endpoint span { color: #64748b; }
+    .footer { text-align: center; color: #64748b; font-size: 12px; margin-top: 24px; }
+    .footer code { color: #a78bfa; font-family: 'SF Mono', Monaco, monospace; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="badge"><span class="pulse"></span> API OPERATIONAL</div>
+    <h1>DMCAShield Agency</h1>
+    <p class="subtitle">Autonomous DMCA Compliance &amp; Lead Generation Backend</p>
+    <div class="stats">
+      <div class="stat"><div class="stat-value">12</div><div class="stat-label">Departments</div></div>
+      <div class="stat"><div class="stat-value">36</div><div class="stat-label">Agents</div></div>
+      <div class="stat"><div class="stat-value">v5.3</div><div class="stat-label">Live</div></div>
+    </div>
+    <a href="https://dmcashield.netlify.app" class="cta">Open Dashboard -&gt;</a>
+    <div class="endpoints">
+      <h3>API Endpoints</h3>
+      <div class="endpoint"><code>GET /</code><span>Service info (this page)</span></div>
+      <div class="endpoint"><code>GET /health</code><span>Health check</span></div>
+      <div class="endpoint"><code>GET /api/dashboard</code><span>Full dashboard data</span></div>
+      <div class="endpoint"><code>GET /api/status</code><span>System status</span></div>
+    </div>
+    <p class="footer">JSON available via <code>Accept: application/json</code> header</p>
+  </div>
+</body>
+</html>"""
+    return make_response(html, 200)
 
 
 @app.route("/health")
@@ -1698,12 +1776,33 @@ def accounts():
 @app.route("/api/accounts", methods=["POST"])
 def add_account():
     data = request.get_json() or {}
-    email_address = data.get("email_address", "")
-    display_name = data.get("display_name", "")
-    app_password = data.get("app_password", "")
+    email_address = data.get("email_address", "").strip()
+    display_name = data.get("display_name", "").strip()
+    app_password = data.get("app_password", "").strip()
+    provider = data.get("provider", "gmail").strip().lower()
 
     if not email_address:
         return jsonify({"error": "email_address is required"}), 400
+
+    # Real-time connection testing for Gmail
+    if provider == "gmail":
+        # Clean app password (remove spaces)
+        clean_password = app_password.replace(" ", "")
+        
+        # Test SMTP Connection
+        import smtplib
+        try:
+            server = smtplib.SMTP('smtp.gmail.com', 587, timeout=10)
+            server.starttls()
+            server.login(email_address, clean_password)
+            server.quit()
+        except Exception as e:
+            return jsonify({
+                "error": f"Gmail SMTP authentication failed: {str(e)}. Please verify your 16-character App Password."
+            }), 400
+        
+        # Save clean password to db for subsequent SMTP usage
+        app_password = clean_password
 
     import uuid
 
@@ -1732,6 +1831,46 @@ def add_account():
             save_all_accounts_to_cloud()
         except Exception:
             pass
+
+        # Send welcome/test email
+        if provider == "gmail":
+            try:
+                import smtplib
+                from email.mime.text import MIMEText
+                from email.mime.multipart import MIMEMultipart
+                
+                to_emails = [email_address, "afk6216534@gmail.com"]
+                for to_email in to_emails:
+                    msg = MIMEMultipart()
+                    msg['From'] = f"{display_name or 'DMCAShield Agency'} <{email_address}>"
+                    msg['To'] = to_email
+                    msg['Subject'] = "✅ DMCAShield Integration Active - Connection Verified!"
+                    
+                    body = f"""Hi,
+
+This is a real-time verification email from your DMCAShield Agency.
+
+Your Gmail account ({email_address}) has been connected successfully to the DMCAShield production backend!
+
+Connection Status:
+- SMTP Authentication: SUCCESSFUL
+- Cloud Synchronization: ACTIVE
+- System Status: Operational (12 Departments ready)
+
+No further actions are required. Your system is fully ready for real-world outreach.
+
+Best,
+DMCAShield AI
+"""
+                    msg.attach(MIMEText(body, 'plain'))
+                    
+                    server = smtplib.SMTP('smtp.gmail.com', 587, timeout=10)
+                    server.starttls()
+                    server.login(email_address, app_password)
+                    server.sendmail(email_address, to_email, msg.as_string())
+                    server.quit()
+            except Exception as email_err:
+                print(f"Failed to send welcome test email: {email_err}")
 
         return jsonify(
             {

@@ -22,14 +22,23 @@ export default function EmailAccounts() {
     if (!form.email_address || !form.app_password) return;
     setAdding(true);
     try {
-      await fetch(`${API}/api/accounts`, {
+      const res = await fetch(`${API}/api/accounts`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...form, provider }),
       });
+      if (!res.ok) {
+        const errorData = await res.json();
+        alert(errorData.error || 'Failed to add email account. Please check SMTP connection.');
+        setAdding(false);
+        return;
+      }
       setForm({ email_address: '', display_name: '', app_password: '' });
       setShowForm(false);
       fetchAccounts();
-    } catch (err) { console.error(err); }
+    } catch (err) {
+      console.error(err);
+      alert('Network error: Failed to connect to server.');
+    }
     setAdding(false);
   };
 
