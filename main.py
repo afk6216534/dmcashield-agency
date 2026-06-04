@@ -2611,6 +2611,29 @@ def gmail_test():
         return jsonify({"success": False, "message": str(e)})
 
 
+@app.route('/api/gmail/test-active')
+def test_active_gmail():
+    """Test the currently active Gmail credentials."""
+    try:
+        from agents.email_campaign_engine import get_gmail_credentials
+        creds = get_gmail_credentials()
+        if not creds:
+            return jsonify({"success": False, "message": "No Gmail credentials configured. Add an account via UI or set env vars."})
+        
+        import smtplib
+        server = smtplib.SMTP("smtp.gmail.com", 587, timeout=10)
+        server.starttls()
+        server.login(creds["email"], creds["password"])
+        server.quit()
+        return jsonify({
+            "success": True, 
+            "message": f"Successfully connected to Google SMTP for {creds['email']}!",
+            "email": creds["email"]
+        })
+    except Exception as e:
+        return jsonify({"success": False, "message": f"SMTP Error: {str(e)}"})
+
+
 # --- Real Leads ---
 @app.route('/api/real-leads')
 def get_real_leads():
