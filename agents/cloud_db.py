@@ -135,9 +135,6 @@ SCHEMA_SQL = """
     INSERT OR IGNORE INTO email_accounts (id, email_address, display_name, daily_limit, sent_today, total_sent, warmup_day, warmup_complete, status, blacklist_status, health_score, total_opens, total_replies, created_at)
     VALUES ('a1', 'outreach@dmcashield.com', 'DMCA Support', 30, 15, 234, 14, 0, 'warming_up', 'clean', 82, 90, 22, '2026-04-15T00:00:00Z');
 
-    INSERT OR IGNORE INTO email_accounts (id, email_address, display_name, app_password, daily_limit, sent_today, total_sent, warmup_day, warmup_complete, status, blacklist_status, health_score, total_opens, total_replies, created_at)
-    VALUES ('ce972985-b30e-4420-90ff-c1c9ed99b741', 'af6216em2@gmail.com', 'John', 'Ahmad12345@', 40, 0, 0, 1, 0, 'warming_up', 'clean', 100, 0, 0, '2026-04-29T13:13:27Z');
-
     INSERT OR IGNORE INTO real_leads (id, business_name, owner_name, email_primary, phone, website, city, state, country, niche, full_address, current_rating, review_count, negative_review_count, lead_score, lead_temperature, status, funnel_step, emails_sent_count, last_email_sent, last_reply, source, notes, created_at, updated_at)
     VALUES ('rl_362307dd', 'Midtown Dental', '', 'contact@midtowndental.com', '(871) 894-5445', 'https://www.midtowndental.com', 'Houston', 'Texas', 'USA', 'dentist', 'Midtown Dental, 2450, Louisiana Street, Midtown, Houston, Harris County, Texas, 77006, United States', 4.3, 112, 10, 80, 'hot', 'new', 0, 0, '', '', 'scrape_scrape_588c7131', '', '2026-06-03T09:20:30.509104', '2026-06-03T09:20:30.509104');
 
@@ -195,18 +192,19 @@ def decrypt_val(encrypted_str: str, key: str) -> str:
 def save_accounts_to_cloud(accounts: list):
     import urllib.request
     import json
-    import hashlib
     try:
-        key = os.environ.get("OPENROUTER_API_KEY", "dmcashield-default")
-        bucket_id = hashlib.sha256(key.encode()).hexdigest()[:16]
+        bucket_id = os.environ.get("KVDB_BUCKET_ID", "5xaC4pip12aoA57uV6EGiq")
         url = f"https://kvdb.io/{bucket_id}/email_accounts"
         req = urllib.request.Request(
             url,
             data=json.dumps(accounts).encode(),
-            headers={"Content-Type": "application/json"},
+            headers={
+                "Content-Type": "application/json",
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            },
             method="PUT"
         )
-        with urllib.request.urlopen(req, timeout=5) as response:
+        with urllib.request.urlopen(req, timeout=10) as response:
             pass
     except Exception as e:
         logger.warning(f"[CloudBackup] Failed to save accounts: {e}")
@@ -215,12 +213,16 @@ def save_accounts_to_cloud(accounts: list):
 def restore_accounts_from_cloud() -> list:
     import urllib.request
     import json
-    import hashlib
     try:
-        key = os.environ.get("OPENROUTER_API_KEY", "dmcashield-default")
-        bucket_id = hashlib.sha256(key.encode()).hexdigest()[:16]
+        bucket_id = os.environ.get("KVDB_BUCKET_ID", "5xaC4pip12aoA57uV6EGiq")
         url = f"https://kvdb.io/{bucket_id}/email_accounts"
-        with urllib.request.urlopen(url, timeout=5) as response:
+        req = urllib.request.Request(
+            url,
+            headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            }
+        )
+        with urllib.request.urlopen(req, timeout=10) as response:
             if response.status == 200:
                 return json.loads(response.read().decode())
     except Exception as e:
