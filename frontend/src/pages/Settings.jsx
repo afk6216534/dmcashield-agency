@@ -7,103 +7,19 @@ export default function Settings() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  // Gmail states
-  const [gmailEmail, setGmailEmail] = useState('');
-  const [gmailPassword, setGmailPassword] = useState('');
-  const [gmailDisplayName, setGmailDisplayName] = useState('DMCAShield Agency');
-  const [gmailStatus, setGmailStatus] = useState({ status: 'disconnected', email: '' });
-  const [gmailTesting, setGmailTesting] = useState(false);
-  const [gmailTestResult, setGmailTestResult] = useState(null);
-  const [gmailSaving, setGmailSaving] = useState(false);
-  const [gmailSaved, setGmailSaved] = useState(false);
-
-  useEffect(() => {
-    fetchSettings();
-    fetchGmailStatus();
-  }, []);
-
-  const fetchSettings = async () => {
-    try {
-      const res = await fetch(`${API}/api/settings`);
-      setSettings(await res.json());
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const fetchGmailStatus = async () => {
-    try {
-      const res = await fetch(`${API}/api/gmail/status`);
-      const data = await res.json();
-      setGmailStatus(data);
-      if (data.email) {
-        setGmailEmail(data.email);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  useEffect(() => { fetch(`${API}/api/settings`).then(r => r.json()).then(setSettings).catch(console.error); }, []);
 
   const handleSaveKey = async () => {
     if (!apiKey.trim()) return;
     setSaving(true);
     await fetch(`${API}/api/settings`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ openrouter_api_key: apiKey }),
     });
     setSaving(false);
     setSaved(true);
     setApiKey('');
-    fetchSettings();
     setTimeout(() => setSaved(false), 3000);
-  };
-
-  const handleTestGmail = async () => {
-    if (!gmailEmail || !gmailPassword) return;
-    setGmailTesting(true);
-    setGmailTestResult(null);
-    try {
-      const res = await fetch(`${API}/api/gmail/test`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: gmailEmail, app_password: gmailPassword })
-      });
-      const data = await res.json();
-      setGmailTestResult(data);
-    } catch (err) {
-      setGmailTestResult({ success: false, message: 'Failed to connect to backend' });
-    }
-    setGmailTesting(false);
-  };
-
-  const handleSaveGmail = async () => {
-    if (!gmailEmail || !gmailPassword) return;
-    setGmailSaving(true);
-    setGmailSaved(false);
-    try {
-      const res = await fetch(`${API}/api/gmail/configure`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: gmailEmail,
-          app_password: gmailPassword,
-          display_name: gmailDisplayName || 'DMCAShield Agency'
-        })
-      });
-      const data = await res.json();
-      if (data.error) {
-        setGmailTestResult({ success: false, message: data.error });
-      } else {
-        setGmailSaved(true);
-        fetchGmailStatus();
-        setGmailPassword('');
-        setTimeout(() => setGmailSaved(false), 3000);
-      }
-    } catch (err) {
-      setGmailTestResult({ success: false, message: 'Failed to configure Gmail' });
-    }
-    setGmailSaving(false);
   };
 
   return (
@@ -124,7 +40,7 @@ export default function Settings() {
             </div>
             {saved && <div style={{ color: 'var(--accent-success)', fontSize: '0.78rem', marginTop: 6 }}>✅ API key saved!</div>}
             <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', marginTop: 6 }}>
-              Get a free key at <a href="https://openrouter.ai" target="_blank" rel="noreferrer" style={{ color: 'var(--accent-secondary)' }}>openrouter.ai</a> — powers all AI copywriting, analysis, and sales replies.
+              Get a free key at <a href="https://openrouter.ai" target="_blank" style={{ color: 'var(--accent-secondary)' }}>openrouter.ai</a> — powers all AI copywriting, analysis, and sales replies.
             </div>
           </div>
 
@@ -147,66 +63,6 @@ export default function Settings() {
             <div>
               <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Gap between sends:</span>
               <div style={{ fontWeight: 700, fontSize: '1.2rem' }}>{Math.floor((settings?.email_gap_min || 180) / 60)}–{Math.floor((settings?.email_gap_max || 420) / 60)} minutes</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Gmail Config Card */}
-        <div className="glass-card no-hover" style={{ gridColumn: 'span 2' }}>
-          <h3 style={{ marginBottom: 16, fontSize: '1rem', fontWeight: 700 }}>📧 Gmail connection config (Vercel-compatible)</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-            <div>
-              <div className="form-group">
-                <label className="form-label">Gmail Address</label>
-                <input className="form-input" type="email" placeholder="your.name@gmail.com" value={gmailEmail} onChange={e => setGmailEmail(e.target.value)} />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Gmail App Password</label>
-                <input className="form-input" type="password" placeholder="•••• •••• •••• ••••" value={gmailPassword} onChange={e => setGmailPassword(e.target.value)} />
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', marginTop: 4 }}>
-                  16-character code from <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noreferrer" style={{ color: 'var(--accent-secondary)' }}>Google Account Settings</a>. Do NOT use your normal Gmail password.
-                </div>
-              </div>
-              <div className="form-group">
-                <label className="form-label">Display Name</label>
-                <input className="form-input" type="text" placeholder="DMCAShield Agency" value={gmailDisplayName} onChange={e => setGmailDisplayName(e.target.value)} />
-              </div>
-              <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
-                <button className="btn btn-secondary" onClick={handleTestGmail} disabled={gmailTesting || !gmailEmail || !gmailPassword}>
-                  {gmailTesting ? '⏳ Testing...' : '🔍 Test Connection'}
-                </button>
-                <button className="btn btn-primary" onClick={handleSaveGmail} disabled={gmailSaving || !gmailEmail || !gmailPassword}>
-                  {gmailSaving ? '⏳ Saving...' : '💾 Save & Connect'}
-                </button>
-              </div>
-              {gmailSaved && <div style={{ color: 'var(--accent-success)', fontSize: '0.78rem', marginTop: 8 }}>✅ Gmail credentials verified and saved successfully!</div>}
-            </div>
-
-            <div style={{ background: 'var(--bg-tertiary)', padding: 16, borderRadius: 12 }}>
-              <h4 style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: 12 }}>Connection Status</h4>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-                <span className={`status-dot ${gmailStatus?.status === 'connected' ? 'green' : 'red'}`}></span>
-                <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>
-                  {gmailStatus?.status === 'connected' ? `Connected to ${gmailStatus.email}` : 'Disconnected'}
-                </span>
-              </div>
-              
-              {gmailTestResult && (
-                <div style={{
-                  padding: 12,
-                  borderRadius: 8,
-                  fontSize: '0.8rem',
-                  border: `1px solid ${gmailTestResult.success ? 'rgba(0,184,148,0.3)' : 'rgba(255,107,107,0.3)'}`,
-                  background: gmailTestResult.success ? 'rgba(0,184,148,0.06)' : 'rgba(255,107,107,0.06)',
-                  color: gmailTestResult.success ? 'var(--accent-success)' : 'var(--accent-hot)'
-                }}>
-                  <strong>{gmailTestResult.success ? 'Success!' : 'Error:'}</strong> {gmailTestResult.message}
-                </div>
-              )}
-
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', marginTop: 16, lineHeight: 1.4 }}>
-                <p><strong>Note:</strong> On Vercel, the database is ephemeral. Setting these configurations saves them in the local session db. If you configured environment variables on Vercel (`GMAIL_EMAIL` and `GMAIL_APP_PASSWORD`), the system will automatically connect using those credentials even if the SQLite database resets.</p>
-              </div>
             </div>
           </div>
         </div>

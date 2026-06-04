@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 
-const API = 'http://localhost:8000';
+import API from '../config/api.js';
 
 const DEPARTMENTS = [
   { key: '', label: '🧠 JARVIS (General)', desc: 'Ask anything about the company' },

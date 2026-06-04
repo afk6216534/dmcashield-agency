@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-
-const API = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+import API from '../config/api.js';
 
 export default function LeadDetails() {
   const { id } = useParams();

@@ -8,76 +8,7 @@ export default function EmailAccounts() {
   const [form, setForm] = useState({ email_address: '', display_name: '', app_password: '' });
   const [adding, setAdding] = useState(false);
 
-  // V5.0 Real Gmail Connection State
-  const [gmailStatus, setGmailStatus] = useState({ status: 'disconnected', email: '', display_name: '' });
-  const [gmailForm, setGmailForm] = useState({ email: '', app_password: '', display_name: 'DMCAShield Agency' });
-  const [testingGmail, setTestingGmail] = useState(false);
-  const [gmailError, setGmailError] = useState('');
-  const [gmailSuccess, setGmailSuccess] = useState('');
-
-  useEffect(() => { 
-    fetchAccounts(); 
-    fetchGmailStatus();
-  }, []);
-
-  const fetchGmailStatus = async () => {
-    try {
-      const res = await fetch(`${API}/api/gmail/status`);
-      const data = await res.json();
-      setGmailStatus(data);
-      if (data.email) {
-        setGmailForm(prev => ({ ...prev, email: data.email, display_name: data.display_name || prev.display_name }));
-      }
-    } catch (err) {
-      console.error('Failed to fetch Gmail status:', err);
-    }
-  };
-
-  const handleTestGmail = async () => {
-    setTestingGmail(true);
-    setGmailError('');
-    setGmailSuccess('');
-    try {
-      const res = await fetch(`${API}/api/gmail/test`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: gmailForm.email, app_password: gmailForm.app_password }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setGmailSuccess('✅ SMTP Connection verified successfully!');
-      } else {
-        setGmailError(`❌ SMTP Connection failed: ${data.message}`);
-      }
-    } catch (err) {
-      setGmailError('❌ Failed to connect to server');
-    }
-    setTestingGmail(false);
-  };
-
-  const handleConfigureGmail = async (e) => {
-    e.preventDefault();
-    setTestingGmail(true);
-    setGmailError('');
-    setGmailSuccess('');
-    try {
-      const res = await fetch(`${API}/api/gmail/configure`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(gmailForm),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setGmailSuccess('✅ Gmail account connected and configured!');
-        fetchGmailStatus();
-      } else {
-        setGmailError(`❌ Configuration failed: ${data.detail || data.error}`);
-      }
-    } catch (err) {
-      setGmailError('❌ Failed to connect to server');
-    }
-    setTestingGmail(false);
-  };
+  useEffect(() => { fetchAccounts(); }, []);
 
   const fetchAccounts = async () => {
     try {
@@ -110,53 +41,6 @@ export default function EmailAccounts() {
 
   return (
     <div className="main-content animate-in">
-      {/* V5.0 Active Gmail Card */}
-      <div className="glass-card no-hover" style={{ marginBottom: 24, padding: 20 }}>
-        <h3 style={{ marginBottom: 12, fontSize: '1.1rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
-          🔴 Active Real Gmail Connection
-          <span className={`badge ${gmailStatus.status === 'connected' ? 'badge-success' : 'badge-danger'}`} style={{ fontSize: '0.7rem', padding: '2px 8px' }}>
-            {gmailStatus.status?.toUpperCase()}
-          </span>
-        </h3>
-        <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: 16 }}>
-          Connect your Google Account using a 16-character Gmail App Password. This will replace the demo email sender with your active Gmail to send real campaign emails.
-        </p>
-
-        <form onSubmit={handleConfigureGmail} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: 12, alignItems: 'end' }}>
-          <div className="form-group" style={{ margin: 0 }}>
-            <label className="form-label">Gmail Address</label>
-            <input className="form-input" placeholder="you@gmail.com" value={gmailForm.email} onChange={e => setGmailForm({...gmailForm, email: e.target.value})} required />
-          </div>
-          <div className="form-group" style={{ margin: 0 }}>
-            <label className="form-label">Display Name</label>
-            <input className="form-input" placeholder="DMCAShield Team" value={gmailForm.display_name} onChange={e => setGmailForm({...gmailForm, display_name: e.target.value})} required />
-          </div>
-          <div className="form-group" style={{ margin: 0 }}>
-            <label className="form-label">Gmail App Password</label>
-            <input className="form-input" type="password" placeholder="xxxx xxxx xxxx xxxx" value={gmailForm.app_password} onChange={e => setGmailForm({...gmailForm, app_password: e.target.value})} required />
-          </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button className="btn btn-secondary" type="button" onClick={handleTestGmail} disabled={testingGmail || !gmailForm.email || !gmailForm.app_password}>
-              Test Connection
-            </button>
-            <button className="btn btn-primary" type="submit" disabled={testingGmail}>
-              {gmailStatus.status === 'connected' ? 'Update Credentials' : 'Connect Account'}
-            </button>
-          </div>
-        </form>
-
-        {gmailError && (
-          <div style={{ marginTop: 16, padding: 12, borderRadius: 'var(--radius-sm)', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', fontSize: '0.8rem', color: '#ef4444' }}>
-            {gmailError}
-          </div>
-        )}
-        {gmailSuccess && (
-          <div style={{ marginTop: 16, padding: 12, borderRadius: 'var(--radius-sm)', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.2)', fontSize: '0.8rem', color: '#10b981' }}>
-            {gmailSuccess}
-          </div>
-        )}
-      </div>
-
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
           <h1>📧 Email Accounts</h1>
