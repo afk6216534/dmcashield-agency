@@ -8,30 +8,30 @@ import os
 
 def send_test_email():
     """Send test email to verify Gmail is working"""
+    from agents.email_campaign_engine import get_gmail_credentials
+    creds = get_gmail_credentials()
+    if not creds:
+        return {"status": "error", "message": "No Gmail credentials configured. Add an account via UI first."}
     
-    # Load email accounts from database or config
-    # For now, use the .env or create test
-    email = "af6216em2@gmail.com"
-    password = os.environ.get('GMAIL_APP_PASSWORD', '')
-    
-    # If not in env, we need to get it from the account that was added
-    # For testing, let's try to use a different approach
+    email = creds["email"]
+    password = creds["password"]
+    display_name = creds["display_name"]
     
     to_email = "afk6216534@gmail.com"
     
     msg = MIMEMultipart()
-    msg['From'] = f"John <{email}>"
+    msg['From'] = f"{display_name} <{email}>"
     msg['To'] = to_email
     msg['Subject'] = "✅ DMCAShield Test Email - System Working!"
     
-    body = """
+    body = f"""
 🎉 DMCAShield Agency - Test Email!
 
 Hi,
 
 This is a test email from your DMCAShield agency system.
 
-✅ If you received this, your email is working!
+✅ If you received this, your email ({email}) is working!
 
 System Status:
 - Scraping: 12 platforms ready
@@ -51,15 +51,14 @@ DMCAShield AI
         server = smtplib.SMTP('smtp.gmail.com', 587)
         server.starttls()
         
-        # For accounts added via dashboard, we need stored password
-        # This is a placeholder - in real system, passwords are encrypted
-        server.login(email, "test_password")
+        # Login using real active credentials
+        server.login(email, password)
         
         text = msg.as_string()
         server.sendmail(email, to_email, text)
         server.quit()
         
-        return {"status": "success", "message": "Test email sent!"}
+        return {"status": "success", "message": f"Test email sent from {email} to {to_email}!"}
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
