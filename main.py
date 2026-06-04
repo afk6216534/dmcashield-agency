@@ -723,6 +723,11 @@ def add_account():
         """, (new_id, email_address, display_name, app_password, created_at))
         conn.commit()
         conn.close()
+        try:
+            from agents.cloud_db import save_all_accounts_to_cloud
+            save_all_accounts_to_cloud()
+        except Exception:
+            pass
         
         return jsonify({
             "id": new_id, 
@@ -750,6 +755,11 @@ def delete_account(account_id):
         conn.execute("DELETE FROM email_accounts WHERE id = ?", (account_id,))
         conn.commit()
         conn.close()
+        try:
+            from agents.cloud_db import save_all_accounts_to_cloud
+            save_all_accounts_to_cloud()
+        except Exception:
+            pass
     except Exception:
         pass
         
@@ -766,6 +776,11 @@ def start_warmup(account_id):
         conn.execute("UPDATE email_accounts SET status = 'warming_up' WHERE id = ?", (account_id,))
         conn.commit()
         conn.close()
+        try:
+            from agents.cloud_db import save_all_accounts_to_cloud
+            save_all_accounts_to_cloud()
+        except Exception:
+            pass
     except Exception:
         pass
         
@@ -783,6 +798,11 @@ def stop_warmup(account_id):
         conn.execute("UPDATE email_accounts SET status = 'paused' WHERE id = ?", (account_id,))
         conn.commit()
         conn.close()
+        try:
+            from agents.cloud_db import save_all_accounts_to_cloud
+            save_all_accounts_to_cloud()
+        except Exception:
+            pass
     except Exception:
         pass
         

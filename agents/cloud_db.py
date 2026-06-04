@@ -165,12 +165,132 @@ def _run_migrations(conn: sqlite3.Connection):
         logger.warning(f"[DB] Migration failed: {e}")
 
 
+def encrypt_val(val: str, key: str) -> str:
+    import base64
+    if not val:
+        return ""
+    key_bytes = key.encode()
+    val_bytes = val.encode()
+    encrypted = bytearray(len(val_bytes))
+    for i in range(len(val_bytes)):
+        encrypted[i] = val_bytes[i] ^ key_bytes[i % len(key_bytes)]
+    return base64.b64encode(encrypted).decode()
+
+
+def decrypt_val(encrypted_str: str, key: str) -> str:
+    import base64
+    if not encrypted_str:
+        return ""
+    try:
+        key_bytes = key.encode()
+        encrypted = base64.b64decode(encrypted_str.encode())
+        decrypted = bytearray(len(encrypted))
+        for i in range(len(encrypted)):
+            decrypted[i] = encrypted[i] ^ key_bytes[i % len(key_bytes)]
+        return decrypted.decode()
+    except Exception:
+        return ""
+
+
+def save_accounts_to_cloud(accounts: list):
+    import urllib.request
+    import json
+    import hashlib
+    try:
+        key = os.environ.get("OPENROUTER_API_KEY", "dmcashield-default")
+        bucket_id = hashlib.sha256(key.encode()).hexdigest()[:16]
+        url = f"https://kvdb.io/{bucket_id}/email_accounts"
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(accounts).encode(),
+            headers={"Content-Type": "application/json"},
+            method="PUT"
+        )
+        with urllib.request.urlopen(req, timeout=5) as response:
+            pass
+    except Exception as e:
+        logger.warning(f"[CloudBackup] Failed to save accounts: {e}")
+
+
+def restore_accounts_from_cloud() -> list:
+    import urllib.request
+    import json
+    import hashlib
+    try:
+        key = os.environ.get("OPENROUTER_API_KEY", "dmcashield-default")
+        bucket_id = hashlib.sha256(key.encode()).hexdigest()[:16]
+        url = f"https://kvdb.io/{bucket_id}/email_accounts"
+        with urllib.request.urlopen(url, timeout=5) as response:
+            if response.status == 200:
+                return json.loads(response.read().decode())
+    except Exception as e:
+        # 404 is normal when no backup exists yet
+        pass
+    return []
+
+
+def save_all_accounts_to_cloud():
+    """Fetch all accounts from SQLite, encrypt passwords, and upload to cloud."""
+    try:
+        conn = sqlite3.connect(_get_db_path())
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute("SELECT * FROM email_accounts").fetchall()
+        conn.close()
+        
+        accounts = []
+        key = os.environ.get("OPENROUTER_API_KEY", "dmcashield-default")
+        for r in rows:
+            acc = dict(r)
+            acc["encrypted_password"] = encrypt_val(acc.get("app_password", ""), key)
+            if "app_password" in acc:
+                del acc["app_password"]
+            accounts.append(acc)
+        
+        save_accounts_to_cloud(accounts)
+        logger.info(f"[CloudBackup] Successfully backed up {len(accounts)} accounts to cloud.")
+    except Exception as e:
+        logger.warning(f"[CloudBackup] save_all_accounts_to_cloud failed: {e}")
+
+
+def restore_and_sync_accounts(conn: sqlite3.Connection):
+    """Restore email accounts from cloud backup and insert into SQLite."""
+    import hashlib
+    try:
+        accounts = restore_accounts_from_cloud()
+        if not accounts:
+            return
+            
+        key = os.environ.get("OPENROUTER_API_KEY", "dmcashield-default")
+        for acc in accounts:
+            pwd = decrypt_val(acc.get("encrypted_password", ""), key)
+            conn.execute("""
+                INSERT OR REPLACE INTO email_accounts (
+                    id, email_address, display_name, app_password, daily_limit,
+                    sent_today, total_sent, warmup_day, warmup_complete,
+                    status, blacklist_status, health_score, total_opens, total_replies, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                acc["id"], acc["email_address"], acc.get("display_name", ""), pwd,
+                acc.get("daily_limit", 5), acc.get("sent_today", 0), acc.get("total_sent", 0),
+                acc.get("warmup_day", 1), int(acc.get("warmup_complete", 0)),
+                acc.get("status", "warming_up"), acc.get("blacklist_status", "clean"),
+                acc.get("health_score", 50), acc.get("total_opens", 0), acc.get("total_replies", 0),
+                acc["created_at"]
+            ))
+        conn.commit()
+        logger.info(f"[CloudBackup] Successfully restored {len(accounts)} accounts from cloud.")
+    except Exception as e:
+        logger.warning(f"[CloudBackup] Failed to restore accounts: {e}")
+
+
 def get_db() -> sqlite3.Connection:
     """
     Get a database connection with auto-initialized schema.
     Safe to call on every request — CREATE IF NOT EXISTS is idempotent.
     """
     db_path = _get_db_path()
+    is_new = not os.path.exists(db_path) or os.path.getsize(db_path) == 0
+    
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     
@@ -185,6 +305,10 @@ def get_db() -> sqlite3.Connection:
     # Run dynamic schema migrations
     _run_migrations(conn)
     
+    # If the SQLite file was just created (Vercel cold start), restore backup!
+    if is_new:
+        restore_and_sync_accounts(conn)
+        
     return conn
 
 
