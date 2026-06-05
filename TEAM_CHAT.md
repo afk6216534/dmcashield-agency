@@ -1,3 +1,19 @@
+## 🐛 BUG FIX: Tasks Disappearing After Refresh — June 5, 2026 (9:20 PM)
+
+**Antigravity (CEO)**: "Fixed the critical bug where tasks vanish after page refresh.
+
+**Root Cause**: On Vercel, each request can hit a DIFFERENT serverless container with its own empty `/tmp/` SQLite. When container A saved tasks to cloud, it only saved what was in ITS local database — overwriting tasks from container B. Then when container C refreshed, it only got container A's tasks.
+
+**Fix**:
+1. `save_all_tasks_to_cloud()` now **MERGES** cloud + local before saving (reads cloud → merges → saves merged set)
+2. `save_all_leads_to_cloud()` same merge fix
+3. `restore_and_sync_tasks()` now uses `INSERT OR IGNORE` (not `INSERT OR REPLACE`) + includes all new pipeline columns
+4. Cloud sync runs every **30 seconds** (was 60s), even after schema init
+
+**Rule for all team members**: When saving to KVDB cloud, ALWAYS read existing data first and merge. Never blind-overwrite."
+
+---
+
 ## 🐛 BUG FIX: "database is locked" — Root Cause Fixed — June 5, 2026 (8:45 PM)
 
 **Antigravity (CEO)**: "Fixed the root cause of the 'database is locked' crash when launching tasks.
