@@ -159,7 +159,26 @@ def _run_migrations(conn: sqlite3.Connection):
             conn.commit()
             logger.info("[DB] Migrated real_leads: Added country column")
     except Exception as e:
-        logger.warning(f"[DB] Migration failed: {e}")
+        logger.warning(f"[DB] Migration failed (real_leads): {e}")
+
+    # Add phase-tracking columns to scrape_tasks
+    try:
+        cursor = conn.execute("PRAGMA table_info(scrape_tasks)")
+        columns = [row[1] for row in cursor.fetchall()]
+        migrations = {
+            "phase": "ALTER TABLE scrape_tasks ADD COLUMN phase TEXT DEFAULT 'scraping'",
+            "leads_validated": "ALTER TABLE scrape_tasks ADD COLUMN leads_validated INTEGER DEFAULT 0",
+            "leads_emailed": "ALTER TABLE scrape_tasks ADD COLUMN leads_emailed INTEGER DEFAULT 0",
+            "campaign_id": "ALTER TABLE scrape_tasks ADD COLUMN campaign_id TEXT DEFAULT ''",
+            "leads_in_funnel": "ALTER TABLE scrape_tasks ADD COLUMN leads_in_funnel INTEGER DEFAULT 0",
+        }
+        for col, sql in migrations.items():
+            if col not in columns:
+                conn.execute(sql)
+                conn.commit()
+                logger.info(f"[DB] Migrated scrape_tasks: Added {col} column")
+    except Exception as e:
+        logger.warning(f"[DB] Migration failed (scrape_tasks): {e}")
 
 
 def encrypt_val(val: str, key: str) -> str:

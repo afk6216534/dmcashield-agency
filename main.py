@@ -430,19 +430,37 @@ def tasks():
         tasks_list = []
         for r in rows:
             task_id = r["id"]
+            r_dict = dict(r)
             # Count emailed leads from the SQLite db
             emailed_cursor = conn.execute("SELECT COUNT(*) FROM real_leads WHERE source = ? AND emails_sent_count > 0", (f"scrape_{task_id}",))
             emailed_count = emailed_cursor.fetchone()[0]
+            # Count total leads from this task
+            total_cursor = conn.execute("SELECT COUNT(*) FROM real_leads WHERE source = ?", (f"scrape_{task_id}",))
+            total_from_db = total_cursor.fetchone()[0]
+            # Count funnel-ready leads
+            funnel_cursor = conn.execute("SELECT COUNT(*) FROM real_leads WHERE source = ? AND funnel_step > 0", (f"scrape_{task_id}",))
+            funnel_count = funnel_cursor.fetchone()[0]
             
             tasks_list.append({
                 "id": task_id,
-                "business_type": r["business_type"],
-                "city": r["city"],
-                "state": r["state"],
-                "status": r["status"],
-                "leads_total": r["leads_found"],
-                "leads_emailed": emailed_count,
-                "created_at": r["created_at"],
+                "business_type": r_dict.get("business_type", ""),
+                "city": r_dict.get("city", ""),
+                "state": r_dict.get("state", ""),
+                "status": r_dict.get("status", "complete"),
+                "phase": r_dict.get("phase", "sales"),
+                "leads_total": max(r_dict.get("leads_found", 0), total_from_db),
+                "leads_validated": r_dict.get("leads_validated", 0),
+                "leads_in_funnel": max(r_dict.get("leads_in_funnel", 0), funnel_count),
+                "leads_emailed": max(r_dict.get("leads_emailed", 0), emailed_count),
+                "campaign_id": r_dict.get("campaign_id", ""),
+                "created_at": r_dict.get("created_at", ""),
+                # Phase completion flags for frontend progress bar
+                "phase_scraping": "complete",
+                "phase_validation": "complete" if r_dict.get("leads_validated", 0) > 0 else "pending",
+                "phase_funnels": "complete" if r_dict.get("leads_in_funnel", 0) > 0 or funnel_count > 0 else "pending",
+                "phase_sending": "complete" if r_dict.get("leads_emailed", 0) > 0 or emailed_count > 0 else "pending",
+                "phase_tracking": "active" if r_dict.get("status") == "complete" else "pending",
+                "phase_sales": "active" if r_dict.get("status") == "complete" else "pending",
             })
         conn.close()
         if not tasks_list:
@@ -468,14 +486,14 @@ def create_task():
         return jsonify({"error": "business_type and city are required"}), 400
 
     try:
-        # Run real-world lead scraper synchronously
+        # Run FULL real-world pipeline: scrape → validate → funnel → send → track → sales
         pipeline_result = run_scraper_pipeline(
             task_id=task_id,
             business_type=business_type,
             city=city,
             state=state,
             country=country,
-            max_results=10
+            max_results=50
         )
 
         new_task = {
@@ -485,7 +503,10 @@ def create_task():
             "state": state,
             "status": "complete",
             "leads_total": pipeline_result.get("leads_saved", 0),
-            "leads_emailed": 0,
+            "leads_emailed": pipeline_result.get("leads_emailed", 0),
+            "leads_validated": pipeline_result.get("leads_validated", 0),
+            "campaign_id": pipeline_result.get("campaign_id", ""),
+            "phase": "sales",
             "created_at": datetime.utcnow().isoformat(),
         }
         
@@ -498,6 +519,7 @@ def create_task():
                 "task": new_task,
                 "status": "launched",
                 "phase": "complete",
+                "pipeline": pipeline_result.get("phases", {}),
                 "details": pipeline_result
             }
         )
