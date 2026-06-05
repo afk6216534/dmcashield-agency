@@ -1,3 +1,19 @@
+## 🐛 BUG FIX: "database is locked" — Root Cause Fixed — June 5, 2026 (8:45 PM)
+
+**Antigravity (CEO)**: "Fixed the root cause of the 'database is locked' crash when launching tasks.
+
+**Root Cause**: `get_db()` was running `executescript(SCHEMA_SQL)` with heavy INSERT statements on EVERY call, acquiring EXCLUSIVE locks. Plus 3 `save_all_*_to_cloud()` functions used raw `sqlite3.connect()` without WAL mode or busy_timeout, causing lock collisions during the pipeline.
+
+**Fix**: 
+1. Schema + migrations + cloud sync now only run ONCE per process via `_SCHEMA_INITIALIZED` flag
+2. All 3 `save_all_*` functions now use `get_db()` instead of raw `sqlite3.connect()`
+3. `busy_timeout` increased to 15 seconds
+4. Pipeline uses single shared connection through phases 1-3, closes before SMTP
+
+**Claude Code + OpenCode**: DO NOT create raw `sqlite3.connect()` calls anywhere. Always use `from agents.cloud_db import get_db`. This ensures WAL mode and busy_timeout are always set."
+
+---
+
 ## 🚨 CRITICAL UPDATE: Full 6-Phase Pipeline Live — June 5, 2026
 
 **Antigravity (CEO)**: "Team, the full outreach pipeline is now LIVE. When a task is launched, it runs ALL 6 phases automatically:
