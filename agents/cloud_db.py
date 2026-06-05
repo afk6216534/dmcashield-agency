@@ -310,8 +310,8 @@ _SCHEMA_INITIALIZED = False
 def get_db() -> sqlite3.Connection:
     """
     Get a database connection.
-    Schema + migrations + cloud sync only run ONCE per process (cold start).
-    Subsequent calls just return a fast connection with WAL + busy_timeout.
+    Schema + migrations run ONCE per process (cold start).
+    Cloud sync runs every 30 seconds to keep data fresh across Vercel containers.
     """
     global LAST_SYNC_TIME, _SCHEMA_INITIALIZED
     import time
@@ -327,7 +327,7 @@ def get_db() -> sqlite3.Connection:
     except Exception:
         pass
     
-    # Only run schema + migrations + sync ONCE per process
+    # Schema + migrations only on first call or new DB
     if not _SCHEMA_INITIALIZED or is_new:
         try:
             conn.executescript(SCHEMA_SQL)
@@ -336,23 +336,23 @@ def get_db() -> sqlite3.Connection:
             _SCHEMA_INITIALIZED = True
         except Exception as e:
             logger.warning(f"[DB] Schema init failed: {e}")
-        
-        # Sync from cloud on first init only
-        now = time.time()
-        if is_new or (now - LAST_SYNC_TIME > 60):
-            LAST_SYNC_TIME = now
-            try:
-                restore_and_sync_accounts(conn)
-            except Exception:
-                pass
-            try:
-                restore_and_sync_tasks(conn)
-            except Exception:
-                pass
-            try:
-                restore_and_sync_leads(conn)
-            except Exception:
-                pass
+    
+    # Cloud sync runs periodically (every 30s) to keep data fresh across Vercel containers
+    now = time.time()
+    if is_new or (now - LAST_SYNC_TIME > 30):
+        LAST_SYNC_TIME = now
+        try:
+            restore_and_sync_accounts(conn)
+        except Exception:
+            pass
+        try:
+            restore_and_sync_tasks(conn)
+        except Exception:
+            pass
+        try:
+            restore_and_sync_leads(conn)
+        except Exception:
+            pass
         
     return conn
 
@@ -487,13 +487,25 @@ def restore_leads_from_cloud() -> list:
 
 
 def save_all_tasks_to_cloud():
+    """Save tasks to cloud. MERGES local + cloud data so nothing is lost across containers."""
     try:
         conn = get_db()
         rows = conn.execute("SELECT * FROM scrape_tasks").fetchall()
         conn.close()
-        tasks = [dict(r) for r in rows]
-        save_tasks_to_cloud(tasks)
-        logger.info(f"[CloudBackup] Successfully backed up {len(tasks)} tasks to cloud.")
+        local_tasks = {dict(r)["id"]: dict(r) for r in rows}
+        
+        # Read existing cloud tasks and merge (don't overwrite what other containers saved)
+        try:
+            cloud_tasks = restore_tasks_from_cloud()
+            for ct in cloud_tasks:
+                if ct["id"] not in local_tasks:
+                    local_tasks[ct["id"]] = ct  # Keep cloud task that's not in local
+        except Exception:
+            pass
+        
+        merged = list(local_tasks.values())
+        save_tasks_to_cloud(merged)
+        logger.info(f"[CloudBackup] Successfully backed up {len(merged)} tasks to cloud (merged).")
     except Exception as e:
         logger.warning(f"[CloudBackup] save_all_tasks_to_cloud failed: {e}")
 
@@ -505,7 +517,7 @@ def restore_and_sync_tasks(conn: sqlite3.Connection):
             return
         for t in tasks:
             conn.execute("""
-                INSERT OR REPLACE INTO scrape_tasks (
+                INSERT OR IGNORE INTO scrape_tasks (
                     id, business_type, city, state, country, status, leads_found, error_message, created_at, completed_at
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
@@ -513,6 +525,26 @@ def restore_and_sync_tasks(conn: sqlite3.Connection):
                 t.get("status", "complete"), t.get("leads_found", 0), t.get("error_message", ""),
                 t["created_at"], t.get("completed_at", "")
             ))
+            # Update with new pipeline columns if present in cloud data
+            try:
+                conn.execute("""
+                    UPDATE scrape_tasks SET
+                        phase = COALESCE(?, phase),
+                        leads_validated = MAX(COALESCE(?, 0), leads_validated),
+                        leads_emailed = MAX(COALESCE(?, 0), leads_emailed),
+                        campaign_id = COALESCE(NULLIF(?, ''), campaign_id),
+                        leads_in_funnel = MAX(COALESCE(?, 0), leads_in_funnel)
+                    WHERE id = ?
+                """, (
+                    t.get("phase", "sales"),
+                    t.get("leads_validated", 0),
+                    t.get("leads_emailed", 0),
+                    t.get("campaign_id", ""),
+                    t.get("leads_in_funnel", 0),
+                    t["id"]
+                ))
+            except Exception:
+                pass  # New columns may not exist yet on first migration
         conn.commit()
         logger.info(f"[CloudBackup] Successfully restored {len(tasks)} tasks from cloud.")
     except Exception as e:
@@ -520,13 +552,25 @@ def restore_and_sync_tasks(conn: sqlite3.Connection):
 
 
 def save_all_leads_to_cloud():
+    """Save leads to cloud. MERGES local + cloud data so nothing is lost across containers."""
     try:
         conn = get_db()
         rows = conn.execute("SELECT * FROM real_leads").fetchall()
         conn.close()
-        leads = [dict(r) for r in rows]
-        save_leads_to_cloud(leads)
-        logger.info(f"[CloudBackup] Successfully backed up {len(leads)} leads to cloud.")
+        local_leads = {dict(r)["id"]: dict(r) for r in rows}
+        
+        # Read existing cloud leads and merge
+        try:
+            cloud_leads = restore_leads_from_cloud()
+            for cl in cloud_leads:
+                if cl["id"] not in local_leads:
+                    local_leads[cl["id"]] = cl
+        except Exception:
+            pass
+        
+        merged = list(local_leads.values())
+        save_leads_to_cloud(merged)
+        logger.info(f"[CloudBackup] Successfully backed up {len(merged)} leads to cloud (merged).")
     except Exception as e:
         logger.warning(f"[CloudBackup] save_all_leads_to_cloud failed: {e}")
 
