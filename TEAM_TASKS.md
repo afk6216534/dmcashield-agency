@@ -7,17 +7,17 @@
 
 ## Current Tasks:
 
-## TASK EXAMPLES:
-# 1. "Check the server is running and fix any errors"
-# 2. "Add more features to the dashboard"
-# 3. "Fix the email sending issue"
-# 4. "Improve the auto-training system"
-# 5. "Add new skill for WhatsApp"
+### 🎨 Frontend UI Tasks (Assigned to: Claude Code)
+- [ ] **Task Progress Visualization** (Priority: HIGH)
+  - Add real-time visual progress indicator steps ("OSM nominatim lookup", "scraping directories", "extracting emails", "scoring validation") on the Task Manager and Task Launch pages.
+- [ ] **Lead Selection Campaign Trigger** (Priority: MEDIUM)
+  - Add checkboxes in the Lead Database page allowing the user to select multiple leads and launch a manual email outreach campaign.
 
-## Priority:
-# - HIGH: Fix critical bugs
-# - MEDIUM: Add features
-# - LOW: Improvements
+### ⚙️ Backend Logic Tasks (Assigned to: OpenCode)
+- [ ] **Automated Queue Scheduler** (Priority: HIGH)
+  - Create a lightweight background worker or cron script that checks for "pending" scrape tasks and processes them sequentially in the background.
+- [ ] **Scraping Task Retry Endpoint** (Priority: MEDIUM)
+  - Implement `POST /api/tasks/<task_id>/retry` to re-trigger failed or incomplete scraping jobs.
 
 ## Notes:
 # - Claude Code can read this file and pick up tasks

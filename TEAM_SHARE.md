@@ -1,19 +1,20 @@
-# TEAM_SHARE — v5.3 Status
-# Last Updated: 2026-06-04 21:10 PKT
+# TEAM_SHARE — v5.4 Status
+# Last Updated: 2026-06-05 13:08 PKT
 
 ## 🔴 LIVE DEPLOYMENTS
 - **Frontend**: https://dmcashield.netlify.app
 - **Backend**: https://dmcashield-agency.vercel.app
 - **Local Dev Server**: http://localhost:5177 (Frontend) | http://localhost:8000 (Backend)
 
-## CURRENT VERSION: v5.3 (Deployed & Live)
+## CURRENT VERSION: v5.4 (Deployed & Live)
 
-### v5.3 — Real-Time SMTP Validation + Welcome Test Email + Aligned Cloud DB Key
-- **Real-Time SMTP Validation**: Modified `POST /api/accounts` in `main.py` to verify Gmail SMTP connections dynamically on addition. Rejects bad credentials with a `400` error.
-- **Welcome Test Email**: Configured the backend to send an automatic test/welcome email from the newly added account to the user's Gmail and primary admin email (`afk6216534@gmail.com`) upon successful verification.
-- **Unified Encryption Key**: Aligned database encryption key to a fixed secret (`dmcashield-secure-key-2026`) in `agents/cloud_db.py`, ensuring seamless sync between local development and ephemeral Vercel backend containers.
-- **Frontend Error Display**: Integrated error toast alerts in `EmailAccounts.jsx` to display verification failure feedback to the user.
-- **Verification Success**: Successfully synced and verified Gmail account `af6216em2@gmail.com` via the cloud sync database and delivered test emails.
+### v5.4 — Persistent Real-World Scraping Tasks & Lead Database with Cloud Sync Integration
+- **SQLite Task Database Integration**: Wired `GET /api/tasks` to query the SQLite `scrape_tasks` table (with fallback to `DEMO_TASKS`), mapping lead counts dynamically to ensure UI responsiveness.
+- **Real-World Scraper Activation**: Configured `POST /api/tasks` to run the real HTTP and OpenStreetMap business scraper pipeline synchronously, saving scraped businesses to `real_leads` in the database.
+- **SQLite Lead Database Integration**: Connected `/api/leads`, `/api/leads/<lead_id>`, `/api/leads/export`, `/api/leads/scored`, `/api/leads/<lead_id>/full`, and `/api/leads/important` to read dynamically from the SQLite `real_leads` and `email_log` tables.
+- **Automated Cloud Sync Persistence**: Integrated `save_all_tasks_to_cloud` and `save_all_leads_to_cloud` in `agents/cloud_db.py` to backup and restore tasks and leads automatically to `kvdb.io` bucket `5xaC4pip12aoA57uV6EGiq`. This makes all scrapings permanent across Vercel container recycles and synced across other dev computers.
+- **Mark Important Synchronized**: Connected `/api/leads/<lead_id>/mark-important` to update the lead status/notes in SQLite and automatically push the backup update to the cloud.
+
 
 ---
 
