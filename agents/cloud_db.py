@@ -317,8 +317,11 @@ def get_db() -> sqlite3.Connection:
     if is_new or (now - LAST_SYNC_TIME > 60):
         LAST_SYNC_TIME = now
         restore_and_sync_accounts(conn)
+        restore_and_sync_tasks(conn)
+        restore_and_sync_leads(conn)
         
     return conn
+
 
 
 def seed_gmail_from_env(conn: sqlite3.Connection = None):
@@ -369,3 +372,156 @@ def get_db_info() -> dict:
         "is_vercel": IS_VERCEL,
         "environment": os.environ.get("VERCEL_ENV", "local"),
     }
+
+
+def save_tasks_to_cloud(tasks: list):
+    import urllib.request
+    import json
+    try:
+        bucket_id = os.environ.get("KVDB_BUCKET_ID", "5xaC4pip12aoA57uV6EGiq")
+        url = f"https://kvdb.io/{bucket_id}/scrape_tasks"
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(tasks).encode(),
+            headers={
+                "Content-Type": "application/json",
+                "User-Agent": "Mozilla/5.0"
+            },
+            method="PUT"
+        )
+        with urllib.request.urlopen(req, timeout=10) as response:
+            pass
+    except Exception as e:
+        logger.warning(f"[CloudBackup] Failed to save tasks: {e}")
+
+
+def restore_tasks_from_cloud() -> list:
+    import urllib.request
+    import json
+    try:
+        bucket_id = os.environ.get("KVDB_BUCKET_ID", "5xaC4pip12aoA57uV6EGiq")
+        url = f"https://kvdb.io/{bucket_id}/scrape_tasks"
+        req = urllib.request.Request(
+            url,
+            headers={"User-Agent": "Mozilla/5.0"}
+        )
+        with urllib.request.urlopen(req, timeout=10) as response:
+            if response.status == 200:
+                return json.loads(response.read().decode())
+    except Exception:
+        pass
+    return []
+
+
+def save_leads_to_cloud(leads: list):
+    import urllib.request
+    import json
+    try:
+        bucket_id = os.environ.get("KVDB_BUCKET_ID", "5xaC4pip12aoA57uV6EGiq")
+        url = f"https://kvdb.io/{bucket_id}/real_leads"
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(leads).encode(),
+            headers={
+                "Content-Type": "application/json",
+                "User-Agent": "Mozilla/5.0"
+            },
+            method="PUT"
+        )
+        with urllib.request.urlopen(req, timeout=10) as response:
+            pass
+    except Exception as e:
+        logger.warning(f"[CloudBackup] Failed to save leads: {e}")
+
+
+def restore_leads_from_cloud() -> list:
+    import urllib.request
+    import json
+    try:
+        bucket_id = os.environ.get("KVDB_BUCKET_ID", "5xaC4pip12aoA57uV6EGiq")
+        url = f"https://kvdb.io/{bucket_id}/real_leads"
+        req = urllib.request.Request(
+            url,
+            headers={"User-Agent": "Mozilla/5.0"}
+        )
+        with urllib.request.urlopen(req, timeout=10) as response:
+            if response.status == 200:
+                return json.loads(response.read().decode())
+    except Exception:
+        pass
+    return []
+
+
+def save_all_tasks_to_cloud():
+    try:
+        conn = sqlite3.connect(_get_db_path())
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute("SELECT * FROM scrape_tasks").fetchall()
+        conn.close()
+        tasks = [dict(r) for r in rows]
+        save_tasks_to_cloud(tasks)
+        logger.info(f"[CloudBackup] Successfully backed up {len(tasks)} tasks to cloud.")
+    except Exception as e:
+        logger.warning(f"[CloudBackup] save_all_tasks_to_cloud failed: {e}")
+
+
+def restore_and_sync_tasks(conn: sqlite3.Connection):
+    try:
+        tasks = restore_tasks_from_cloud()
+        if not tasks:
+            return
+        for t in tasks:
+            conn.execute("""
+                INSERT OR REPLACE INTO scrape_tasks (
+                    id, business_type, city, state, country, status, leads_found, error_message, created_at, completed_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                t["id"], t["business_type"], t["city"], t.get("state", ""), t.get("country", "USA"),
+                t.get("status", "complete"), t.get("leads_found", 0), t.get("error_message", ""),
+                t["created_at"], t.get("completed_at", "")
+            ))
+        conn.commit()
+        logger.info(f"[CloudBackup] Successfully restored {len(tasks)} tasks from cloud.")
+    except Exception as e:
+        logger.warning(f"[CloudBackup] Failed to restore tasks: {e}")
+
+
+def save_all_leads_to_cloud():
+    try:
+        conn = sqlite3.connect(_get_db_path())
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute("SELECT * FROM real_leads").fetchall()
+        conn.close()
+        leads = [dict(r) for r in rows]
+        save_leads_to_cloud(leads)
+        logger.info(f"[CloudBackup] Successfully backed up {len(leads)} leads to cloud.")
+    except Exception as e:
+        logger.warning(f"[CloudBackup] save_all_leads_to_cloud failed: {e}")
+
+
+def restore_and_sync_leads(conn: sqlite3.Connection):
+    try:
+        leads = restore_leads_from_cloud()
+        if not leads:
+            return
+        for l in leads:
+            conn.execute("""
+                INSERT OR REPLACE INTO real_leads (
+                    id, business_name, owner_name, email_primary, phone, website,
+                    city, state, country, niche, full_address, current_rating, review_count, negative_review_count,
+                    lead_score, lead_temperature, status, funnel_step, emails_sent_count, last_email_sent, last_reply, source, notes, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                l["id"], l["business_name"], l.get("owner_name", ""), l.get("email_primary", ""),
+                l.get("phone", ""), l.get("website", ""), l.get("city", ""), l.get("state", ""),
+                l.get("country", "USA"), l.get("niche", ""), l.get("full_address", ""),
+                float(l.get("current_rating", 0)), int(l.get("review_count", 0)), int(l.get("negative_review_count", 0)),
+                int(l.get("lead_score", 0)), l.get("lead_temperature", "cold"), l.get("status", "new"),
+                int(l.get("funnel_step", 0)), int(l.get("emails_sent_count", 0)), l.get("last_email_sent", ""),
+                l.get("last_reply", ""), l.get("source", ""), l.get("notes", ""), l["created_at"], l.get("updated_at", l["created_at"])
+            ))
+        conn.commit()
+        logger.info(f"[CloudBackup] Successfully restored {len(leads)} leads from cloud.")
+    except Exception as e:
+        logger.warning(f"[CloudBackup] Failed to restore leads: {e}")
+

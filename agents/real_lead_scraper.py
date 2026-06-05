@@ -89,8 +89,17 @@ def run_scraper_pipeline(task_id: str, business_type: str, city: str,
         """, (saved_count, datetime.utcnow().isoformat(), task_id))
         conn.commit()
         conn.close()
+        
+        # Sync to cloud backup
+        try:
+            from agents.cloud_db import save_all_tasks_to_cloud, save_all_leads_to_cloud
+            save_all_tasks_to_cloud()
+            save_all_leads_to_cloud()
+        except Exception as sync_err:
+            logger.warning(f"Cloud sync failed: {sync_err}")
     except Exception as e:
         logger.warning(f"Task completion update failed: {e}")
+
     
     return {
         "task_id": task_id,
