@@ -317,11 +317,12 @@ def get_db() -> sqlite3.Connection:
     db_path = _get_db_path()
     is_new = not os.path.exists(db_path) or os.path.getsize(db_path) == 0
     
-    conn = sqlite3.connect(db_path)
+    conn = sqlite3.connect(db_path, timeout=30)
     conn.row_factory = sqlite3.Row
     
     try:
         conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA busy_timeout=10000")
     except Exception:
         pass  # WAL may not work on all platforms
     
