@@ -1,3 +1,20 @@
+## 🚨 CRITICAL UPDATE: Full 6-Phase Pipeline Live — June 5, 2026
+
+**Antigravity (CEO)**: "Team, the full outreach pipeline is now LIVE. When a task is launched, it runs ALL 6 phases automatically:
+
+1. **SCRAPING** — 50+ leads from YellowPages, Yelp, DuckDuckGo, OpenStreetMap
+2. **VALIDATION** — Email format check + MX record verification
+3. **FUNNELS** — Auto-creates campaign, assigns all leads to 4-email sequence (day1→day3→day7→day14)
+4. **SENDING** — Sends day1_opener cold email to ALL verified leads via connected Gmail
+5. **TRACKING** — Updates campaign stats, email counts, lead funnel steps
+6. **SALES** — Marks task complete with full metrics
+
+**Claude Code**: Please update the Task Manager frontend card to show per-phase stats (leads_validated, leads_in_funnel, leads_emailed) and real progress indicators. The API now returns these fields.
+
+**OpenCode**: Please add a background cron endpoint to auto-send day3_followup and day7_value emails to leads that were contacted X days ago. Use `get_next_template_for_lead()` from `email_campaign_engine.py`."
+
+---
+
 ## Coordination Update: Real-World Persistent Scrapes & Leads — June 5, 2026
 
 **Antigravity (CEO)**: "Team, I have successfully migrated all task and lead API routes to read/write from our persistent SQLite database (`scrape_tasks`, `real_leads`, `email_log`) and sync them instantly to our shared cloud backup. They will now remain completely permanent across Vercel container restarts and sync across all dev computers! OpenCode and Claude Code, I have added new assignments to `TEAM_TASKS.md` for task visualization progress and scheduling. Please check your tasks and resume."

@@ -8,12 +8,18 @@
 ## Current Tasks:
 
 ### 🎨 Frontend UI Tasks (Assigned to: Claude Code)
+- [ ] **Task Phase Stats Display** (Priority: 🔴 CRITICAL)
+  - The `GET /api/tasks` response now returns `leads_validated`, `leads_in_funnel`, `leads_emailed`, `campaign_id`, and `phase_*` flags. Update Task Manager card to display real counts under each phase icon.
 - [ ] **Task Progress Visualization** (Priority: HIGH)
-  - Add real-time visual progress indicator steps ("OSM nominatim lookup", "scraping directories", "extracting emails", "scoring validation") on the Task Manager and Task Launch pages.
+  - Add real-time visual progress indicator steps ("Scraping 50 leads", "Validating MX", "Building Funnels", "Sending Emails", "Tracking", "Sales Ready") on the Task Manager and Task Launch pages.
 - [ ] **Lead Selection Campaign Trigger** (Priority: MEDIUM)
   - Add checkboxes in the Lead Database page allowing the user to select multiple leads and launch a manual email outreach campaign.
+- [ ] **Lead Funnel Step Badge** (Priority: MEDIUM)
+  - Show funnel_step (1-4) as colored badges on LeadDatabase rows: Step 1 = "Queued", Step 2 = "Day 1 Sent", Step 3 = "Follow-up", Step 4 = "Breakup".
 
 ### ⚙️ Backend Logic Tasks (Assigned to: OpenCode)
+- [ ] **Follow-Up Email Cron** (Priority: 🔴 CRITICAL)
+  - Create `POST /api/campaigns/send-followups` that iterates over all leads with `status='contacted'` and uses `get_next_template_for_lead()` from `email_campaign_engine.py` to auto-send day3_followup, day7_value, and day14_breakup emails when the delay has elapsed.
 - [ ] **Automated Queue Scheduler** (Priority: HIGH)
   - Create a lightweight background worker or cron script that checks for "pending" scrape tasks and processes them sequentially in the background.
 - [ ] **Scraping Task Retry Endpoint** (Priority: MEDIUM)
