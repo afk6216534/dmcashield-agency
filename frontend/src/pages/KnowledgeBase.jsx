@@ -6,6 +6,7 @@ export default function KnowledgeBase() {
   const [coldEmail, setColdEmail] = useState(null);
   const [psychology, setPsychology] = useState(null);
   const [agents, setAgents] = useState(null);
+  const [workflows, setWorkflows] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState(null);
   const [tab, setTab] = useState('overview');
@@ -16,7 +17,14 @@ export default function KnowledgeBase() {
       fetch(`${API}/api/knowledge/cold-email`).then(r => r.json()).catch(() => null),
       fetch(`${API}/api/knowledge/psychology`).then(r => r.json()).catch(() => null),
       fetch(`${API}/api/knowledge/agents`).then(r => r.json()).catch(() => null),
-    ]).then(([k, c, p, a]) => { setKnowledge(k); setColdEmail(c); setPsychology(p); setAgents(a); });
+      fetch(`${API}/api/knowledge/workflows`).then(r => r.json()).catch(() => null),
+    ]).then(([k, c, p, a, w]) => { 
+      setKnowledge(k); 
+      setColdEmail(c); 
+      setPsychology(p); 
+      setAgents(a); 
+      setWorkflows(w);
+    });
   }, []);
 
   const handleSearch = async () => {
@@ -77,7 +85,13 @@ export default function KnowledgeBase() {
 
       {/* Tab bar */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
-        {[['overview', '📊 Repos Overview'], ['cold-email', '📧 Cold Email'], ['psychology', '🧠 Psychology'], ['agents', '🤖 Agent Patterns']].map(([key, label]) => (
+        {[
+          ['overview', '📊 Repos Overview'],
+          ['cold-email', '📧 Cold Email'],
+          ['psychology', '🧠 Psychology'],
+          ['agents', '🤖 Agent Patterns'],
+          ['workflows', '⚙️ Workflows']
+        ].map(([key, label]) => (
           <button key={key} onClick={() => setTab(key)}
             style={{ padding: '8px 16px', borderRadius: 8, border: 'none', cursor: 'pointer',
               background: tab === key ? 'var(--accent)' : 'var(--bg-secondary)', color: tab === key ? '#fff' : 'var(--text-secondary)', fontWeight: 600, fontSize: '0.85rem' }}>
@@ -237,6 +251,47 @@ export default function KnowledgeBase() {
                 {p.includes(':') && <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: 2 }}>{p.split(':').slice(1).join(':').trim()}</div>}
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Workflows tab */}
+      {tab === 'workflows' && workflows && (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+          <div>
+            <div style={{ background: 'var(--bg-secondary)', borderRadius: 12, padding: 20, marginBottom: 16 }}>
+              <h3 style={{ marginBottom: 12, fontWeight: 700 }}>⚙️ DMCA Automations</h3>
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: 12 }}>Source: {workflows.source}</p>
+              {workflows.dmca_workflows.map((wf, i) => (
+                <div key={i} style={{ padding: 14, borderRadius: 8, background: 'var(--bg-tertiary)', marginBottom: 8, borderLeft: '3px solid #f59e0b' }}>
+                  <div style={{ fontSize: '0.92rem', fontWeight: 700, marginBottom: 4 }}>{wf.name}</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-primary)', marginBottom: 4 }}>
+                    <strong>Steps:</strong> {wf.steps.join(' → ')}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                    🛠️ {wf.tools}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <div style={{ background: 'var(--bg-secondary)', borderRadius: 12, padding: 20, marginBottom: 16 }}>
+              <h3 style={{ marginBottom: 12, fontWeight: 700 }}>💻 Developer Automations</h3>
+              {workflows.dev_workflows.map((wf, i) => (
+                <div key={i} style={{ padding: '8px 12px', borderRadius: 8, background: 'var(--bg-tertiary)', marginBottom: 6, fontSize: '0.85rem', borderLeft: '3px solid #10b981' }}>
+                  ⚙️ {wf}
+                </div>
+              ))}
+            </div>
+            <div style={{ background: 'var(--bg-secondary)', borderRadius: 12, padding: 20 }}>
+              <h3 style={{ marginBottom: 12, fontWeight: 700 }}>🛠️ Developer Tools</h3>
+              {workflows.dev_tools.map((t, i) => (
+                <div key={i} style={{ padding: '8px 12px', borderRadius: 8, background: 'var(--bg-tertiary)', marginBottom: 6, fontSize: '0.85rem', borderLeft: '3px solid #3b82f6' }}>
+                  🔧 {t}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}

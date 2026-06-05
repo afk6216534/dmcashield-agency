@@ -10,6 +10,7 @@ export default function CEOView() {
   const [commandInput, setCommandInput] = useState('');
   const [commandDept, setCommandDept] = useState('marketing');
   const [commandResult, setCommandResult] = useState('');
+  const [costOpt, setCostOpt] = useState(null);
 
   useEffect(() => {
     loadAll();
@@ -19,12 +20,14 @@ export default function CEOView() {
 
   const loadAll = async () => {
     try {
-      const [ov, msgs] = await Promise.all([
+      const [ov, msgs, cost] = await Promise.all([
         fetch(`${API}/api/ceo/overview`).then(r => r.json()).catch(() => null),
-        fetch(`${API}/api/messages/feed?limit=30`).then(r => r.json()).catch(() => ({ messages: [] }))
+        fetch(`${API}/api/messages/feed?limit=30`).then(r => r.json()).catch(() => ({ messages: [] })),
+        fetch(`${API}/api/knowledge/cost-optimization`).then(r => r.json()).catch(() => null)
       ]);
       if (ov) setOverview(ov);
       setMessages(msgs.messages || []);
+      if (cost) setCostOpt(cost);
     } catch (e) { console.error(e); }
     setLoading(false);
   };
@@ -212,32 +215,60 @@ export default function CEOView() {
         </div>
       </div>
 
-      {/* Soul / Learning Stats */}
-      <div className="card" style={{ marginTop: '1.5rem' }}>
-        <h2 style={{ marginBottom: '1rem' }}>🧠 Company Intelligence</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--primary)' }}>{soul.learning_cycle || learning.cycle || 0}</div>
-            <div className="text-secondary" style={{ fontSize: '0.8rem' }}>Learning Cycles</div>
+      {/* Soul / Learning Stats & Cost Widget */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginTop: '1.5rem' }}>
+        {/* Soul / Learning Stats */}
+        <div className="card" style={{ margin: 0 }}>
+          <h2 style={{ marginBottom: '1rem' }}>🧠 Company Intelligence</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.5rem', alignItems: 'center' }}>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--primary)' }}>{soul.learning_cycle || learning.cycle || 0}</div>
+              <div className="text-secondary" style={{ fontSize: '0.8rem' }}>Learning Cycles</div>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--success)' }}>{soul.total_emails_sent || 0}</div>
+              <div className="text-secondary" style={{ fontSize: '0.8rem' }}>Total Emails</div>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--warning)' }}>{soul.total_leads_processed || 0}</div>
+              <div className="text-secondary" style={{ fontSize: '0.8rem' }}>Leads Processed</div>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--danger)' }}>{soul.total_clients_acquired || 0}</div>
+              <div className="text-secondary" style={{ fontSize: '0.8rem' }}>Clients Acquired</div>
+            </div>
           </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--success)' }}>{soul.total_emails_sent || 0}</div>
-            <div className="text-secondary" style={{ fontSize: '0.8rem' }}>Total Emails</div>
+          {learning.rules > 0 && (
+            <div style={{ marginTop: '1rem', padding: '0.75rem', background: 'rgba(139,92,246,0.1)', borderRadius: '8px' }}>
+              <span style={{ fontSize: '0.85rem' }}>🤖 ML Engine has discovered <strong>{learning.rules}</strong> optimization rules with avg open rate of <strong>{learning.avg_open_rate}%</strong></span>
+            </div>
+          )}
+        </div>
+
+        {/* Cost Optimization Card */}
+        <div className="card" style={{ margin: 0 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h2>💵 Cost & Budget</h2>
+            {costOpt && (
+              <span className="badge badge-active" style={{ background: 'var(--accent-success)' }}>
+                Saving {costOpt.total_monthly_savings}
+              </span>
+            )}
           </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--warning)' }}>{soul.total_leads_processed || 0}</div>
-            <div className="text-secondary" style={{ fontSize: '0.8rem' }}>Leads Processed</div>
-          </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--danger)' }}>{soul.total_clients_acquired || 0}</div>
-            <div className="text-secondary" style={{ fontSize: '0.8rem' }}>Clients Acquired</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {costOpt?.strategies.slice(0, 3).map((s, i) => (
+              <div key={i} style={{ padding: '0.6rem', borderRadius: '8px', background: 'rgba(255,255,255,0.02)', borderLeft: '3px solid var(--accent-primary)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', fontWeight: 700 }}>
+                  <span>{s.area}</span>
+                  <span style={{ color: 'var(--success)' }}>{s.savings}</span>
+                </div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
+                  {s.method} ({s.source.split(':')[0]})
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-        {learning.rules > 0 && (
-          <div style={{ marginTop: '1rem', padding: '0.75rem', background: 'rgba(139,92,246,0.1)', borderRadius: '8px' }}>
-            <span style={{ fontSize: '0.85rem' }}>🤖 ML Engine has discovered <strong>{learning.rules}</strong> optimization rules with avg open rate of <strong>{learning.avg_open_rate}%</strong></span>
-          </div>
-        )}
       </div>
     </main>
   );

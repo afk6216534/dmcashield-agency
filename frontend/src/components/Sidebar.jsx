@@ -46,7 +46,7 @@ export default function Sidebar({ systemStatus, hotLeadCount }) {
         <div className="logo-icon">🛡️</div>
         <div>
           <h1>DMCAShield</h1>
-          <div className="version">Boss View v4.0</div>
+          <div className="version">Boss View v5.3 • 55 Repos</div>
         </div>
       </div>
 
@@ -68,6 +68,9 @@ export default function Sidebar({ systemStatus, hotLeadCount }) {
                   <span>{item.label}</span>
                   {item.to === '/hot-leads' && hotLeadCount > 0 && (
                     <span className="nav-badge">{hotLeadCount}</span>
+                  )}
+                  {item.to === '/knowledge' && (
+                    <span className="nav-badge" style={{ background: 'var(--accent-primary)' }}>55</span>
                   )}
                 </NavLink>
               ))}
