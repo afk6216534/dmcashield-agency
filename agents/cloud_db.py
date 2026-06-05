@@ -253,8 +253,7 @@ def restore_accounts_from_cloud() -> list:
 def save_all_accounts_to_cloud():
     """Fetch all accounts from SQLite, encrypt passwords, and upload to cloud."""
     try:
-        conn = sqlite3.connect(_get_db_path())
-        conn.row_factory = sqlite3.Row
+        conn = get_db()
         rows = conn.execute("SELECT * FROM email_accounts").fetchall()
         conn.close()
         
@@ -305,14 +304,16 @@ def restore_and_sync_accounts(conn: sqlite3.Connection):
 
 
 LAST_SYNC_TIME = 0
+_SCHEMA_INITIALIZED = False
 
 
 def get_db() -> sqlite3.Connection:
     """
-    Get a database connection with auto-initialized schema.
-    Safe to call on every request — CREATE IF NOT EXISTS is idempotent.
+    Get a database connection.
+    Schema + migrations + cloud sync only run ONCE per process (cold start).
+    Subsequent calls just return a fast connection with WAL + busy_timeout.
     """
-    global LAST_SYNC_TIME
+    global LAST_SYNC_TIME, _SCHEMA_INITIALIZED
     import time
     db_path = _get_db_path()
     is_new = not os.path.exists(db_path) or os.path.getsize(db_path) == 0
@@ -322,23 +323,36 @@ def get_db() -> sqlite3.Connection:
     
     try:
         conn.execute("PRAGMA journal_mode=WAL")
-        conn.execute("PRAGMA busy_timeout=10000")
+        conn.execute("PRAGMA busy_timeout=15000")
     except Exception:
-        pass  # WAL may not work on all platforms
+        pass
     
-    conn.executescript(SCHEMA_SQL)
-    conn.commit()
-    
-    # Run dynamic schema migrations
-    _run_migrations(conn)
-    
-    # Sync from cloud if the SQLite file was just created OR if 60 seconds have passed since last sync
-    now = time.time()
-    if is_new or (now - LAST_SYNC_TIME > 60):
-        LAST_SYNC_TIME = now
-        restore_and_sync_accounts(conn)
-        restore_and_sync_tasks(conn)
-        restore_and_sync_leads(conn)
+    # Only run schema + migrations + sync ONCE per process
+    if not _SCHEMA_INITIALIZED or is_new:
+        try:
+            conn.executescript(SCHEMA_SQL)
+            conn.commit()
+            _run_migrations(conn)
+            _SCHEMA_INITIALIZED = True
+        except Exception as e:
+            logger.warning(f"[DB] Schema init failed: {e}")
+        
+        # Sync from cloud on first init only
+        now = time.time()
+        if is_new or (now - LAST_SYNC_TIME > 60):
+            LAST_SYNC_TIME = now
+            try:
+                restore_and_sync_accounts(conn)
+            except Exception:
+                pass
+            try:
+                restore_and_sync_tasks(conn)
+            except Exception:
+                pass
+            try:
+                restore_and_sync_leads(conn)
+            except Exception:
+                pass
         
     return conn
 
@@ -474,8 +488,7 @@ def restore_leads_from_cloud() -> list:
 
 def save_all_tasks_to_cloud():
     try:
-        conn = sqlite3.connect(_get_db_path())
-        conn.row_factory = sqlite3.Row
+        conn = get_db()
         rows = conn.execute("SELECT * FROM scrape_tasks").fetchall()
         conn.close()
         tasks = [dict(r) for r in rows]
@@ -508,8 +521,7 @@ def restore_and_sync_tasks(conn: sqlite3.Connection):
 
 def save_all_leads_to_cloud():
     try:
-        conn = sqlite3.connect(_get_db_path())
-        conn.row_factory = sqlite3.Row
+        conn = get_db()
         rows = conn.execute("SELECT * FROM real_leads").fetchall()
         conn.close()
         leads = [dict(r) for r in rows]
