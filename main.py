@@ -493,7 +493,7 @@ def create_task():
             city=city,
             state=state,
             country=country,
-            max_results=50
+            max_results=20
         )
 
         new_task = {
