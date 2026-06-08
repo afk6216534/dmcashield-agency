@@ -134,7 +134,7 @@ def get_all_gmail_credentials() -> List[Dict]:
             if not any(c["email"] == row["email_address"] for c in creds):
                 creds.append({
                     "email": row["email_address"],
-                    "password": row["app_password"],
+                    "password": row["app_password"].replace(" ", ""),
                     "display_name": row["display_name"] or "DMCAShield Agency"
                 })
     except Exception:

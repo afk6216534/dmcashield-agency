@@ -304,6 +304,15 @@ def restore_and_sync_accounts(conn: sqlite3.Connection):
         key = "dmcashield-secure-key-2026"
         for acc in accounts:
             pwd = decrypt_val(acc.get("encrypted_password", ""), key)
+            clean_pwd = pwd.replace(" ", "")
+            
+            # Auto-heal auth_failed status back to warming_up and reset health_score
+            status_val = acc.get("status", "warming_up")
+            health_score_val = acc.get("health_score", 50)
+            if status_val == "auth_failed":
+                status_val = "warming_up"
+                health_score_val = max(50, health_score_val)
+                
             conn.execute("""
                 INSERT OR REPLACE INTO email_accounts (
                     id, email_address, display_name, app_password, daily_limit,
@@ -311,11 +320,11 @@ def restore_and_sync_accounts(conn: sqlite3.Connection):
                     status, blacklist_status, health_score, total_opens, total_replies, created_at
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
-                acc["id"], acc["email_address"], acc.get("display_name", ""), pwd,
+                acc["id"], acc["email_address"], acc.get("display_name", ""), clean_pwd,
                 acc.get("daily_limit", 5), acc.get("sent_today", 0), acc.get("total_sent", 0),
                 acc.get("warmup_day", 1), int(acc.get("warmup_complete", 0)),
-                acc.get("status", "warming_up"), acc.get("blacklist_status", "clean"),
-                acc.get("health_score", 50), acc.get("total_opens", 0), acc.get("total_replies", 0),
+                status_val, acc.get("blacklist_status", "clean"),
+                health_score_val, acc.get("total_opens", 0), acc.get("total_replies", 0),
                 acc["created_at"]
             ))
         conn.commit()
