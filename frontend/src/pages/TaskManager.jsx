@@ -3,22 +3,104 @@ import API from '../config/api.js';
 
 export default function TaskManager() {
   const [tasks, setTasks] = useState([]);
-  useEffect(() => { fetch(`${API}/api/tasks`).then(r => r.json()).then(setTasks).catch(console.error); }, []);
+  const [dripStatus, setDripStatus] = useState(null);
+  const [sendingBatch, setSendingBatch] = useState(false);
+  const [batchResult, setBatchResult] = useState('');
+
+  const refreshData = async () => {
+    try {
+      const tasksRes = await fetch(`${API}/api/tasks`);
+      setTasks(await tasksRes.json());
+      
+      const dripRes = await fetch(`${API}/api/drip/status`);
+      setDripStatus(await dripRes.json());
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    refreshData();
+    const interval = setInterval(refreshData, 15000); // Poll every 15s for status updates
+    return () => clearInterval(interval);
+  }, []);
 
   const handleAction = async (id, action) => {
     await fetch(`${API}/api/tasks/${id}/${action}`, { method: 'POST' });
-    const res = await fetch(`${API}/api/tasks`);
-    setTasks(await res.json());
+    refreshData();
+  };
+
+  const triggerDripSend = async () => {
+    setSendingBatch(true);
+    setBatchResult('Initiating SMTP connection, warming up templates...');
+    try {
+      const res = await fetch(`${API}/api/drip/send`, { method: 'POST' });
+      const data = await res.json();
+      if (data.error) {
+        setBatchResult(`❌ Error: ${data.error}`);
+      } else if (data.smtp_error) {
+        setBatchResult(`❌ SMTP Connection Failed: ${data.smtp_error}`);
+      } else {
+        const sentDetails = data.details
+          ? data.details.filter(d => d.status === 'sent').map(d => d.lead).join(', ')
+          : '';
+        setBatchResult(`✅ ${data.message} ${sentDetails ? `(Leads: ${sentDetails})` : ''}`);
+      }
+      refreshData();
+    } catch (err) {
+      setBatchResult('❌ Failed to trigger drip campaign.');
+    }
+    setSendingBatch(false);
   };
 
   const phaseIcon = (status) => status === 'complete' ? '✅' : status === 'in_progress' ? '🔄' : status === 'active' ? '🟢' : '⏳';
 
   return (
     <div className="main-content animate-in">
-      <div className="page-header">
-        <h1>📋 Task Manager</h1>
-        <p>Track, pause, and manage all outreach campaigns</p>
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
+        <div>
+          <h1>📋 Task Manager</h1>
+          <p>Track, pause, and manage all outreach campaigns</p>
+        </div>
+        
+        {/* Drip Telemetry Card */}
+        {dripStatus && !dripStatus.error && (
+          <div style={{ display: 'flex', gap: 12, background: 'var(--bg-secondary)', padding: '10px 16px', borderRadius: 12, border: '1px solid var(--border-subtle)', alignItems: 'center' }}>
+            <div style={{ fontSize: '0.8rem', textAlign: 'right' }}>
+              <div style={{ fontWeight: 600 }}>📧 Outbound Queue: <span style={{ color: 'var(--accent)' }}>{dripStatus.queued || 0} queued</span></div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', marginTop: 2 }}>
+                Warmup: <span style={{ textTransform: 'capitalize', color: 'var(--accent-secondary)' }}>{dripStatus.warmup_phase || 'unknown'}</span> • Sent Today: {dripStatus.sent_today || 0}/{dripStatus.daily_limit || 3}
+              </div>
+            </div>
+            <button 
+              className="btn btn-primary" 
+              style={{ padding: '8px 14px', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 4, height: 'fit-content' }}
+              disabled={sendingBatch}
+              onClick={triggerDripSend}
+            >
+              {sendingBatch ? '⏳ Sending...' : '🚀 Send Batch'}
+            </button>
+          </div>
+        )}
       </div>
+
+      {batchResult && (
+        <div style={{ 
+          padding: 12, 
+          borderRadius: 8, 
+          background: batchResult.includes('❌') ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)', 
+          borderLeft: `4px solid ${batchResult.includes('❌') ? '#ef4444' : '#10b981'}`,
+          fontSize: '0.82rem',
+          marginBottom: 16,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          animation: 'fadeIn 0.3s'
+        }}>
+          <span>{batchResult}</span>
+          <button style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.85rem', padding: '0 8px' }} onClick={() => setBatchResult('')}>✕</button>
+        </div>
+      )}
 
       {tasks.length === 0 ? (
         <div className="glass-card no-hover"><div className="empty-state"><div className="empty-icon">📋</div><h3>No tasks created yet</h3><p style={{ color: 'var(--text-tertiary)' }}>Go to Launch Task to create your first campaign</p></div></div>

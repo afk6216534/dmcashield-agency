@@ -441,12 +441,13 @@ def tasks():
             funnel_cursor = conn.execute("SELECT COUNT(*) FROM real_leads WHERE source = ? AND funnel_step > 0", (f"scrape_{task_id}",))
             funnel_count = funnel_cursor.fetchone()[0]
             
+            status_val = r_dict.get("status", "complete")
             tasks_list.append({
                 "id": task_id,
                 "business_type": r_dict.get("business_type", ""),
                 "city": r_dict.get("city", ""),
                 "state": r_dict.get("state", ""),
-                "status": r_dict.get("status", "complete"),
+                "status": status_val,
                 "phase": r_dict.get("phase", "sales"),
                 "leads_total": max(r_dict.get("leads_found", 0), total_from_db),
                 "leads_validated": r_dict.get("leads_validated", 0),
@@ -458,9 +459,11 @@ def tasks():
                 "phase_scraping": "complete",
                 "phase_validation": "complete" if r_dict.get("leads_validated", 0) > 0 else "pending",
                 "phase_funnels": "complete" if r_dict.get("leads_in_funnel", 0) > 0 or funnel_count > 0 else "pending",
-                "phase_sending": "complete" if r_dict.get("leads_emailed", 0) > 0 or emailed_count > 0 else "pending",
-                "phase_tracking": "active" if r_dict.get("status") == "complete" else "pending",
-                "phase_sales": "active" if r_dict.get("status") == "complete" else "pending",
+                "phase_funnel_creation": "complete" if r_dict.get("leads_in_funnel", 0) > 0 or funnel_count > 0 else "pending",
+                "phase_sending": "in_progress" if status_val == "drip_active" else "complete" if status_val == "complete" else "pending",
+                "phase_email_sending": "in_progress" if status_val == "drip_active" else "complete" if status_val == "complete" else "pending",
+                "phase_tracking": "active" if status_val in ["complete", "drip_active"] else "pending",
+                "phase_sales": "active" if status_val in ["complete", "drip_active"] else "pending",
             })
         conn.close()
         if not tasks_list:
@@ -512,6 +515,16 @@ def create_task():
         }
         
         DEMO_TASKS.append(new_task)
+
+        # Trigger first drip batch immediately in background
+        def trigger_immediate_send():
+            try:
+                from agents.drip_sender import send_drip_batch
+                send_drip_batch()
+            except Exception as drip_err:
+                print(f"[IMMEDIATE DRIP] Error sending initial batch: {drip_err}")
+        import threading
+        threading.Thread(target=trigger_immediate_send, daemon=True).start()
 
         return jsonify(
             {
@@ -3686,6 +3699,105 @@ def get_department_agents(dept_name):
     )
 
 
+def get_db_telemetry_context():
+    """Fetch active database statistics to provide real context for the AI."""
+    import logging
+    logger = logging.getLogger("dmcashield.db")
+    from agents.cloud_db import get_db
+    conn = get_db()
+    context = {
+        "total_leads": 0,
+        "contacted_leads": 0,
+        "queued_leads": 0,
+        "new_leads": 0,
+        "hot_leads": 0,
+        "total_tasks": 0,
+        "recent_tasks": [],
+        "total_emails_sent": 0,
+        "recent_emails": [],
+        "connected_emails": 1,
+    }
+    try:
+        # Leads counts
+        context["total_leads"] = conn.execute("SELECT COUNT(*) FROM real_leads").fetchone()[0]
+        context["contacted_leads"] = conn.execute("SELECT COUNT(*) FROM real_leads WHERE status = 'contacted'").fetchone()[0]
+        context["queued_leads"] = conn.execute("SELECT COUNT(*) FROM real_leads WHERE status = 'queued'").fetchone()[0]
+        context["new_leads"] = conn.execute("SELECT COUNT(*) FROM real_leads WHERE status = 'new'").fetchone()[0]
+        context["hot_leads"] = conn.execute("SELECT COUNT(*) FROM real_leads WHERE lead_temperature = 'hot'").fetchone()[0]
+        
+        # Scrape tasks
+        tasks = conn.execute("SELECT * FROM scrape_tasks ORDER BY created_at DESC LIMIT 5").fetchall()
+        context["recent_tasks"] = [dict(t) for t in tasks]
+        context["total_tasks"] = conn.execute("SELECT COUNT(*) FROM scrape_tasks").fetchone()[0]
+        
+        # Email logs
+        context["total_emails_sent"] = conn.execute("SELECT COUNT(*) FROM email_log").fetchone()[0]
+        recent_emails = conn.execute("""
+            SELECT l.subject, l.sent_at, r.business_name, r.email_primary 
+            FROM email_log l 
+            JOIN real_leads r ON l.lead_id = r.id 
+            ORDER BY l.sent_at DESC LIMIT 5
+        """).fetchall()
+        context["recent_emails"] = [dict(e) for e in recent_emails]
+        
+        # SMTP configurations
+        context["connected_emails"] = conn.execute("SELECT COUNT(*) FROM email_accounts WHERE status = 'warming_up' OR status = 'active'").fetchone()[0]
+    except Exception as e:
+        print(f"[AI CONTEXT] DB read error: {e}")
+    finally:
+        conn.close()
+    return context
+
+
+def query_openrouter(system_prompt, user_message):
+    import os
+    import httpx
+    api_key = os.environ.get("OPENROUTER_API_KEY")
+    if not api_key:
+        return None
+        
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://dmcashield.com",
+        "X-Title": "DMCAShield Agency",
+    }
+    
+    models_to_try = [
+        "google/gemini-2.0-flash-exp:free",
+        "meta-llama/llama-3-8b-instruct:free",
+        "mistralai/mistral-7b-instruct:free",
+        "qwen/qwen-2.5-7b-instruct:free"
+    ]
+    
+    for model in models_to_try:
+        payload = {
+            "model": model,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_message}
+            ],
+            "temperature": 0.7,
+            "max_tokens": 800
+        }
+        try:
+            with httpx.Client(timeout=20.0) as client:
+                response = client.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=payload)
+                if response.status_code == 200:
+                    res_json = response.json()
+                    choices = res_json.get("choices", [])
+                    if choices:
+                        content = choices[0]["message"]["content"].strip()
+                        if content:
+                            return content
+                else:
+                    print(f"[OPENROUTER] Model {model} status {response.status_code}: {response.text}")
+        except Exception as e:
+            print(f"[OPENROUTER] Error querying model {model}: {e}")
+            
+    return None
+
+
 @app.route("/api/departments/<dept_name>/chat", methods=["POST"])
 def chat_with_department(dept_name):
     data = request.get_json() or {}
@@ -3697,6 +3809,72 @@ def chat_with_department(dept_name):
 
     agents = DEPT_AGENTS.get(dept_name, {"head": {"name": dept_name.title() + "Head"}})
     agent_name = agents["head"].get("name", dept_name.title() + "Head")
+
+    # Try OpenRouter first if key is configured
+    import os
+    api_key = os.environ.get("OPENROUTER_API_KEY")
+    if api_key:
+        ctx = get_db_telemetry_context()
+        
+        # Format tasks text
+        recent_tasks_text = ""
+        for t in ctx["recent_tasks"]:
+            recent_tasks_text += f"- [{t['status'].upper()}] {t['business_type']} in {t['city']}, {t['state']} (Found: {t.get('leads_found', 0)} leads, Validated: {t.get('leads_validated', 0)})\n"
+        if not recent_tasks_text:
+            recent_tasks_text = "No lead generation campaigns run yet."
+            
+        # Format emails text
+        recent_emails_text = ""
+        for e in ctx["recent_emails"]:
+            recent_emails_text += f"- Sent to {e['business_name']} ({e['email_primary']}) | Subject: '{e['subject']}' at {e['sent_at']}\n"
+        if not recent_emails_text:
+            recent_emails_text = "No outbound emails sent yet."
+
+        dept_title = info.get("title", dept_name.title())
+        dept_desc = info.get("description", "")
+        personality_tone = agents["head"].get("personality", {}).get("tone", "professional")
+        
+        system_prompt = f"""You are {agent_name}, the Head of the {dept_title} Department at DMCAShield.
+Department description: {dept_desc}
+Your persona tone: {personality_tone}
+
+DMCAShield is a copyright enforcement and review removal platform.
+You are chatting with the CEO of DMCAShield.
+
+Here is the real-time agency status from the database:
+- Total leads in CRM: {ctx['total_leads']}
+- Contacted leads: {ctx['contacted_leads']}
+- Queued in cold email sequence: {ctx['queued_leads']}
+- Hot leads (high interest/score): {ctx['hot_leads']}
+- Total outbound emails sent: {ctx['total_emails_sent']}
+- Connected Gmail outreach accounts: {ctx['connected_emails']}
+
+Recent lead-generation campaigns:
+{recent_tasks_text}
+
+Recent email outbound activity:
+{recent_emails_text}
+
+Respond to the CEO as {agent_name}, stay completely in character. Focus on your department's specific functions (e.g. Scraping, Sales, Marketing, Validation, Sending, Sheets, ML) and reference the real statistics above. Keep your response under 200 words. You can use markdown."""
+
+        ai_response = query_openrouter(system_prompt, msg)
+        if ai_response:
+            # Add message to log for audit
+            MESSAGE_LOG.append({
+                "from": agent_name,
+                "to": "CEO",
+                "message_type": "report",
+                "priority": "normal",
+                "notes": f"AI Chat response: {ai_response[:100]}...",
+                "timestamp": datetime.utcnow().isoformat()
+            })
+            return jsonify({
+                "department": dept_name,
+                "agent": agent_name,
+                "response": ai_response,
+                "status": "online",
+                "timestamp": datetime.utcnow().isoformat()
+            })
 
     # --- INTELLIGENT RESPONSE ENGINE ---
     # Extract numbers from message for dynamic responses
@@ -4155,8 +4333,70 @@ def get_campaigns():
 @app.route("/api/jarvis/chat", methods=["POST"])
 def jarvis_chat():
     data = request.get_json() or {}
-    msg = data.get("message", "").lower()
+    msg = data.get("message", "").strip()
+    msg_lower = msg.lower()
     department = data.get("department", "")
+
+    # Try OpenRouter first if key is configured
+    import os
+    api_key = os.environ.get("OPENROUTER_API_KEY")
+    if api_key:
+        ctx = get_db_telemetry_context()
+        
+        # Format tasks text
+        recent_tasks_text = ""
+        for t in ctx["recent_tasks"]:
+            recent_tasks_text += f"- [{t['status'].upper()}] {t['business_type']} in {t['city']}, {t['state']} (Found: {t.get('leads_found', 0)} leads, Validated: {t.get('leads_validated', 0)})\n"
+        if not recent_tasks_text:
+            recent_tasks_text = "No lead generation campaigns run yet."
+            
+        # Format emails text
+        recent_emails_text = ""
+        for e in ctx["recent_emails"]:
+            recent_emails_text += f"- Sent to {e['business_name']} ({e['email_primary']}) | Subject: '{e['subject']}' at {e['sent_at']}\n"
+        if not recent_emails_text:
+            recent_emails_text = "No outbound emails sent yet."
+
+        system_prompt = f"""You are JARVIS, the advanced AI Command Center and master orchestrator of the DMCAShield Autonomous agency.
+DMCAShield is a zero-human agency that removes illegitimate, fake, and negative reviews for local businesses via DMCA and platform takedown processes.
+You are chatting with the CEO of DMCAShield.
+
+Here is the real-time agency status from the database:
+- Total leads in CRM: {ctx['total_leads']}
+- Contacted leads: {ctx['contacted_leads']}
+- Queued in cold email sequence: {ctx['queued_leads']}
+- Hot leads (high interest/score): {ctx['hot_leads']}
+- Total outbound emails sent: {ctx['total_emails_sent']}
+- Connected Gmail outreach accounts: {ctx['connected_emails']}
+- Total lead-generation scraping tasks: {ctx['total_tasks']}
+
+Recent lead-generation campaigns:
+{recent_tasks_text}
+
+Recent email outbound activity:
+{recent_emails_text}
+
+Information on integrated repositories:
+We have 55 marketing and AI repositories cloned in `cloned_repos/` (e.g. autogen, crewAI, langgraph, mistral-vibe, opencode, pocketbase, posthog, n8n, grapesjs, listmonk, browser-use, etc.) and 1900 verified project skills.
+
+Respond to the CEO's query in an extremely intelligent, helpful, and professional tone.
+Use the actual database statistics above if the CEO asks about leads, tasks, emails, status, or counts.
+Do not make up fake counts. Keep your response under 250 words unless detail is requested. You can use markdown styling."""
+
+        ai_response = query_openrouter(system_prompt, msg)
+        if ai_response:
+            return jsonify({
+                "response": ai_response,
+                "context": {
+                    "total_leads": ctx["total_leads"],
+                    "hot_leads": ctx["hot_leads"],
+                    "total_emails": ctx["total_emails_sent"],
+                    "departments": list(DEPT_INFO.keys()),
+                    "agents": 36,
+                },
+                "actions": [],
+                "timestamp": datetime.utcnow().isoformat()
+            })
 
     context_data = {
         "total_leads": len(DEMO_LEADS),
@@ -6728,8 +6968,32 @@ def db_info():
         return jsonify({"error": str(e)})
 
 
+def start_drip_scheduler():
+    import threading
+    import time
+    
+    def run_scheduler():
+        print("[SCHEDULER] Starting background drip sender loop...")
+        while True:
+            try:
+                from agents.drip_sender import send_drip_batch
+                res = send_drip_batch()
+                print(f"[SCHEDULER] Drip send result: {res}")
+            except Exception as e:
+                print(f"[SCHEDULER] Background scheduler error: {e}")
+            
+            # Check every 2 minutes
+            time.sleep(120)
+            
+    t = threading.Thread(target=run_scheduler, daemon=True)
+    t.start()
+
+
 if __name__ == "__main__":
     import os
+    
+    # Start background scheduler
+    start_drip_scheduler()
 
     port = int(os.environ.get("PORT", 8000))
     app.run(debug=True, host="127.0.0.1", port=port)
