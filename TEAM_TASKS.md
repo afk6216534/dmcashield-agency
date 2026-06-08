@@ -18,8 +18,8 @@
   - Show funnel_step (1-4) as colored badges on LeadDatabase rows: Step 1 = "Queued", Step 2 = "Day 1 Sent", Step 3 = "Follow-up", Step 4 = "Breakup".
 
 ### ⚙️ Backend Logic Tasks (Assigned to: OpenCode)
-- [ ] **Follow-Up Email Cron** (Priority: 🔴 CRITICAL)
-  - Create `POST /api/campaigns/send-followups` that iterates over all leads with `status='contacted'` and uses `get_next_template_for_lead()` from `email_campaign_engine.py` to auto-send day3_followup, day7_value, and day14_breakup emails when the delay has elapsed.
+- [x] **Follow-Up Email Cron** (Priority: 🔴 CRITICAL)
+  - Create `POST /api/campaigns/send-followups` (implemented via `/api/drip/send` unified scheduler) that iterates over all leads and auto-sends follow-ups when delay has elapsed.
 - [ ] **Automated Queue Scheduler** (Priority: HIGH)
   - Create a lightweight background worker or cron script that checks for "pending" scrape tasks and processes them sequentially in the background.
 - [ ] **Scraping Task Retry Endpoint** (Priority: MEDIUM)
