@@ -501,16 +501,16 @@ def create_task():
             "business_type": business_type,
             "city": city,
             "state": state,
-            "status": "complete",
+            "status": pipeline_result.get("status", "drip_active"),
             "leads_total": pipeline_result.get("leads_saved", 0),
             "leads_emailed": pipeline_result.get("leads_emailed", 0),
             "leads_validated": pipeline_result.get("leads_validated", 0),
+            "leads_queued": pipeline_result.get("leads_queued", 0),
             "campaign_id": pipeline_result.get("campaign_id", ""),
-            "phase": "sales",
+            "phase": "sending",
             "created_at": datetime.utcnow().isoformat(),
         }
         
-        # Keep DEMO_TASKS updated as a fallback
         DEMO_TASKS.append(new_task)
 
         return jsonify(
@@ -518,11 +518,34 @@ def create_task():
                 "task_id": task_id,
                 "task": new_task,
                 "status": "launched",
-                "phase": "complete",
+                "phase": "drip_active",
+                "message": pipeline_result.get("message", ""),
+                "drip_schedule": pipeline_result.get("drip_schedule", {}),
                 "pipeline": pipeline_result.get("phases", {}),
                 "details": pipeline_result
             }
         )
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/drip/send", methods=["POST"])
+def drip_send_batch():
+    """Send next batch of drip emails (3-5 per call, human-like)."""
+    try:
+        from agents.drip_sender import send_drip_batch
+        result = send_drip_batch()
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/drip/status", methods=["GET"])
+def drip_status():
+    """Get drip campaign status — warmup phase, sent today, queue size."""
+    try:
+        from agents.drip_sender import get_drip_status
+        return jsonify(get_drip_status())
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
