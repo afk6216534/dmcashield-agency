@@ -175,7 +175,7 @@ def send_drip_batch() -> Dict:
     5. Sync to cloud
     """
     from agents.cloud_db import get_db
-    from agents.email_campaign_engine import get_gmail_credentials
+    from agents.email_campaign_engine import get_all_gmail_credentials
     
     results = {
         "sent": 0, 
@@ -188,8 +188,8 @@ def send_drip_batch() -> Dict:
     }
     
     # Check credentials
-    credentials = get_gmail_credentials()
-    if not credentials or not credentials.get("email") or not credentials.get("password"):
+    all_credentials = get_all_gmail_credentials()
+    if not all_credentials:
         results["error"] = "Gmail not configured. Add credentials in Email Accounts."
         return results
     
@@ -262,12 +262,42 @@ def send_drip_batch() -> Dict:
         results["message"] = "No leads ready for next email. All caught up!"
         return results
     
-    # Open single SMTP connection
+    # Open single SMTP connection by trying accounts in pool
+    server = None
+    connected_credentials = None
+    for credentials in all_credentials:
+        try:
+            server = smtplib.SMTP("smtp.gmail.com", 587, timeout=15)
+            server.starttls()
+            server.login(credentials["email"], credentials["password"])
+            connected_credentials = credentials
+            break
+        except Exception as smtp_err:
+            logger.warning(f"[DRIP] SMTP login failed for {credentials['email']}: {smtp_err}")
+            # Mark account as failing in database
+            try:
+                conn_err = get_db()
+                conn_err.execute(
+                    "UPDATE email_accounts SET status = 'auth_failed', health_score = MAX(health_score - 10, 0) WHERE email_address = ?",
+                    (credentials["email"],)
+                )
+                conn_err.commit()
+                conn_err.close()
+                from agents.cloud_db import save_all_accounts_to_cloud
+                save_all_accounts_to_cloud()
+            except Exception:
+                pass
+            server = None
+            
+    if not server or not connected_credentials:
+        conn.close()
+        results["error"] = "All configured SMTP accounts failed to authenticate."
+        return results
+        
+    credentials = connected_credentials
+    sender_name = credentials.get("display_name", "DMCAShield Team")
+    
     try:
-        server = smtplib.SMTP("smtp.gmail.com", 587, timeout=15)
-        server.starttls()
-        server.login(credentials["email"], credentials["password"])
-        sender_name = credentials.get("display_name", "DMCAShield Team")
         
         for i, lead in enumerate(leads_to_send):
             try:
@@ -315,6 +345,21 @@ def send_drip_batch() -> Dict:
                     WHERE id = ?
                 """, (emails_sent + 1, now_str, now_str, lead["id"]))
                 
+                # Log agent message to SQLite DB
+                msg_id = f"msg_{uuid.uuid4().hex[:8]}"
+                conn.execute("""
+                    INSERT INTO agent_messages (id, from_agent, to_agent, message_type, priority, notes, timestamp)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    msg_id,
+                    "SMTPWorker",
+                    "SendHead",
+                    "report",
+                    "normal",
+                    f"Outreach email ({seq['name']}) sent to {biz} ({lead['email_primary']}) via {credentials['email']}",
+                    now_str
+                ))
+                
                 conn.commit()
                 
                 results["sent"] += 1
@@ -335,6 +380,25 @@ def send_drip_batch() -> Dict:
                     
             except Exception as e:
                 results["errors"] += 1
+                # Log email send error
+                try:
+                    msg_id = f"msg_{uuid.uuid4().hex[:8]}"
+                    now_str = datetime.utcnow().isoformat()
+                    conn.execute("""
+                        INSERT INTO agent_messages (id, from_agent, to_agent, message_type, priority, notes, timestamp)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """, (
+                        msg_id,
+                        "SMTPWorker",
+                        "SendHead",
+                        "alert",
+                        "high",
+                        f"Outreach send error for {biz} ({lead['email_primary']}): {str(e)[:80]}",
+                        now_str
+                    ))
+                    conn.commit()
+                except Exception:
+                    pass
                 results["details"].append({
                     "lead": lead.get("business_name", ""),
                     "status": "error",

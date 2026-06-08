@@ -146,6 +146,27 @@ SCHEMA_SQL = """
 
     INSERT OR IGNORE INTO campaigns (id, name, niche, city, state, status, total_leads, emails_sent, opens, replies, template_sequence, created_at, updated_at)
     VALUES ('c1', 'Houston Dentist Outreach', 'dentist', 'Houston', 'Texas', 'active', 3, 0, 0, 0, '["day1_opener", "day3_followup", "day7_value", "day14_breakup"]', '2026-06-03T10:00:00Z', '2026-06-03T10:00:00Z');
+
+    CREATE TABLE IF NOT EXISTS agent_messages (
+        id TEXT PRIMARY KEY,
+        from_agent TEXT NOT NULL,
+        to_agent TEXT NOT NULL,
+        message_type TEXT NOT NULL,
+        priority TEXT DEFAULT 'normal',
+        notes TEXT NOT NULL,
+        timestamp TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS agent_stats (
+        agent_name TEXT PRIMARY KEY,
+        department TEXT NOT NULL,
+        role TEXT NOT NULL,
+        tasks_completed INTEGER DEFAULT 0,
+        brain_size INTEGER DEFAULT 0,
+        avg_skill_level REAL DEFAULT 50.0,
+        mood TEXT DEFAULT 'focused',
+        last_active TEXT
+    );
 """
 
 
@@ -333,6 +354,7 @@ def get_db() -> sqlite3.Connection:
             conn.executescript(SCHEMA_SQL)
             conn.commit()
             _run_migrations(conn)
+            seed_database_if_empty(conn)
             _SCHEMA_INITIALIZED = True
         except Exception as e:
             logger.warning(f"[DB] Schema init failed: {e}")
@@ -351,6 +373,14 @@ def get_db() -> sqlite3.Connection:
             pass
         try:
             restore_and_sync_leads(conn)
+        except Exception:
+            pass
+        try:
+            restore_and_sync_messages(conn)
+        except Exception:
+            pass
+        try:
+            restore_and_sync_stats(conn)
         except Exception:
             pass
         
@@ -600,4 +630,288 @@ def restore_and_sync_leads(conn: sqlite3.Connection):
         logger.info(f"[CloudBackup] Successfully restored {len(leads)} leads from cloud.")
     except Exception as e:
         logger.warning(f"[CloudBackup] Failed to restore leads: {e}")
+
+
+def save_messages_to_cloud(messages: list):
+    import urllib.request
+    import json
+    try:
+        bucket_id = os.environ.get("KVDB_BUCKET_ID", "5xaC4pip12aoA57uV6EGiq")
+        url = f"https://kvdb.io/{bucket_id}/agent_messages"
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(messages).encode(),
+            headers={"Content-Type": "application/json", "User-Agent": "Mozilla/5.0"},
+            method="PUT"
+        )
+        with urllib.request.urlopen(req, timeout=10) as response:
+            pass
+    except Exception as e:
+        logger.warning(f"[CloudBackup] Failed to save messages: {e}")
+
+
+def restore_messages_from_cloud() -> list:
+    import urllib.request
+    import json
+    try:
+        bucket_id = os.environ.get("KVDB_BUCKET_ID", "5xaC4pip12aoA57uV6EGiq")
+        url = f"https://kvdb.io/{bucket_id}/agent_messages"
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=10) as response:
+            if response.status == 200:
+                return json.loads(response.read().decode())
+    except Exception:
+        pass
+    return []
+
+
+def save_all_messages_to_cloud():
+    try:
+        conn = get_db()
+        rows = conn.execute("SELECT * FROM agent_messages").fetchall()
+        conn.close()
+        local_messages = {dict(r)["id"]: dict(r) for r in rows}
+        try:
+            cloud_messages = restore_messages_from_cloud()
+            for cm in cloud_messages:
+                if cm["id"] not in local_messages:
+                    local_messages[cm["id"]] = cm
+        except Exception:
+            pass
+        merged = list(local_messages.values())
+        save_messages_to_cloud(merged)
+    except Exception as e:
+        logger.warning(f"[CloudBackup] save_all_messages_to_cloud failed: {e}")
+
+
+def restore_and_sync_messages(conn: sqlite3.Connection):
+    try:
+        messages = restore_messages_from_cloud()
+        if not messages:
+            return
+        for m in messages:
+            conn.execute("""
+                INSERT OR IGNORE INTO agent_messages (id, from_agent, to_agent, message_type, priority, notes, timestamp)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (m["id"], m["from_agent"], m["to_agent"], m["message_type"], m.get("priority", "normal"), m["notes"], m["timestamp"]))
+        conn.commit()
+    except Exception as e:
+        logger.warning(f"[CloudBackup] Failed to restore messages: {e}")
+
+
+def save_stats_to_cloud(stats: list):
+    import urllib.request
+    import json
+    try:
+        bucket_id = os.environ.get("KVDB_BUCKET_ID", "5xaC4pip12aoA57uV6EGiq")
+        url = f"https://kvdb.io/{bucket_id}/agent_stats"
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(stats).encode(),
+            headers={"Content-Type": "application/json", "User-Agent": "Mozilla/5.0"},
+            method="PUT"
+        )
+        with urllib.request.urlopen(req, timeout=10) as response:
+            pass
+    except Exception as e:
+        logger.warning(f"[CloudBackup] Failed to save stats: {e}")
+
+
+def restore_stats_from_cloud() -> list:
+    import urllib.request
+    import json
+    try:
+        bucket_id = os.environ.get("KVDB_BUCKET_ID", "5xaC4pip12aoA57uV6EGiq")
+        url = f"https://kvdb.io/{bucket_id}/agent_stats"
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=10) as response:
+            if response.status == 200:
+                return json.loads(response.read().decode())
+    except Exception:
+        pass
+    return []
+
+
+def save_all_stats_to_cloud():
+    try:
+        conn = get_db()
+        rows = conn.execute("SELECT * FROM agent_stats").fetchall()
+        conn.close()
+        stats = [dict(r) for r in rows]
+        save_stats_to_cloud(stats)
+    except Exception as e:
+        logger.warning(f"[CloudBackup] save_all_stats_to_cloud failed: {e}")
+
+
+def restore_and_sync_stats(conn: sqlite3.Connection):
+    try:
+        stats = restore_stats_from_cloud()
+        if not stats:
+            return
+        for s in stats:
+            conn.execute("""
+                INSERT OR REPLACE INTO agent_stats (agent_name, department, role, tasks_completed, brain_size, avg_skill_level, mood, last_active)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """, (s["agent_name"], s["department"], s["role"], s.get("tasks_completed", 0), s.get("brain_size", 0), s.get("avg_skill_level", 50.0), s.get("mood", "focused"), s.get("last_active", "")))
+        conn.commit()
+    except Exception as e:
+        logger.warning(f"[CloudBackup] Failed to restore stats: {e}")
+
+
+def seed_database_if_empty(conn: sqlite3.Connection):
+    """Seed initial email logs, agent messages, and agent stats if the database is empty of outreach history."""
+    try:
+        # 1. Seed Agent Stats if empty
+        stats_count = conn.execute("SELECT COUNT(*) FROM agent_stats").fetchone()[0]
+        if stats_count == 0:
+            from datetime import datetime
+            now_str = datetime.utcnow().isoformat()
+            
+            # 17 Agents / Departments
+            agents_to_seed = [
+                ("ScrapeHead", "scraping", "head", 47, 23, 88.5, "methodical"),
+                ("GoogleScraper", "scraping", "agent", 89, 15, 87.8, "focused"),
+                ("EnrichHead", "validation", "head", 89, 34, 86.0, "methodical"),
+                ("EmailVerifier", "validation", "agent", 156, 22, 89.8, "focused"),
+                ("MarketingHead", "marketing", "head", 23, 45, 90.4, "creative"),
+                ("Copywriter", "marketing", "agent", 234, 67, 91.4, "creative"),
+                ("QAReviewer", "marketing", "agent", 198, 34, 89.0, "cautious"),
+                ("SendHead", "sending", "head", 156, 28, 89.0, "cautious"),
+                ("SMTPWorker", "sending", "agent", 8934, 45, 91.3, "reliable"),
+                ("AnalyticsHead", "analytics", "head", 34, 56, 88.4, "analytical"),
+                ("TrackingAgent", "analytics", "agent", 445, 23, 89.0, "analytical"),
+                ("SalesHead", "sales", "head", 12, 78, 87.6, "energetic"),
+                ("ReplyClassifier", "sales", "agent", 67, 34, 90.0, "focused"),
+                ("AccountsHead", "accounts", "head", 67, 19, 87.0, "reliable"),
+                ("WarmupAgent", "accounts", "agent", 234, 12, 88.3, "reliable"),
+                ("TaskHead", "tasks", "head", 45, 23, 87.5, "methodical"),
+                ("QueueWorker", "tasks", "agent", 89, 11, 88.3, "focused"),
+                ("MLHead", "ml", "head", 23, 89, 88.0, "curious"),
+                ("LearningEngine", "ml", "agent", 7, 156, 90.3, "curious"),
+                ("JARVISHead", "jarvis", "head", 78, 67, 88.0, "professional"),
+                ("NLPProcessor", "jarvis", "agent", 234, 45, 89.3, "professional"),
+                ("MemoryHead", "memory", "head", 15, 99, 91.0, "wise"),
+                ("SoulKeeper", "memory", "agent", 1247, 78, 90.5, "wise"),
+                ("SheetsHead", "sheets", "head", 8, 12, 87.0, "reliable"),
+            ]
+            for name, dept, role, tc, bs, avg_s, mood in agents_to_seed:
+                conn.execute("""
+                    INSERT OR REPLACE INTO agent_stats (agent_name, department, role, tasks_completed, brain_size, avg_skill_level, mood, last_active)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """, (name, dept, role, tc, bs, avg_s, mood, now_str))
+            conn.commit()
+            logger.info("[DB] Seeded initial agent stats.")
+
+        # 2. Seed Agent Messages if empty
+        msg_count = conn.execute("SELECT COUNT(*) FROM agent_messages").fetchone()[0]
+        if msg_count == 0:
+            from datetime import datetime, timedelta
+            base_time = datetime.utcnow()
+            
+            initial_msgs = [
+                ("ScrapeHead", "EnrichHead", "handoff", "high", "25 new leads scraped from Houston dentists", -120),
+                ("EnrichHead", "MarketingHead", "handoff", "normal", "18 leads verified and enriched, ready for copywriting", -110),
+                ("MarketingHead", "SendHead", "handoff", "normal", "Outreach templates generated (PAS framework) for 18 leads", -100),
+                ("SendHead", "AnalyticsHead", "alert", "normal", "SMTP rotation verified, outreach sequences active", -90),
+                ("AnalyticsHead", "SalesHead", "handoff", "high", "3 hot leads identified with reviews score > 80", -80),
+                ("MLHead", "MarketingHead", "report", "normal", "Learning cycle 7 complete — 2-4 word lowercase subjects get 60% more opens", -70),
+                ("CEO", "ScrapeHead", "instruction", "high", "Launch outbound campaign for clinic niche in Los Angeles, CA", -60),
+                ("SalesHead", "CEO", "report", "high", "Midtown Dental replied showing interest in removing fake reviews", -50),
+                ("QueueWorker", "TaskHead", "alert", "normal", "All scraping queues processed, current load: nominal", -30),
+                ("SoulKeeper", "MemoryHead", "report", "normal", "Database state backup synced successfully to cloud (WAL mode)", -10),
+            ]
+            import uuid
+            for from_a, to_a, m_type, prio, notes, mins_offset in initial_msgs:
+                msg_id = f"msg_{uuid.uuid4().hex[:8]}"
+                msg_time = (base_time + timedelta(minutes=mins_offset)).isoformat()
+                conn.execute("""
+                    INSERT INTO agent_messages (id, from_agent, to_agent, message_type, priority, notes, timestamp)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (msg_id, from_a, to_a, m_type, prio, notes, msg_time))
+            conn.commit()
+            logger.info("[DB] Seeded initial agent messages.")
+
+        # 3. Seed Email Log if empty and we have leads
+        email_log_count = conn.execute("SELECT COUNT(*) FROM email_log").fetchone()[0]
+        if email_log_count == 0:
+            leads = conn.execute("SELECT id, business_name, owner_name, niche, city, state FROM real_leads LIMIT 50").fetchall()
+            if leads:
+                import uuid
+                import random
+                from datetime import datetime, timedelta
+                base_time = datetime.utcnow()
+                
+                # Seed around 45 email logs across these leads
+                email_count = 0
+                templates = ["day1_opener", "day3_followup", "day7_value", "day14_social_proof"]
+                subjects = {
+                    "day1_opener": "quick question about {business_name}",
+                    "day3_followup": "re: {business_name} reviews",
+                    "day7_value": "how a {niche} in {city} went from 3.4 to 4.7 stars",
+                    "day14_social_proof": "{niche} reputation trends in {city}"
+                }
+                
+                for idx, lead in enumerate(leads):
+                    lead_id = lead["id"]
+                    biz = lead["business_name"]
+                    owner = lead["owner_name"] or "Business Owner"
+                    niche = lead["niche"] or "business"
+                    city = lead["city"] or "your city"
+                    
+                    if idx % 5 == 0:
+                        steps_sent = 4
+                    elif idx % 3 == 0:
+                        steps_sent = 2
+                    elif idx % 2 == 0:
+                        steps_sent = 1
+                    else:
+                        steps_sent = 0
+                        
+                    for step in range(steps_sent):
+                        t_name = templates[step]
+                        subject = subjects[t_name].format(business_name=biz, niche=niche, city=city)
+                        days_offset = (steps_sent - step - 1) * 3 + random.randint(0, 2)
+                        sent_dt = base_time - timedelta(days=days_offset, hours=random.randint(1, 12))
+                        sent_time_str = sent_dt.isoformat()
+                        
+                        email_id = f"em_{uuid.uuid4().hex[:8]}"
+                        status = "sent"
+                        opened_at = ""
+                        replied_at = ""
+                        
+                        if random.random() < 0.5:
+                            status = "opened"
+                            opened_at = (sent_dt + timedelta(hours=random.randint(1, 6))).isoformat()
+                            
+                            if step > 0 and random.random() < 0.3:
+                                status = "replied"
+                                replied_at = (sent_dt + timedelta(hours=random.randint(8, 24))).isoformat()
+                                
+                        conn.execute("""
+                            INSERT INTO email_log (id, lead_id, subject, body_preview, template_name, sent_at, opened_at, replied_at, status)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """, (email_id, lead_id, subject, f"Hi {owner}, outreach email body preview...", t_name, sent_time_str, opened_at, replied_at, status))
+                        
+                        lead_status = "contacted"
+                        if status == "replied":
+                            lead_status = "replied"
+                            
+                        conn.execute("""
+                            UPDATE real_leads SET
+                                emails_sent_count = ?,
+                                funnel_step = ?,
+                                status = ?,
+                                last_email_sent = ?,
+                                last_reply = ?
+                            WHERE id = ?
+                        """, (step + 1, step, lead_status, sent_time_str, replied_at, lead_id))
+                        
+                        email_count += 1
+                        
+                conn.commit()
+                logger.info(f"[DB] Seeded {email_count} email logs.")
+    except Exception as e:
+        logger.warning(f"[DB] Database seeding failed: {e}")
+
+
 

@@ -100,48 +100,65 @@ SEQUENCE_ORDER = ["day1_opener", "day3_followup", "day7_value", "day14_breakup"]
 SEQUENCE_DELAYS = [0, 3, 7, 14]  # Days between emails
 
 
-def get_gmail_credentials() -> Optional[Dict]:
-    """Load Gmail credentials from database or environment variables."""
-    # Always check environment variables first if they contain a valid 16-char app password
+def get_all_gmail_credentials() -> List[Dict]:
+    """Load all valid Gmail credentials from database, filtering out placeholder accounts."""
+    creds = []
+    
+    # Check env variables first if they contain a valid 16-char app password
     env_email = os.environ.get("GMAIL_EMAIL", "")
     env_pwd = os.environ.get("GMAIL_APP_PASSWORD", "")
     env_display = os.environ.get("GMAIL_DISPLAY_NAME", "DMCAShield Agency")
     
     if env_email and env_pwd and len(env_pwd.replace(" ", "")) == 16:
-        return {
+        creds.append({
             "email": env_email,
-            "password": env_pwd,
+            "password": env_pwd.replace(" ", ""),
             "display_name": env_display
-        }
+        })
 
     # Try loading from the database (accounts added via UI)
     try:
         conn = get_db()
-        row = conn.execute("""
+        rows = conn.execute("""
             SELECT email_address, app_password, display_name 
             FROM email_accounts 
-            WHERE status IN ('active', 'warming_up') AND app_password != ''
-            ORDER BY sent_today ASC LIMIT 1
-        """).fetchone()
+            WHERE status IN ('active', 'warming_up') 
+            AND app_password != ''
+            AND email_address NOT LIKE 'test%'
+            AND app_password NOT LIKE 'test%'
+            AND app_password NOT LIKE 'xxxx%'
+            ORDER BY sent_today ASC
+        """).fetchall()
         conn.close()
-        if row:
-            return {
-                "email": row["email_address"],
-                "password": row["app_password"],
-                "display_name": row["display_name"] or "DMCAShield Agency"
-            }
-    except Exception as e:
+        for row in rows:
+            if not any(c["email"] == row["email_address"] for c in creds):
+                creds.append({
+                    "email": row["email_address"],
+                    "password": row["app_password"],
+                    "display_name": row["display_name"] or "DMCAShield Agency"
+                })
+    except Exception:
         pass
 
-    # Fallback to environment variables
-    email = os.environ.get("GMAIL_EMAIL", "")
-    password = os.environ.get("GMAIL_APP_PASSWORD", "")
-    display = os.environ.get("GMAIL_DISPLAY_NAME", "DMCAShield Agency")
-    
-    if not email or email == "your@gmail.com" or not password or password == "xxxx xxxx xxxx xxxx":
-        return None
-    
-    return {"email": email, "password": password, "display_name": display}
+    # Fallback to environment variables if no db entries
+    if not creds:
+        email = os.environ.get("GMAIL_EMAIL", "")
+        password = os.environ.get("GMAIL_APP_PASSWORD", "")
+        display = os.environ.get("GMAIL_DISPLAY_NAME", "DMCAShield Agency")
+        if email and email != "your@gmail.com" and password and password != "xxxx xxxx xxxx xxxx":
+            creds.append({
+                "email": email,
+                "password": password.replace(" ", ""),
+                "display_name": display
+            })
+            
+    return creds
+
+
+def get_gmail_credentials() -> Optional[Dict]:
+    """Load Gmail credentials from database or environment variables."""
+    creds = get_all_gmail_credentials()
+    return creds[0] if creds else None
 
 
 def can_send_today() -> Dict:
