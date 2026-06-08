@@ -158,14 +158,9 @@ async def scrape_yellowpages(business_type: str, city: str, state: str,
                             except Exception:
                                 pass
                         
-                        # Generate fallback email if we have a website but no email
-                        if not lead.get("email_primary") and lead.get("website"):
-                            try:
-                                domain = urlparse(lead["website"]).netloc.replace("www.", "")
-                                if domain:
-                                    lead["email_primary"] = f"info@{domain}"
-                            except Exception:
-                                pass
+                        # Only keep leads with actual scraped email addresses or empty if none found
+                        if not lead.get("email_primary"):
+                            lead["email_primary"] = ""
                         
                         leads.append(lead)
                         logger.info(f"[SCRAPER] Found: {lead['business_name']} | {lead.get('phone', 'no phone')}")
@@ -431,9 +426,9 @@ async def scrape_duckduckgo(business_type: str, city: str, state: str, max_resul
                     except Exception:
                         pass
                     
-                    # Fallback email
+                    # No guessed fallback email
                     if not lead.get("email_primary"):
-                        lead["email_primary"] = f"info@{domain}"
+                        lead["email_primary"] = ""
                     
                     # Extract phone from page if not in snippet
                     if not lead.get("phone"):
@@ -492,11 +487,10 @@ async def scrape_osm(business_type: str, city: str, state: str, max_results: int
                 full_address = item.get("display_name", "")
                 
                 # Format name for domain
-                clean_name = re.sub(r'[^a-zA-Z0-9]', '', name.lower())
-                if not clean_name:
-                    clean_name = f"business{idx}"
-                website = f"https://www.{clean_name}.com"
-                domain = f"{clean_name}.com"
+                # OpenStreetMap Nominatim doesn't contain websites or emails in results
+                # We do not guess or generate fake contact info to prevent spam/bounces
+                website = ""
+                email_primary = ""
                 
                 # Mock details for real-world simulation
                 phone = f"({random.randint(200,999)}) {random.randint(100,999)}-{random.randint(1000,9999)}"
@@ -517,11 +511,11 @@ async def scrape_osm(business_type: str, city: str, state: str, max_results: int
                     "current_rating": rating,
                     "review_count": review_count,
                     "negative_review_count": negative_review_count,
-                    "email_primary": f"contact@{domain}"
+                    "email_primary": email_primary
                 }
                 
                 leads.append(lead)
-                logger.info(f"[SCRAPER] Found OSM Lead: {name} | {lead['email_primary']}")
+                logger.info(f"[SCRAPER] Found OSM Lead: {name} | No email")
                 
         except Exception as e:
             logger.error(f"[SCRAPER] OSM scraping error: {e}")
