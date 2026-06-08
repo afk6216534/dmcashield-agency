@@ -2,6 +2,16 @@ from flask import Flask, jsonify, request, make_response
 from flask_cors import CORS
 from datetime import datetime
 
+app = Flask(__name__)
+CORS(
+    app,
+    origins=[
+        "https://dmcashield.netlify.app",
+        "http://localhost:5175",
+        "http://localhost:5173",
+    ],
+)
+
 # ═══════════════════════════════════════════════════════════
 # Heartbeat & Dynamic Database Helpers
 # ═══════════════════════════════════════════════════════════
@@ -171,16 +181,6 @@ def check_heartbeat():
         LAST_HEARTBEAT_TIME = now
         import threading
         threading.Thread(target=run_heartbeat_tick, daemon=True).start()
-
-app = Flask(__name__)
-CORS(
-    app,
-    origins=[
-        "https://dmcashield.netlify.app",
-        "http://localhost:5175",
-        "http://localhost:5173",
-    ],
-)
 
 # ═══════════════════════════════════════════════════════════
 # DMCAShield Agency API — Production Backend (Vercel)
@@ -365,7 +365,7 @@ def dashboard():
                 "from": r["from_agent"],
                 "to": r["to_agent"],
                 "message_type": r["message_type"],
-                "priority": r.get("priority", "normal"),
+                "priority": r["priority"] if r["priority"] else "normal",
                 "notes": r["notes"],
                 "timestamp": r["timestamp"]
             })
@@ -3900,7 +3900,7 @@ def get_department(dept_name):
                     "from": r["from_agent"],
                     "to": r["to_agent"],
                     "message_type": r["message_type"],
-                    "priority": r.get("priority", "normal"),
+                    "priority": r["priority"] if r["priority"] else "normal",
                     "notes": r["notes"],
                     "timestamp": r["timestamp"]
                 })
@@ -4510,7 +4510,7 @@ def ceo_overview():
                 "from": r["from_agent"],
                 "to": r["to_agent"],
                 "message_type": r["message_type"],
-                "priority": r.get("priority", "normal"),
+                "priority": r["priority"] if r["priority"] else "normal",
                 "notes": r["notes"],
                 "timestamp": r["timestamp"]
             })
@@ -4566,7 +4566,7 @@ def message_feed():
                 "from": r["from_agent"],
                 "to": r["to_agent"],
                 "message_type": r["message_type"],
-                "priority": r.get("priority", "normal"),
+                "priority": r["priority"] if r["priority"] else "normal",
                 "notes": r["notes"],
                 "timestamp": r["timestamp"]
             })
