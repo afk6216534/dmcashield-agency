@@ -118,31 +118,42 @@ DMCAShield""",
 }
 
 
-# ─── WARMUP SCHEDULE ────────────────────────────────────────────
-
 def get_daily_send_limit() -> int:
     """
     Warmup schedule: start slow to build Gmail reputation.
-    Based on Gmail best practices.
+    Scaled per active account to support realistic agency volume.
     """
     from agents.cloud_db import get_db
+    from agents.email_campaign_engine import get_all_gmail_credentials
+    
+    # Scale limit by number of active credentials
+    creds = get_all_gmail_credentials()
+    num_accounts = len(creds) if creds else 1
+    
     conn = get_db()
     try:
         # Count total emails ever sent
         total = conn.execute("SELECT COUNT(*) FROM email_log").fetchone()[0]
         conn.close()
         
-        if total < 20:     # Week 1: 3 per day
-            return 3
-        elif total < 50:   # Week 2: 5 per day
-            return 5
-        elif total < 150:  # Week 3-4: 8 per day
-            return 8
-        else:              # After warmup: 15 per day max
-            return 15
+        if total < 20:     # Week 1: 15 per day per account
+            limit_per_acct = 15
+        elif total < 50:   # Week 2: 25 per day per account
+            limit_per_acct = 25
+        elif total < 150:  # Week 3-4: 40 per day per account
+            limit_per_acct = 40
+        else:              # After warmup: 60 per day per account max
+            limit_per_acct = 60
+            
+        return limit_per_acct * num_accounts
     except Exception:
-        conn.close()
-        return 3  # Default to safe limit
+        if 'conn' in locals() and conn:
+            try:
+                conn.close()
+            except Exception:
+                pass
+        return 15 * num_accounts  # Default to safe limit
+
 
 
 def get_sent_today_count() -> int:
@@ -204,8 +215,8 @@ def send_drip_batch() -> Dict:
         results["message"] = f"Daily limit reached ({daily_limit}/day). Try again tomorrow."
         return results
     
-    # How many to send this batch (3-5, but not more than remaining)
-    batch_size = min(random.randint(3, 5), remaining)
+    # How many to send this batch (10-20, but not more than remaining)
+    batch_size = min(random.randint(10, 20), remaining)
     
     # Find leads ready for their next email
     conn = get_db()
@@ -373,9 +384,10 @@ def send_drip_batch() -> Dict:
                 
                 logger.info(f"[DRIP] Sent {seq['name']} to {biz} ({lead['email_primary']})")
                 
-                # Random delay between emails (human-like)
+                # Random delay between emails (human-like, optimized for Vercel timeout limits)
                 if i < len(leads_to_send) - 1:
-                    delay = random.uniform(5, 15)  # 5-15 seconds on Vercel (real would be 3-7 min)
+                    from agents.cloud_db import IS_VERCEL
+                    delay = random.uniform(0.1, 0.3) if IS_VERCEL else random.uniform(5, 15)
                     time.sleep(delay)
                     
             except Exception as e:
