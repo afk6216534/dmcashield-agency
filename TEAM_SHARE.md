@@ -1,20 +1,28 @@
-# TEAM_SHARE — v5.4 Status
-# Last Updated: 2026-06-05 13:08 PKT
+# TEAM_SHARE — v5.6 Status
+# Last Updated: 2026-06-08 15:30 PKT
 
 ## 🔴 LIVE DEPLOYMENTS
 - **Frontend**: https://dmcashield.netlify.app
 - **Backend**: https://dmcashield-agency.vercel.app
 - **Local Dev Server**: http://localhost:5177 (Frontend) | http://localhost:8000 (Backend)
 
-## CURRENT VERSION: v5.4 (Deployed & Live)
+## CURRENT VERSION: v5.6 (Deployed & Live)
 
-### v5.4 — Persistent Real-World Scraping Tasks & Lead Database with Cloud Sync Integration
-- **SQLite Task Database Integration**: Wired `GET /api/tasks` to query the SQLite `scrape_tasks` table (with fallback to `DEMO_TASKS`), mapping lead counts dynamically to ensure UI responsiveness.
-- **Real-World Scraper Activation**: Configured `POST /api/tasks` to run the real HTTP and OpenStreetMap business scraper pipeline synchronously, saving scraped businesses to `real_leads` in the database.
-- **SQLite Lead Database Integration**: Connected `/api/leads`, `/api/leads/<lead_id>`, `/api/leads/export`, `/api/leads/scored`, `/api/leads/<lead_id>/full`, and `/api/leads/important` to read dynamically from the SQLite `real_leads` and `email_log` tables.
-- **Automated Cloud Sync Persistence**: Integrated `save_all_tasks_to_cloud` and `save_all_leads_to_cloud` in `agents/cloud_db.py` to backup and restore tasks and leads automatically to `kvdb.io` bucket `5xaC4pip12aoA57uV6EGiq`. This makes all scrapings permanent across Vercel container recycles and synced across other dev computers.
-- **Mark Important Synchronized**: Connected `/api/leads/<lead_id>/mark-important` to update the lead status/notes in SQLite and automatically push the backup update to the cloud.
+### v5.4 — Persistent SQLite Scrapes & Lead Database
+- **SQLite Task Persistence**: Wired `GET /api/tasks` and `POST /api/tasks` to query and write real YellowPages/Nominatim task pipelines in SQLite `scrape_tasks` table.
+- **SQLite Lead Database**: Connected all CRM lead views and filters to query dynamically from `real_leads` and `email_log` database tables.
+- **Automated Cloud Backup Sync**: Integrated `save_all_tasks_to_cloud` and `save_all_leads_to_cloud` in `agents/cloud_db.py` to backup and restore state automatically to `kvdb.io`. Added automatic merge sorting to prevent Vercel container recycles from losing/overwriting local tasks.
 
+### v5.5 — Unified Cold Drip Sequence Scheduler
+- **Human-Like Drip Engine**: Built `agents/drip_sender.py` which manages a 5-step follow-up email sequence (Day 0→3→7→14→28) with randomized intervals and warmup limits (3-15 emails/day max).
+- **Scraper Queue Transition**: Replaced the immediate bulk email blast in the scraper pipeline with a queue-based funnel (funnel_step = 0, status = 'queued') that waits for the drip scheduler to process them safely.
+- **Drip Endpoints**: Added `POST /api/drip/send` (sends 3-5 emails per call) and `GET /api/drip/status` endpoints in backend.
+- **Sync and Frontend UI**: Synchronized workflows tabs, cost widgets, and settings error notifications across Netlify and Vercel.
+
+### v5.6 — Scaled Outreach & Delay Optimization
+- **Scaled Warmup limits**: Scaled daily limits dynamically per active configured account (15-60 daily emails per account) to increase overall capacity.
+- **Increased Batch Size**: Configured drip sender batch size to `10-20` emails per trigger (instead of 3-5) to meet expected outreach volume.
+- **Vercel Timeout Guard**: Added dynamic Vercel environment detection to compress sleep delays between sends (0.1-0.3s) during serverless execution, preventing background thread cutoffs while keeping the natural 5-15s delay locally.
 
 ---
 
@@ -22,28 +30,28 @@
 
 ### Active Endpoints & Verification (Live on Vercel)
 - `/api/db/info` → Verified production environment active
-- `/api/gmail/status` → Verified clean disconnected/connected status (reads env vars + DB)
+- `/api/gmail/status` → Verified clean connected/disconnected state
 - `/api/real-leads` → Verified real SQLite CRUD operations
-- `/api/scrape` → Verified live Houston Dentist scrape -> 3 real leads successfully generated and saved!
+- `/api/drip/status` → Verified drip scheduler telemetry active
+- `/api/scrape` → Scraper pipeline active
 
 ---
 
 ## 🔧 TASKS FOR TEAM
 
-### Claude Code (Frontend) — ALL COMPLETED ✅
-- [x] **Settings.jsx** — Wired Gmail config card to connection test and save endpoints
-- [x] **LaunchTask.jsx** — Wired to `POST /api/scrape` and added scraping history table
-- [x] **LeadDatabase.jsx** — Verified Demo/Real toggle reads active SQLite database
-- [x] **CampaignManager.jsx** — Resolved syntax errors and verified build output
-- [x] **Sidebar.jsx** — Configured routing for boss view pages (CEO, JARVIS, Departments)
-- [x] **App.jsx** — Added routing definitions for boss view pages
+### Claude Code (Frontend)
+- [x] **Settings.jsx** — Gmail config card wired to connection tests
+- [x] **LaunchTask.jsx** — Scraping history table and real scrape trigger
+- [x] **LeadDatabase.jsx** — CRUD toggles reading active SQLite DB
+- [x] **KnowledgeBase.jsx** — Workflows tab rendering DMCA and Dev automations
+- [x] **CEOView.jsx** — Cost & Budget Optimization widgets active
+- [x] **Sidebar.jsx & App.jsx** — Routing definitions and 55-repo badges
 
-### OpenCode (Backend) — ALL COMPLETED ✅
-- [x] **cloud_db.py** — Added dynamic migrations for schema upgrades
-- [x] **http_scraper.py** — Added OpenStreetMap Nominatim scraper fallback
-- [x] **main.py** — Adjusted local run block to default to port 8000 for local frontend alignment
-- [x] **start_services.bat** — Updated backend run command to execute the Flask app locally on port 8000
-- [x] **Live Testing** — Verified local and live Vercel deployments run scraping pipelines without errors
+### OpenCode (Backend)
+- [x] **cloud_db.py** — Dynamic migrations and cloud merge sync resolution
+- [x] **real_lead_scraper.py** — Pipeline scraper queues leads instead of blasting
+- [x] **drip_sender.py** — 5-email drip campaign warmup scheduler
+- [x] **main.py & start_services.bat** — Drip endpoints and local alignment port updates
 
 ---
 
