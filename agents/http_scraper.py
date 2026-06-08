@@ -72,13 +72,33 @@ async def _extract_emails_from_url(url: str, client: httpx.AsyncClient) -> List[
     except Exception as e:
         logger.debug(f"Email extraction failed for {url}: {e}")
     
-    # Filter junk emails
-    filtered = [e for e in emails 
-                if not any(j in e.lower() for j in JUNK_DOMAINS) 
-                and len(e) < 60
-                and not e.startswith(".")
-                and not e.endswith(".")
-                and ".." not in e]
+    # Filter junk and generic support/info emails (often operated by support staff or AI agents)
+    GENERIC_PREFIXES = {
+        "support", "contact", "info", "billing", "jobs", "help", "office", "admin", 
+        "service", "sales", "hello", "team", "inquiry", "inquiries", "noreply", 
+        "no-reply", "careers", "hr", "privacy", "feedback", "marketing", "media", 
+        "press", "webmaster", "customer", "customerservice", "client", "clients", 
+        "status", "alert", "alerts", "notification", "notifications", "donotreply"
+    }
+    
+    filtered = []
+    for e in emails:
+        e_lower = e.lower().strip()
+        if any(j in e_lower for j in JUNK_DOMAINS):
+            continue
+        if len(e_lower) >= 60 or e_lower.startswith(".") or e_lower.endswith(".") or ".." in e_lower:
+            continue
+        
+        # Split email to check prefix
+        parts = e_lower.split("@")
+        if len(parts) != 2:
+            continue
+        username, domain = parts
+        
+        if username in GENERIC_PREFIXES:
+            continue
+            
+        filtered.append(e)
     
     return filtered
 
