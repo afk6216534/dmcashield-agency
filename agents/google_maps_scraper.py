@@ -56,8 +56,9 @@ JUNK_EMAIL_DOMAINS = {
     "godaddy.com", "weebly.com", "shopify.com", "wix.com", "github.com",
 }
 
-# Allow info@, office@, hello@ — these ARE the real contact for small businesses
+# Block generic/shared mailbox prefixes (including info, office, hello, etc.) to target personal business emails or Gmails
 BLOCKED_PREFIXES = {
+    "info", "office", "hello", "welcome", "hi", "hey", "sales", "team", "inquiry", "inquiries",
     "support", "contact", "billing", "jobs", "help", "admin",
     "service", "noreply", "no-reply", "careers", "hr", "privacy",
     "feedback", "webmaster", "donotreply", "unsubscribe", "newsletter",
@@ -343,16 +344,8 @@ async def _scrape_google_maps_playwright(
                             except Exception:
                                 pass
                         
-                        # If no email found on website, try constructing info@ and verify MX
-                        if not email_primary and website:
-                            try:
-                                parsed = urlparse(website)
-                                domain = parsed.netloc.replace("www.", "")
-                                if domain and _check_mx_record(domain):
-                                    email_primary = f"info@{domain}"
-                                    logger.info(f"[GMAPS] Constructed verified email: {email_primary}")
-                            except Exception:
-                                pass
+                        # Discard fallback/guessing of info@ emails to prevent bounces and generic messages
+                        pass
                         
                         neg_estimate = max(0, int(total_reviews * (1 - rating / 5) * 0.4)) if rating > 0 else 0
                         
@@ -581,15 +574,8 @@ out body {max_results * 2};"""
                     except Exception:
                         pass
                 
-                # If still no email, construct info@ and verify MX
-                if not email_primary and website:
-                    try:
-                        parsed = urlparse(website)
-                        domain = parsed.netloc.replace("www.", "")
-                        if domain and _check_mx_record(domain):
-                            email_primary = f"info@{domain}"
-                    except Exception:
-                        pass
+                # Discard fallback/guessing of info@ emails to prevent bounces and generic messages
+                pass
                 
                 lead = {
                     "business_name": name,

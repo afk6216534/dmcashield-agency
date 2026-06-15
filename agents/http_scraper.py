@@ -73,8 +73,9 @@ async def _extract_emails_from_url(url: str, client: httpx.AsyncClient) -> List[
         logger.debug(f"Email extraction failed for {url}: {e}")
     
     # Filter junk, generic support/info emails, placeholders, and third-party news/platform corporate domains
-    # NOTE: info@, office@, hello@ are ALLOWED — they're the primary contact for most small businesses
+    # NOTE: info@, office@, hello@ are BLOCKED to target personal business contacts or Gmails
     GENERIC_PREFIXES = {
+        "info", "office", "hello", "welcome", "hi", "hey",
         "support", "contact", "billing", "jobs", "help", "admin", 
         "service", "sales", "team", "inquiry", "inquiries", "noreply", 
         "no-reply", "careers", "hr", "privacy", "feedback", "marketing", "media", 
