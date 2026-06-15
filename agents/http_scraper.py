@@ -51,26 +51,87 @@ def _random_ua():
 
 
 async def _extract_emails_from_url(url: str, client: httpx.AsyncClient) -> List[str]:
-    """Extract email addresses from a website and its contact pages."""
+    """Extract email addresses from a website and its contact/location pages."""
+    if not url:
+        return []
+        
     emails = set()
+    website_domain = ""
+    try:
+        parsed_url = urlparse(url)
+        netloc = parsed_url.netloc or ""
+        if netloc.startswith("www."):
+            netloc = netloc[4:]
+        website_domain = netloc.lower().strip()
+    except Exception:
+        pass
+        
+    pages_to_visit = [url]
+    visited = set()
+    homepage_html = ""
     
     try:
         resp = await client.get(url, follow_redirects=True, timeout=10)
         if resp.status_code == 200:
-            emails.update(EMAIL_REGEX.findall(resp.text))
+            homepage_html = resp.text
+            emails.update(EMAIL_REGEX.findall(homepage_html))
             
-            # Also try common contact pages
-            parsed = urlparse(url)
-            base = f"{parsed.scheme}://{parsed.netloc}"
-            for path in ["/contact", "/contact-us", "/about", "/about-us", "/contactus"]:
-                try:
-                    resp2 = await client.get(base + path, follow_redirects=True, timeout=8)
-                    if resp2.status_code == 200:
-                        emails.update(EMAIL_REGEX.findall(resp2.text))
-                except Exception:
-                    continue
+            # Scan home page for location, contact, and about links
+            if BeautifulSoup:
+                soup = BeautifulSoup(homepage_html, "html.parser")
+                for a in soup.find_all("a", href=True):
+                    href = a.get("href", "").strip()
+                    if not href or href.startswith("#") or href.startswith("javascript:"):
+                        continue
+                    
+                    if href.startswith("/"):
+                        parsed_base = urlparse(url)
+                        href = f"{parsed_base.scheme}://{parsed_base.netloc}{href}"
+                        
+                    try:
+                        parsed_href = urlparse(href)
+                        href_domain = parsed_href.netloc.lower().replace("www.", "")
+                        if href_domain == website_domain:
+                            href_lower = href.lower()
+                            if any(k in href_lower for k in [
+                                "contact", "about", "team", "staff", "meet", "doctor", "dentist", 
+                                "location", "office", "chelsea", "brooklyn", "manhattan", "queens", 
+                                "bronx", "pasadena", "los-angeles", "la", "nyc", "locations", "hours"
+                            ]):
+                                if href not in pages_to_visit:
+                                    pages_to_visit.append(href)
+                    except Exception:
+                        pass
     except Exception as e:
-        logger.debug(f"Email extraction failed for {url}: {e}")
+        logger.debug(f"Email extraction failed for homepage {url}: {e}")
+
+    # Standard fallbacks
+    try:
+        parsed = urlparse(url)
+        base = f"{parsed.scheme}://{parsed.netloc}"
+        for path in ["/contact", "/contact-us", "/about", "/about-us", "/our-team", "/locations"]:
+            std_url = base + path
+            if std_url not in pages_to_visit:
+                pages_to_visit.append(std_url)
+    except Exception:
+        pass
+
+    # Crawl discovered pages
+    pages_to_visit = pages_to_visit[:6]
+    for page_url in pages_to_visit:
+        if page_url in visited:
+            continue
+        visited.add(page_url)
+        
+        if page_url == url and homepage_html:
+            continue
+            
+        try:
+            resp = await client.get(page_url, follow_redirects=True, timeout=8)
+            if resp.status_code == 200:
+                emails.update(EMAIL_REGEX.findall(resp.text))
+        except Exception:
+            continue
     
     # Filter junk, generic support/info emails, placeholders, and third-party news/platform corporate domains
     # NOTE: info@, office@, hello@ are BLOCKED to target personal business contacts or Gmails

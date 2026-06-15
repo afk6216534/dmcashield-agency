@@ -122,8 +122,6 @@ async def _extract_emails_from_website(url: str, client: httpx.AsyncClient) -> L
     if not url:
         return []
     
-
-    
     emails = set()
     website_domain = ""
     
@@ -136,16 +134,84 @@ async def _extract_emails_from_website(url: str, client: httpx.AsyncClient) -> L
     except Exception:
         pass
     
-    pages = [url]
+    # 1. Start with the home page
+    pages_to_visit = [url]
+    visited = set()
+    
+    # 2. Fetch home page using HTTPX to extract potential email addresses and discover sub-links
+    homepage_html = ""
+    try:
+        resp = await client.get(url, follow_redirects=True, timeout=10)
+        if resp.status_code == 200:
+            homepage_html = resp.text
+            # Extract emails from homepage directly
+            found = EMAIL_REGEX.findall(homepage_html)
+            emails.update(found)
+            
+            # Find sub-links on the homepage pointing to Contact, About, Team, Locations, etc.
+            if BeautifulSoup:
+                soup = BeautifulSoup(homepage_html, "html.parser")
+                # Look for mailto links on homepage
+                for a in soup.find_all("a", href=re.compile(r"^mailto:", re.I)):
+                    href = a.get("href", "")
+                    mail = href.replace("mailto:", "").split("?")[0].strip()
+                    if "@" in mail:
+                        emails.add(mail)
+                
+                # Scan internal links
+                for a in soup.find_all("a", href=True):
+                    href = a.get("href", "").strip()
+                    if not href or href.startswith("#") or href.startswith("javascript:"):
+                        continue
+                    
+                    # Normalize relative links
+                    if href.startswith("/"):
+                        parsed_base = urlparse(url)
+                        href = f"{parsed_base.scheme}://{parsed_base.netloc}{href}"
+                    
+                    # Ensure it's the same domain
+                    try:
+                        parsed_href = urlparse(href)
+                        href_domain = parsed_href.netloc.lower().replace("www.", "")
+                        if href_domain == website_domain:
+                            # Prioritize contact, about, location keywords
+                            href_lower = href.lower()
+                            if any(k in href_lower for k in [
+                                "contact", "about", "team", "staff", "meet", "doctor", "dentist", 
+                                "location", "office", "chelsea", "brooklyn", "manhattan", "queens", 
+                                "bronx", "pasadena", "los-angeles", "la", "nyc", "locations", "hours"
+                            ]):
+                                if href not in pages_to_visit:
+                                    pages_to_visit.append(href)
+                    except Exception:
+                        pass
+    except Exception as e:
+        logger.debug(f"Failed to fetch homepage via httpx: {e}")
+
+    # Ensure we have common standard pages in the list too if they weren't found in links
     try:
         parsed = urlparse(url)
         base = f"{parsed.scheme}://{parsed.netloc}"
-        for path in ["/contact", "/contact-us", "/about", "/about-us", "/our-team"]:
-            pages.append(base + path)
+        for path in ["/contact", "/contact-us", "/about", "/about-us", "/our-team", "/locations"]:
+            std_url = base + path
+            if std_url not in pages_to_visit:
+                pages_to_visit.append(std_url)
     except Exception:
         pass
-    
-    for page_url in pages:
+
+    # Limit to visiting top 6 pages to avoid infinite loops
+    pages_to_visit = pages_to_visit[:6]
+
+    # 3. Crawl discovered pages using HTTPX
+    for page_url in pages_to_visit:
+        if page_url in visited:
+            continue
+        visited.add(page_url)
+        
+        # We already fetched homepage in step 2
+        if page_url == url and homepage_html:
+            continue
+            
         try:
             resp = await client.get(page_url, follow_redirects=True, timeout=8)
             if resp.status_code != 200:
@@ -179,14 +245,66 @@ async def _extract_emails_from_website(url: str, client: httpx.AsyncClient) -> L
                                     if em and "@" in em:
                                         emails.add(em.replace("mailto:", ""))
                     except Exception:
-                        continue
+                        pass
         except Exception:
             continue
-    
-    # Filter valid emails
+
+    # Filter generic prefixes out before checking Playwright fallback
+    valid = [e for e in emails if _filter_email(e, website_domain)]
+
+    # 4. PLAYWRIGHT FALLBACK (if local/agent mode and no emails found via HTTPX)
+    # This renders SPAs and client-side loaded emails (like Soul Dental website)
+    if not IS_VERCEL and not valid:
+        try:
+            from playwright.async_api import async_playwright
+            logger.info(f"[CRAWLER] Using Playwright fallback for: {url}")
+            async with async_playwright() as p:
+                browser = await p.chromium.launch(headless=True)
+                # Create context with a real user agent
+                context = await browser.new_context(
+                    user_agent=random.choice(USER_AGENTS),
+                    viewport={"width": 1280, "height": 800}
+                )
+                
+                # We will check the homepage and the top 2 location/contact pages
+                pw_pages = [url]
+                for p_url in pages_to_visit:
+                    if p_url != url and any(k in p_url.lower() for k in ["contact", "location", "chelsea", "about"]):
+                        pw_pages.append(p_url)
+                        if len(pw_pages) >= 3:
+                            break
+                
+                for pw_url in pw_pages:
+                    try:
+                        page = await context.new_page()
+                        # Visit page and wait for network idle to allow JS to load emails
+                        await page.goto(pw_url, wait_until="networkidle", timeout=15000)
+                        html_content = await page.content()
+                        
+                        # Extract emails
+                        found = EMAIL_REGEX.findall(html_content)
+                        emails.update(found)
+                        
+                        # Also check mailto: links in page content
+                        mailto_links = await page.locator('a[href^="mailto:"]').all()
+                        for link in mailto_links:
+                            href = await link.get_attribute("href") or ""
+                            mail = href.replace("mailto:", "").split("?")[0].strip()
+                            if "@" in mail:
+                                emails.add(mail)
+                                
+                        await page.close()
+                    except Exception as e:
+                        logger.debug(f"[CRAWLER] Playwright failed on {pw_url}: {e}")
+                        
+                await browser.close()
+        except Exception as e:
+            logger.debug(f"[CRAWLER] Playwright launcher failed: {e}")
+
+    # Re-evaluate valid emails list
     valid = [e for e in emails if _filter_email(e, website_domain)]
     
-    # Sort: personal names first, then info@/office@/hello@
+    # Sort: personal names first (if we have name-based ones)
     def priority(e):
         username = e.split("@")[0].lower()
         if username in ("info", "office", "hello", "team", "sales"):
