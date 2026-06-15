@@ -676,6 +676,48 @@ def drip_status():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/api/tasks/<task_id>/leads", methods=["GET"])
+def get_task_leads(task_id):
+    """Get all scraped leads for a specific task so user can review before approving."""
+    try:
+        from agents.cloud_db import get_db
+        conn = get_db()
+        rows = conn.execute("""
+            SELECT id, business_name, email_primary, phone, website, city, state, niche,
+                   full_address, current_rating, review_count, negative_review_count,
+                   lead_score, lead_temperature, status, notes, created_at
+            FROM real_leads 
+            WHERE source = ?
+            ORDER BY lead_score DESC
+        """, (f"scrape_{task_id}",)).fetchall()
+        leads = [dict(r) for r in rows]
+        conn.close()
+        
+        with_email = sum(1 for l in leads if l.get("email_primary"))
+        return jsonify({
+            "task_id": task_id,
+            "total": len(leads),
+            "with_email": with_email,
+            "without_email": len(leads) - with_email,
+            "leads": leads
+        })
+    except Exception as e:
+        return jsonify({"task_id": task_id, "total": 0, "leads": [], "error": str(e)}), 500
+
+
+@app.route("/api/tasks/<task_id>/approve", methods=["POST"])
+def approve_task(task_id):
+    """User approves scraped leads -> create funnels + start drip outreach."""
+    try:
+        from agents.real_lead_scraper import approve_and_start_outreach
+        result = approve_and_start_outreach(task_id)
+        if result.get("error"):
+            return jsonify({"error": result["error"]}), 400
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/api/tasks/<task_id>/<action>", methods=["POST"])
 def task_action(task_id, action):
     try:
