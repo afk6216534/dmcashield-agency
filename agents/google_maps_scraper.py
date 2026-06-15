@@ -69,7 +69,10 @@ BLOCKED_PREFIXES = {
 PLACEHOLDER_USERNAMES = {
     "firstname.lastname", "firstname", "lastname", "first.last",
     "yourname", "your-name", "your.name", "username", "user.name",
-    "placeholder", "example", "test", "temp", "email", "mail"
+    "placeholder", "example", "test", "temp", "email", "mail",
+    "john.doe", "jane.doe", "johndoe", "janedoe", "john", "jane",
+    "your-email", "youremail", "your.email", "myname", "my-name", "my.name",
+    "noemail", "no-email", "no.email", "invalid", "unknown"
 }
 
 
@@ -645,6 +648,17 @@ out body {max_results * 2};"""
                 email_tagged = tags.get("email", tags.get("contact:email", ""))
                 phone = tags.get("phone", tags.get("contact:phone", ""))
                 
+                website_domain = ""
+                if website:
+                    try:
+                        parsed_web = urlparse(website)
+                        netloc = parsed_web.netloc or ""
+                        if netloc.startswith("www."):
+                            netloc = netloc[4:]
+                        website_domain = netloc.lower().strip()
+                    except Exception:
+                        pass
+                
                 address_parts = []
                 for key in ["addr:housenumber", "addr:street", "addr:city", "addr:state"]:
                     val = tags.get(key, "")
@@ -652,8 +666,8 @@ out body {max_results * 2};"""
                         address_parts.append(val)
                 full_address = ", ".join(address_parts) if address_parts else ""
                 
-                # Start with tagged email
-                email_primary = email_tagged if email_tagged and "@" in email_tagged else ""
+                # Start with tagged email, making sure to filter out generic support/info addresses
+                email_primary = email_tagged if email_tagged and "@" in email_tagged and _filter_email(email_tagged, website_domain) else ""
                 
                 # If no website, try to find it via Bing search
                 if not website and name:

@@ -148,7 +148,10 @@ async def _extract_emails_from_url(url: str, client: httpx.AsyncClient) -> List[
         "firstname.lastname", "firstname", "lastname", "first.last", "first_last",
         "firstlast", "yourname", "your-name", "your.name", "name.surname",
         "username", "user.name", "user", "placeholder", "example", "test",
-        "temp", "email", "mail", "first.lastname", "firstname.l", "f.lastname"
+        "temp", "email", "mail", "first.lastname", "firstname.l", "f.lastname",
+        "john.doe", "jane.doe", "johndoe", "janedoe", "john", "jane",
+        "your-email", "youremail", "your.email", "myname", "my-name", "my.name",
+        "noemail", "no-email", "no.email", "invalid", "unknown"
     }
 
     PUBLIC_EMAIL_DOMAINS = {
