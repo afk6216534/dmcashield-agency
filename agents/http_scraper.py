@@ -72,14 +72,41 @@ async def _extract_emails_from_url(url: str, client: httpx.AsyncClient) -> List[
     except Exception as e:
         logger.debug(f"Email extraction failed for {url}: {e}")
     
-    # Filter junk and generic support/info emails (often operated by support staff or AI agents)
+    # Filter junk, generic support/info emails, placeholders, and third-party news/platform corporate domains
+    # NOTE: info@, office@, hello@ are ALLOWED — they're the primary contact for most small businesses
     GENERIC_PREFIXES = {
-        "support", "contact", "info", "billing", "jobs", "help", "office", "admin", 
-        "service", "sales", "hello", "team", "inquiry", "inquiries", "noreply", 
+        "support", "contact", "billing", "jobs", "help", "admin", 
+        "service", "sales", "team", "inquiry", "inquiries", "noreply", 
         "no-reply", "careers", "hr", "privacy", "feedback", "marketing", "media", 
         "press", "webmaster", "customer", "customerservice", "client", "clients", 
         "status", "alert", "alerts", "notification", "notifications", "donotreply"
     }
+    
+    PLACEHOLDER_USERNAMES = {
+        "firstname.lastname", "firstname", "lastname", "first.last", "first_last",
+        "firstlast", "yourname", "your-name", "your.name", "name.surname",
+        "username", "user.name", "user", "placeholder", "example", "test",
+        "temp", "email", "mail", "first.lastname", "firstname.l", "f.lastname"
+    }
+
+    PUBLIC_EMAIL_DOMAINS = {
+        "gmail.com", "yahoo.com", "outlook.com", "hotmail.com", "aol.com", 
+        "icloud.com", "proton.me", "protonmail.com", "mail.com", "zoho.com",
+        "ymail.com", "live.com", "msn.com", "gmx.com", "comcast.net", 
+        "sbcglobal.net", "bellsouth.net", "verizon.net", "cox.net", "charter.net",
+        "att.net", "earthlink.net", "optonline.net", "mac.com", "me.com"
+    }
+
+    # Extract website domain to prevent third-party domain scraping (e.g. newspaper mentions)
+    website_domain = ""
+    try:
+        parsed_url = urlparse(url)
+        netloc = parsed_url.netloc or parsed_url.path
+        if netloc.startswith("www."):
+            netloc = netloc[4:]
+        website_domain = netloc.lower().strip()
+    except Exception:
+        pass
     
     filtered = []
     for e in emails:
@@ -89,13 +116,35 @@ async def _extract_emails_from_url(url: str, client: httpx.AsyncClient) -> List[
         if len(e_lower) >= 60 or e_lower.startswith(".") or e_lower.endswith(".") or ".." in e_lower:
             continue
         
-        # Split email to check prefix
+        # Split email to check prefix and domain
         parts = e_lower.split("@")
         if len(parts) != 2:
             continue
         username, domain = parts
+        username = username.strip()
+        domain = domain.strip()
         
+        # 1. Skip generic support aliases
         if username in GENERIC_PREFIXES:
+            continue
+            
+        # 2. Skip placeholder usernames
+        if username in PLACEHOLDER_USERNAMES or any(p in username for p in ["firstname", "lastname", "yourname", "first.last"]):
+            continue
+            
+        # 3. Skip third-party corporate domains (like latimes.com)
+        is_valid_owner = False
+        if not website_domain:
+            is_valid_owner = True  # Can't verify, keep it
+        elif domain == website_domain:
+            is_valid_owner = True
+        elif domain in PUBLIC_EMAIL_DOMAINS:
+            is_valid_owner = True
+        elif domain.endswith("." + website_domain) or website_domain.endswith("." + domain):
+            is_valid_owner = True
+            
+        if not is_valid_owner:
+            logger.info(f"[SCRAPER] Filtered out third-party/media email: {e} for website {url}")
             continue
             
         filtered.append(e)

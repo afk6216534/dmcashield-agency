@@ -597,6 +597,11 @@ def create_task():
         return jsonify({"error": "business_type and city are required"}), 400
 
     try:
+        max_results = min(int(data.get("max_results", 100)), 300)
+    except Exception:
+        max_results = 100
+
+    try:
         # Run FULL real-world pipeline: scrape → validate → funnel → send → track → sales
         pipeline_result = run_scraper_pipeline(
             task_id=task_id,
@@ -604,7 +609,7 @@ def create_task():
             city=city,
             state=state,
             country=country,
-            max_results=20
+            max_results=max_results
         )
 
         new_task = {
@@ -7108,12 +7113,10 @@ def scrape_businesses():
         "max_results": 20
     }
     """
-    data = request.json or {}
-    business_type = data.get("business_type", "")
-    city = data.get("city", "")
-    state = data.get("state", "")
-    country = data.get("country", "USA")
-    max_results = min(data.get("max_results", 20), 50)
+    try:
+        max_results = min(int(data.get("max_results", 100)), 300)
+    except Exception:
+        max_results = 100
 
     if not business_type or not city:
         return jsonify({"error": "business_type and city are required"}), 400

@@ -303,6 +303,48 @@ async def delete_task(task_id: str):
     conn.close()
     return {"deleted": task_id}
 
+@app.post("/api/tasks/{task_id}/approve")
+async def approve_task(task_id: str):
+    """User approves scraped leads → create funnels + start drip outreach."""
+    try:
+        from agents.real_lead_scraper import approve_and_start_outreach
+        result = approve_and_start_outreach(task_id)
+        if result.get("error"):
+            raise HTTPException(status_code=400, detail=result["error"])
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/tasks/{task_id}/leads")
+async def get_task_leads(task_id: str):
+    """Get all scraped leads for a specific task so user can review before approving."""
+    try:
+        from agents.cloud_db import get_db
+        conn = get_db()
+        rows = conn.execute("""
+            SELECT id, business_name, email_primary, phone, website, city, state, niche,
+                   full_address, current_rating, review_count, negative_review_count,
+                   lead_score, lead_temperature, status, notes, created_at
+            FROM real_leads 
+            WHERE source = ?
+            ORDER BY lead_score DESC
+        """, (f"scrape_{task_id}",)).fetchall()
+        leads = [dict(r) for r in rows]
+        conn.close()
+        
+        with_email = sum(1 for l in leads if l.get("email_primary"))
+        return {
+            "task_id": task_id,
+            "total": len(leads),
+            "with_email": with_email,
+            "without_email": len(leads) - with_email,
+            "leads": leads
+        }
+    except Exception as e:
+        return {"task_id": task_id, "total": 0, "leads": [], "error": str(e)}
+
 # =============================
 # ACCOUNTS
 # =============================

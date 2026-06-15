@@ -273,45 +273,75 @@ def send_drip_batch() -> Dict:
         results["message"] = "No leads ready for next email. All caught up!"
         return results
     
-    # Open single SMTP connection by trying accounts in pool
-    server = None
-    connected_credentials = None
-    for credentials in all_credentials:
-        try:
-            server = smtplib.SMTP("smtp.gmail.com", 587, timeout=15)
-            server.starttls()
-            server.login(credentials["email"], credentials["password"])
-            connected_credentials = credentials
-            break
-        except Exception as smtp_err:
-            logger.warning(f"[DRIP] SMTP login failed for {credentials['email']}: {smtp_err}")
-            # Mark account as failing in database
+    def connect_smtp(credentials_list) -> tuple:
+        """Try connecting to one of the credentials in credentials_list."""
+        for creds in credentials_list:
             try:
-                conn_err = get_db()
-                conn_err.execute(
-                    "UPDATE email_accounts SET status = 'auth_failed', health_score = MAX(health_score - 10, 0) WHERE email_address = ?",
-                    (credentials["email"],)
-                )
-                conn_err.commit()
-                conn_err.close()
-                from agents.cloud_db import save_all_accounts_to_cloud
-                save_all_accounts_to_cloud()
-            except Exception:
-                pass
-            server = None
-            
-    if not server or not connected_credentials:
+                srv = smtplib.SMTP("smtp.gmail.com", 587, timeout=15)
+                srv.starttls()
+                srv.login(creds["email"], creds["password"])
+                return srv, creds
+            except Exception as smtp_err:
+                logger.warning(f"[DRIP] SMTP login failed for {creds['email']}: {smtp_err}")
+                # Mark account as failing in database
+                try:
+                    conn_err = get_db()
+                    conn_err.execute(
+                        "UPDATE email_accounts SET status = 'auth_failed', health_score = MAX(health_score - 10, 0) WHERE email_address = ?",
+                        (creds["email"],)
+                    )
+                    conn_err.commit()
+                    conn_err.close()
+                    from agents.cloud_db import save_all_accounts_to_cloud
+                    save_all_accounts_to_cloud()
+                except Exception:
+                    pass
+        return None, None
+
+    server, credentials = connect_smtp(all_credentials)
+    if not server or not credentials:
         conn.close()
         results["error"] = "All configured SMTP accounts failed to authenticate."
         return results
         
-    credentials = connected_credentials
     sender_name = credentials.get("display_name", "DMCAShield Team")
     
     try:
-        
         for i, lead in enumerate(leads_to_send):
             try:
+                # Ensure SMTP connection is active
+                is_active = False
+                if server:
+                    try:
+                        status, _ = server.noop()
+                        if status == 250:
+                            is_active = True
+                    except Exception:
+                        pass
+                
+                if not is_active:
+                    logger.info("[DRIP] SMTP connection lost/inactive. Reconnecting...")
+                    try:
+                        server.close()
+                    except Exception:
+                        pass
+                    # Try current account first
+                    try:
+                        server = smtplib.SMTP("smtp.gmail.com", 587, timeout=15)
+                        server.starttls()
+                        server.login(credentials["email"], credentials["password"])
+                        is_active = True
+                    except Exception as reconn_err:
+                        logger.warning(f"[DRIP] Reconnection failed for {credentials['email']}: {reconn_err}")
+                        server = None
+                
+                if not is_active:
+                    logger.info("[DRIP] Rotating/falling back to other SMTP accounts...")
+                    server, credentials = connect_smtp(all_credentials)
+                    if not server:
+                        raise Exception("No active SMTP accounts available for sending")
+                    sender_name = credentials.get("display_name", "DMCAShield Team")
+
                 emails_sent = lead.get("emails_sent_count", 0)
                 seq = EMAIL_SEQUENCE.get(emails_sent, EMAIL_SEQUENCE[0])
                 
@@ -417,7 +447,11 @@ def send_drip_batch() -> Dict:
                     "error": str(e)[:80]
                 })
         
-        server.quit()
+        if server:
+            try:
+                server.quit()
+            except Exception:
+                pass
         
     except Exception as e:
         logger.error(f"[DRIP] SMTP connection failed: {e}")

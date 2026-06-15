@@ -524,6 +524,8 @@ body::before {
 .badge-converted { background: rgba(0, 184, 148, 0.15); color: var(--accent-success); }
 .badge-active { background: rgba(0, 184, 148, 0.15); color: var(--accent-success); }
 .badge-paused { background: rgba(253, 203, 110, 0.15); color: var(--accent-warning); }
+.badge-warning { background: rgba(245, 158, 11, 0.18); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); animation: pulseGlow 2s ease-in-out infinite; }
+.badge-completed { background: rgba(16, 185, 129, 0.15); color: #10b981; }
 .badge-error { background: rgba(255, 107, 107, 0.15); color: var(--accent-hot); }
 
 /* ─── JARVIS CHAT BAR ───────────────────────────────── */

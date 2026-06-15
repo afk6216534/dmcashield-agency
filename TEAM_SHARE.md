@@ -24,6 +24,13 @@
 - **Increased Batch Size**: Configured drip sender batch size to `10-20` emails per trigger (instead of 3-5) to meet expected outreach volume.
 - **Vercel Timeout Guard**: Added dynamic Vercel environment detection to compress sleep delays between sends (0.1-0.3s) during serverless execution, preventing background thread cutoffs while keeping the natural 5-15s delay locally.
 
+### v5.7 — SMTP Reconnection, Domain Validation & Flexible Limits
+- **SMTP Connection Recovery**: Added liveness checks and automatic SMTP reconnect/rotation inside `drip_sender.py` to prevent connection drop exceptions during bulk sends.
+- **Concurrent DNS & Domain Validation**: Implemented `ThreadPoolExecutor`-based domain DNS check in `real_lead_scraper.py` and website-to-email domain validation in `http_scraper.py` (filters out media mentions like `@latimes.com`).
+- **Placeholder Filter**: Added automatic username placeholder exclusion (e.g. `firstname.lastname@`) to ensure only real contacts are scraped and emailed.
+- **Dynamic Leads Target**: Wired up "Leads Target" from frontend pages (`LaunchTask.jsx`, `QuickLaunch.jsx`) to backend `main.py` task API, enabling dynamic campaign targets up to 300 leads (defaulting to 100).
+
+
 ---
 
 ## 📊 System Status
