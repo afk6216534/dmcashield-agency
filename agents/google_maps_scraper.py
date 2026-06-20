@@ -63,7 +63,10 @@ BLOCKED_PREFIXES = {
     "service", "noreply", "no-reply", "careers", "hr", "privacy",
     "feedback", "webmaster", "donotreply", "unsubscribe", "newsletter",
     "notifications", "alerts", "system", "postmaster", "mailer-daemon",
-    "abuse", "security", "compliance"
+    "abuse", "security", "compliance", "general", "reception", "marketing",
+    "customerservice", "customer.service", "customercare", "customer.care",
+    "enquiry", "enquiries", "mail", "email", "frontdesk", "front.desk",
+    "reservations", "booking", "bookings", "orders", "dispatch",
 }
 
 PLACEHOLDER_USERNAMES = {
@@ -307,13 +310,8 @@ async def _extract_emails_from_website(url: str, client: httpx.AsyncClient) -> L
     # Re-evaluate valid emails list
     valid = [e for e in emails if _filter_email(e, website_domain)]
     
-    # Sort: personal names first (if we have name-based ones)
-    def priority(e):
-        username = e.split("@")[0].lower()
-        if username in ("info", "office", "hello", "team", "sales"):
-            return 1
-        return 0
-    valid.sort(key=priority)
+    # Sort alphabetically — all blocked prefixes already filtered by _filter_email
+    valid.sort()
     
     return valid
 
@@ -377,7 +375,7 @@ async def _scrape_google_maps_playwright(
             # Scroll results panel to load more listings
             results_panel = page.locator('div[role="feed"]')
             if await results_panel.count() > 0:
-                for _ in range(15):  # Scroll 15 times to load ~100 results
+                for _ in range(30):  # Scroll 30 times to load ~200-300 results for max email coverage
                     await results_panel.evaluate("el => el.scrollTop = el.scrollHeight")
                     await asyncio.sleep(1.5)
             
@@ -607,7 +605,7 @@ async def _scrape_overpass_api(
   node["{tag_key}"="{tag_val}"]({south},{west},{north},{east});
   way["{tag_key}"="{tag_val}"]({south},{west},{north},{east});
 );
-out body {max_results * 2};"""
+out body {max_results * 5};"""
     
     logger.info(f"[OVERPASS] Querying: {tag} in {city}, {state} (bbox={south:.2f},{west:.2f},{north:.2f},{east:.2f})")
     

@@ -133,11 +133,15 @@ def run_scraper_pipeline(task_id: str, business_type: str, city: str,
     except Exception:
         pass
     
+    # Over-scrape 3x more businesses since only ~15-20% have discoverable real emails.
+    # We filter to email-only later, so we need a large raw pool to hit the target.
+    raw_scrape_target = max_results * 3
+    
     leads = []
     try:
         from agents.google_maps_scraper import run_google_maps_scraper_sync
-        leads = run_google_maps_scraper_sync(business_type, city, state, country, max_results)
-        logger.info(f"[PIPELINE] Phase 1 SCRAPING: Found {len(leads)} raw leads")
+        leads = run_google_maps_scraper_sync(business_type, city, state, country, raw_scrape_target)
+        logger.info(f"[PIPELINE] Phase 1 SCRAPING: Found {len(leads)} raw leads (target {max_results} with email)")
     except Exception as e:
         logger.error(f"[PIPELINE] Google Maps scraper error: {e}")
     
@@ -145,7 +149,7 @@ def run_scraper_pipeline(task_id: str, business_type: str, city: str,
     if not leads:
         try:
             from agents.http_scraper import run_scraper_sync
-            leads = run_scraper_sync(business_type, city, state, country, max_results)
+            leads = run_scraper_sync(business_type, city, state, country, raw_scrape_target)
             logger.info(f"[PIPELINE] Fallback HTTP scraper: Found {len(leads)} raw leads")
         except Exception:
             pass
@@ -179,10 +183,26 @@ def run_scraper_pipeline(task_id: str, business_type: str, city: str,
     results_list = []
     
     for lead in validated_leads:
+        # Stop once we hit the requested target count
+        if saved_count >= max_results:
+            break
+        
         try:
             # MANDATORY: Skip leads without a valid email — email is required
             email = lead.get("email_primary", "").strip()
             if not email or "@" not in email:
+                continue
+            
+            # BLOCK generic/bot emails — user requires real owner/personal emails
+            email_prefix = email.split("@")[0].lower()
+            BLOCKED_PREFIXES = {
+                "info", "support", "help", "contact", "admin", "office",
+                "hello", "team", "sales", "service", "enquiry", "enquiries",
+                "feedback", "mail", "noreply", "no-reply", "webmaster",
+                "postmaster", "marketing", "billing", "general", "reception",
+                "customerservice", "customer.service", "customercare",
+            }
+            if email_prefix in BLOCKED_PREFIXES:
                 continue
             
             lead_id = f"rl_{uuid.uuid4().hex[:8]}"
