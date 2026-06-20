@@ -180,6 +180,11 @@ def run_scraper_pipeline(task_id: str, business_type: str, city: str,
     
     for lead in validated_leads:
         try:
+            # MANDATORY: Skip leads without a valid email — email is required
+            email = lead.get("email_primary", "").strip()
+            if not email or "@" not in email:
+                continue
+            
             lead_id = f"rl_{uuid.uuid4().hex[:8]}"
             now = datetime.utcnow().isoformat()
             score = calculate_lead_score(lead)
