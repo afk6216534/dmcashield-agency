@@ -701,13 +701,19 @@ def get_task_leads(task_id):
             "frontdesk", "reservations", "booking", "orders", "dispatch",
             "newsletter", "notifications", "alerts", "system",
         }
+        PLACEHOLDERS = {
+            "john.doe", "jane.doe", "johndoe", "janedoe", "john", "jane",
+            "firstname.lastname", "yourname", "your.name", "test", "example",
+            "placeholder", "username", "noemail", "no-email", "invalid", "unknown",
+            "abcd", "abc", "asdf", "qwerty",
+        }
         leads = []
         for r in rows:
             lead = dict(r)
             email = lead.get("email_primary", "").strip()
             if email and "@" in email:
                 prefix = email.split("@")[0].lower()
-                if prefix not in BLOCKED:
+                if prefix not in BLOCKED and prefix not in PLACEHOLDERS:
                     leads.append(lead)
         
         conn.close()
