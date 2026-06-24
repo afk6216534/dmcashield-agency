@@ -690,15 +690,33 @@ def get_task_leads(task_id):
             WHERE source = ?
             ORDER BY lead_score DESC
         """, (f"scrape_{task_id}",)).fetchall()
-        leads = [dict(r) for r in rows]
+        
+        # Filter out blocked generic emails (info@, support@, help@, etc.)
+        BLOCKED = {
+            "info", "support", "help", "contact", "admin", "office",
+            "hello", "team", "sales", "service", "enquiry", "enquiries",
+            "feedback", "mail", "noreply", "no-reply", "webmaster",
+            "postmaster", "marketing", "billing", "general", "reception",
+            "customerservice", "customer.service", "customercare",
+            "frontdesk", "reservations", "booking", "orders", "dispatch",
+            "newsletter", "notifications", "alerts", "system",
+        }
+        leads = []
+        for r in rows:
+            lead = dict(r)
+            email = lead.get("email_primary", "").strip()
+            if email and "@" in email:
+                prefix = email.split("@")[0].lower()
+                if prefix not in BLOCKED:
+                    leads.append(lead)
+        
         conn.close()
         
-        with_email = sum(1 for l in leads if l.get("email_primary"))
         return jsonify({
             "task_id": task_id,
             "total": len(leads),
-            "with_email": with_email,
-            "without_email": len(leads) - with_email,
+            "with_email": len(leads),
+            "without_email": 0,
             "leads": leads
         })
     except Exception as e:

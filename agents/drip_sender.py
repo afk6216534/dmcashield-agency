@@ -227,8 +227,24 @@ def send_drip_batch() -> Dict:
         rows = conn.execute("""
             SELECT * FROM real_leads 
             WHERE status IN ('queued', 'funnel_ready', 'contacted')
+            AND status != 'blocked_generic_email'
             AND email_primary != '' 
             AND email_primary LIKE '%@%'
+            AND email_primary NOT LIKE 'info@%'
+            AND email_primary NOT LIKE 'support@%'
+            AND email_primary NOT LIKE 'help@%'
+            AND email_primary NOT LIKE 'contact@%'
+            AND email_primary NOT LIKE 'admin@%'
+            AND email_primary NOT LIKE 'office@%'
+            AND email_primary NOT LIKE 'hello@%'
+            AND email_primary NOT LIKE 'sales@%'
+            AND email_primary NOT LIKE 'service@%'
+            AND email_primary NOT LIKE 'noreply@%'
+            AND email_primary NOT LIKE 'marketing@%'
+            AND email_primary NOT LIKE 'billing@%'
+            AND email_primary NOT LIKE 'feedback@%'
+            AND email_primary NOT LIKE 'general@%'
+            AND email_primary NOT LIKE 'team@%'
             AND (last_reply IS NULL OR last_reply = '')
             ORDER BY lead_score DESC, created_at ASC
             LIMIT ?
@@ -241,6 +257,30 @@ def send_drip_batch() -> Dict:
                 break
                 
             lead = dict(row)
+            
+            # ── BLOCK generic/bot emails — NEVER send to info@, support@, etc. ──
+            email = lead.get("email_primary", "").strip()
+            if email and "@" in email:
+                prefix = email.split("@")[0].lower()
+                BLOCKED = {
+                    "info", "support", "help", "contact", "admin", "office",
+                    "hello", "team", "sales", "service", "enquiry", "enquiries",
+                    "feedback", "mail", "noreply", "no-reply", "webmaster",
+                    "postmaster", "marketing", "billing", "general", "reception",
+                    "customerservice", "customer.service", "customercare",
+                    "frontdesk", "reservations", "booking", "orders", "dispatch",
+                    "newsletter", "notifications", "alerts", "system",
+                }
+                if prefix in BLOCKED:
+                    results["skipped"] += 1
+                    # Mark this lead as blocked so we don't keep trying
+                    try:
+                        conn.execute("UPDATE real_leads SET status = 'blocked_generic_email' WHERE id = ?", (lead["id"],))
+                        conn.commit()
+                    except Exception:
+                        pass
+                    continue
+            
             funnel_step = lead.get("funnel_step", 0)
             last_sent = lead.get("last_email_sent", "")
             emails_sent = lead.get("emails_sent_count", 0)

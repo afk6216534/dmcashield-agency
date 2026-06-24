@@ -358,7 +358,25 @@ def approve_and_start_outreach(task_id: str) -> Dict:
             FROM real_leads 
             WHERE source = ? AND email_primary != '' AND email_primary IS NOT NULL
         """, (f"scrape_{task_id}",)).fetchall()
-        leads_with_email = [dict(r) for r in leads_rows]
+        
+        # Filter out blocked generic emails (info@, support@, help@, etc.)
+        BLOCKED = {
+            "info", "support", "help", "contact", "admin", "office",
+            "hello", "team", "sales", "service", "enquiry", "enquiries",
+            "feedback", "mail", "noreply", "no-reply", "webmaster",
+            "postmaster", "marketing", "billing", "general", "reception",
+            "customerservice", "customer.service", "customercare",
+            "frontdesk", "reservations", "booking", "orders", "dispatch",
+            "newsletter", "notifications", "alerts", "system",
+        }
+        leads_with_email = []
+        for r in leads_rows:
+            lead = dict(r)
+            email = lead.get("email_primary", "").strip()
+            if email and "@" in email:
+                prefix = email.split("@")[0].lower()
+                if prefix not in BLOCKED:
+                    leads_with_email.append(lead)
     except Exception as e:
         logger.error(f"Error fetching leads: {e}")
         leads_with_email = []
