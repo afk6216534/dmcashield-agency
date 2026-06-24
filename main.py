@@ -376,11 +376,11 @@ def dashboard():
         for r in task_rows:
             task_id = r["id"]
             r_dict = dict(r)
-            emailed_cursor = conn.execute("SELECT COUNT(*) FROM real_leads WHERE source = ? AND emails_sent_count > 0", (f"scrape_{task_id}",))
+            emailed_cursor = conn.execute("SELECT COUNT(*) FROM real_leads WHERE source = ? AND emails_sent_count > 0 AND status != 'blocked_generic_email'", (f"scrape_{task_id}",))
             emailed_count = emailed_cursor.fetchone()[0]
-            total_cursor = conn.execute("SELECT COUNT(*) FROM real_leads WHERE source = ?", (f"scrape_{task_id}",))
+            total_cursor = conn.execute("SELECT COUNT(*) FROM real_leads WHERE source = ? AND status != 'blocked_generic_email'", (f"scrape_{task_id}",))
             total_from_db = total_cursor.fetchone()[0]
-            funnel_cursor = conn.execute("SELECT COUNT(*) FROM real_leads WHERE source = ? AND funnel_step > 0", (f"scrape_{task_id}",))
+            funnel_cursor = conn.execute("SELECT COUNT(*) FROM real_leads WHERE source = ? AND funnel_step > 0 AND status != 'blocked_generic_email'", (f"scrape_{task_id}",))
             funnel_count = funnel_cursor.fetchone()[0]
             
             status_val = r_dict.get("status", "complete")
@@ -390,9 +390,9 @@ def dashboard():
                 "city": r_dict.get("city", ""),
                 "state": r_dict.get("state", ""),
                 "status": status_val,
-                "leads_total": max(r_dict.get("leads_found", 0), total_from_db),
-                "leads_emailed": max(r_dict.get("leads_emailed", 0), emailed_count),
-                "leads_hot": cursor.execute("SELECT COUNT(*) FROM real_leads WHERE source = ? AND lead_temperature = 'hot'", (f"scrape_{task_id}",)).fetchone()[0],
+                "leads_total": total_from_db,
+                "leads_emailed": emailed_count,
+                "leads_hot": cursor.execute("SELECT COUNT(*) FROM real_leads WHERE source = ? AND lead_temperature = 'hot' AND status != 'blocked_generic_email'", (f"scrape_{task_id}",)).fetchone()[0],
                 "phase_scraping": "complete",
                 "phase_email_sending": "in_progress" if status_val == "drip_active" else "complete" if status_val == "complete" else "pending",
                 "created_at": r_dict.get("created_at", ""),
@@ -540,13 +540,13 @@ def tasks():
             task_id = r["id"]
             r_dict = dict(r)
             # Count emailed leads from the SQLite db
-            emailed_cursor = conn.execute("SELECT COUNT(*) FROM real_leads WHERE source = ? AND emails_sent_count > 0", (f"scrape_{task_id}",))
+            emailed_cursor = conn.execute("SELECT COUNT(*) FROM real_leads WHERE source = ? AND emails_sent_count > 0 AND status != 'blocked_generic_email'", (f"scrape_{task_id}",))
             emailed_count = emailed_cursor.fetchone()[0]
             # Count total leads from this task
-            total_cursor = conn.execute("SELECT COUNT(*) FROM real_leads WHERE source = ?", (f"scrape_{task_id}",))
+            total_cursor = conn.execute("SELECT COUNT(*) FROM real_leads WHERE source = ? AND status != 'blocked_generic_email'", (f"scrape_{task_id}",))
             total_from_db = total_cursor.fetchone()[0]
             # Count funnel-ready leads
-            funnel_cursor = conn.execute("SELECT COUNT(*) FROM real_leads WHERE source = ? AND funnel_step > 0", (f"scrape_{task_id}",))
+            funnel_cursor = conn.execute("SELECT COUNT(*) FROM real_leads WHERE source = ? AND funnel_step > 0 AND status != 'blocked_generic_email'", (f"scrape_{task_id}",))
             funnel_count = funnel_cursor.fetchone()[0]
             
             status_val = r_dict.get("status", "complete")
@@ -557,10 +557,10 @@ def tasks():
                 "state": r_dict.get("state", ""),
                 "status": status_val,
                 "phase": r_dict.get("phase", "sales"),
-                "leads_total": max(r_dict.get("leads_found", 0), total_from_db),
+                "leads_total": total_from_db,
                 "leads_validated": r_dict.get("leads_validated", 0),
-                "leads_in_funnel": max(r_dict.get("leads_in_funnel", 0), funnel_count),
-                "leads_emailed": max(r_dict.get("leads_emailed", 0), emailed_count),
+                "leads_in_funnel": funnel_count,
+                "leads_emailed": emailed_count,
                 "campaign_id": r_dict.get("campaign_id", ""),
                 "created_at": r_dict.get("created_at", ""),
                 # Phase completion flags for frontend progress bar
